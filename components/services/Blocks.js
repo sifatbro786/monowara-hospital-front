@@ -58,7 +58,7 @@ export function NumberedList({ title, items, lang, id }) {
                             key={i}
                             className="flex items-baseline gap-5 border-b border-ink/10 py-5"
                         >
-                            <span className="w-7 shrink-0 font-display text-sm italic tabular-nums text-teal-700">
+                            <span className="w-7 shrink-0 font-display text-sm tabular-nums text-teal-700">
                                 {digits(String(i + 1).padStart(2, "0"), lang)}
                             </span>
                             <span className="text-[1.05rem] text-ink">{t(x, lang)}</span>
@@ -104,7 +104,7 @@ export function VisitSteps({ settings, dict, lang, context }) {
                     <ol className="grid gap-8 sm:grid-cols-3 lg:col-span-8">
                         {v.steps.map((s, i) => (
                             <li key={i} className="border-t border-paper/20 pt-5">
-                                <span className="font-display text-3xl italic text-teal-300 tabular-nums">
+                                <span className="font-display text-3xl text-teal-300 tabular-nums">
                                     {digits(i + 1, lang)}
                                 </span>
                                 <h3 className="mt-3 text-[1.2rem] text-paper">{s.title}</h3>

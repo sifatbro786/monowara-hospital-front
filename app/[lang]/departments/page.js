@@ -60,7 +60,7 @@ export default async function DepartmentsPage({ params }) {
                                     href={href(lang, `/departments/${x.slug}`)}
                                     className="group grid grid-cols-[2.5rem_1fr_auto] items-baseline gap-x-3 py-6"
                                 >
-                                    <span className="font-display text-sm italic tabular-nums text-teal-700">
+                                    <span className="font-display text-sm tabular-nums text-teal-700">
                                         {digits(String(i + 1).padStart(2, "0"), lang)}
                                     </span>
                                     <span>

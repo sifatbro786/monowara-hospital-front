@@ -81,7 +81,7 @@ export default async function AboutPage({ params }) {
                     <ol className="mt-10 grid gap-8 border-t border-ink/10 pt-8 sm:grid-cols-2 lg:grid-cols-4">
                         {page.pillars.map((p, i) => (
                             <li key={i}>
-                                <span className="font-display text-sm italic tabular-nums text-teal-700">
+                                <span className="font-display text-sm tabular-nums text-teal-700">
                                     {digits(String(i + 1).padStart(2, "0"), lang)}
                                 </span>
                                 <h3 className="mt-3 text-[1.25rem]">{t(p.title, lang)}</h3>

@@ -47,7 +47,7 @@ export function Section({
                     <header className="mb-10 lg:mb-14">
                         <div className="flex items-center gap-4">
                             {number && (
-                                <span className="section-num font-display text-sm italic text-teal-700 tabular-nums">
+                                <span className="section-num font-display text-sm text-teal-700 tabular-nums">
                                     {number}
                                 </span>
                             )}

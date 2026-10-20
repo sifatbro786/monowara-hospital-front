@@ -19,6 +19,10 @@
 - `data/media.js` + `lib/api/media.js` `getMedia()` → `{ [key]: { src, alt, position, overlay } }`. This is the contract for the admin **Media management** page (one row per slot: upload → `/uploads/media/…`, `revalidateTag("media")`).
 - `scripts/fetch-stock-images.mjs` downloads the 11 Unsplash placeholders (sandbox can't reach Unsplash). Own photos processed from Sifat's downloads: 8 `uploads/aesthetic/*` (treatment cards now show), `media/header-bhrpc.webp`, `media/header-mh-aesthetic.webp`, `aesthetic/reception.webp` (shown above the aesthetic desk card).
 - Root-level copies in `public/` (Hydra-fecial-img…, section-bg.webp, bread-2-2.webp, …) are now duplicates and can be deleted.
+- Round 2: `/appointment` now uses PageHeader (`header.appointment`, Unsplash slot, so it shows only after running the fetch script) + numbered visit steps on the left; `/packages/[slug]` (photo by category: maternity→bhrpc, surgical→careers, checkup→packages) and `/careers/[slug]` use photo headers too. Legal pages, 404 and detail pages with their own photo stay plain on purpose.
+- Dev warnings fixed: `[...rest]` catch-all `export const instant = false` (404 needs no instant shell); the theme/loader boot `<script>` goes through `components/layout/BootScript.js` (rendered only in SSR/hydration, so a client re-render, e.g. a 404, no longer creates a `<script>` tag). `/talks` → 308 `/expert-talks`.
+- Footer wordmark: viewBox `-4 -26 1008 196` (Bangla vowel signs were clipped at the top), solid `#1a3639` instead of `paper/6` alpha (overlapping glyphs showed seams).
+- Every display numeral (section numbers, steps, service lists, 404) is now upright, no italic. The italic accent stays only for `<Emphasis>` words.
 
 ## Phase 4 — Packages, booking & content pages (2026-10-21) ✅
 Each step is written to the repo + ticked before the next starts. On resume: continue at the first unticked step.

@@ -77,7 +77,7 @@ export function Centres({ items, dict, lang }) {
                                 className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgb(7_38_41/0.92)_0%,rgb(7_38_41/0.55)_50%,rgb(7_38_41/0.12)_100%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100"
                             />
 
-                            <span className="font-display text-sm italic text-teal-700/80 tabular-nums transition-colors duration-500 group-hover:text-teal-200">
+                            <span className="font-display text-sm text-teal-700/80 tabular-nums transition-colors duration-500 group-hover:text-teal-200">
                                 {digits(String(i + 1).padStart(2, "0"), lang)}
                             </span>
                             <h3 className="text-h3 text-ink transition-colors duration-500 group-hover:text-white">

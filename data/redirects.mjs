@@ -18,6 +18,7 @@ export const legacyRedirects = [
     ["/explore", "/about"],
     ["/management", "/about/management"],
     ["/our-gallery", "/gallery"],
+    ["/talks", "/expert-talks"],
     ["/gallery/:slug", "/gallery"],
     ["/services/:slug", "/about"],
     ["/services", "/about"],

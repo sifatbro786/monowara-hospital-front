@@ -48,7 +48,8 @@ export function Footer({ settings, dict, lang }) {
     ];
 
     const socials = Object.entries(settings.socials || {}).filter(([k, url]) => url && SOCIALS[k]);
-    const colTitle = "text-xs font-semibold uppercase tracking-[0.14em] text-teal-300 [&:lang(bn)]:normal-case [&:lang(bn)]:tracking-normal [&:lang(bn)]:text-[0.85rem]";
+    const colTitle =
+        "text-xs font-semibold uppercase tracking-[0.14em] text-teal-300 [&:lang(bn)]:normal-case [&:lang(bn)]:tracking-normal [&:lang(bn)]:text-[0.85rem]";
 
     return (
         <footer className="bg-ink text-paper">
@@ -95,7 +96,10 @@ export function Footer({ settings, dict, lang }) {
                             <ul className="mt-4 space-y-2.5">
                                 {c.links.map(([label, p]) => (
                                     <li key={p}>
-                                        <Link href={L(p)} className="text-[0.95rem] text-paper/80 hover:text-paper link-underline">
+                                        <Link
+                                            href={L(p)}
+                                            className="text-[0.95rem] text-paper/80 hover:text-paper link-underline"
+                                        >
                                             {label}
                                         </Link>
                                     </li>
@@ -106,27 +110,39 @@ export function Footer({ settings, dict, lang }) {
 
                     <div className="lg:col-span-4">
                         <p className={colTitle}>{f.contact}</p>
-                        <a href={telHref(settings.hotline)} className="mt-4 block font-display text-[2rem] leading-tight tabular-nums hover:text-teal-200">
+                        <a
+                            href={telHref(settings.hotline)}
+                            className="mt-4 block font-display text-[2rem] leading-tight tabular-nums hover:text-teal-200"
+                        >
                             {show(settings.hotline)}
                         </a>
                         <p className="mt-1 text-sm text-paper/60">{f.open247}</p>
                         <ul className="mt-5 grid gap-1.5 text-[0.95rem] text-paper/80">
                             <li>
                                 <span className="text-[#ff8a7a]">{n.emergency}:</span>{" "}
-                                <a href={telHref(settings.emergency)} className="tabular-nums hover:text-paper">
+                                <a
+                                    href={telHref(settings.emergency)}
+                                    className="tabular-nums hover:text-paper"
+                                >
                                     {show(settings.emergency)}
                                 </a>
                             </li>
                             {settings.phones.map((p) => (
                                 <li key={p.number}>
-                                    <a href={telHref(p.number)} className="tabular-nums hover:text-paper">
+                                    <a
+                                        href={telHref(p.number)}
+                                        className="tabular-nums hover:text-paper"
+                                    >
                                         {show(p.number)}
                                     </a>
                                 </li>
                             ))}
                             {settings.email && (
                                 <li>
-                                    <a href={`mailto:${settings.email}`} className="hover:text-paper link-underline">
+                                    <a
+                                        href={`mailto:${settings.email}`}
+                                        className="hover:text-paper link-underline"
+                                    >
                                         {settings.email}
                                     </a>
                                 </li>
@@ -137,7 +153,11 @@ export function Footer({ settings, dict, lang }) {
 
                 {/* Bangla wordmark as a graphic: an SVG scaled to the container, so it is
                     always fully visible at any width (never wider than the page). */}
-                <svg viewBox="0 0 1000 150" className="mt-16 block h-auto w-full select-none text-paper/6" aria-hidden>
+                <svg
+                    viewBox="-4 -26 1008 196"
+                    className="mt-16 block h-auto w-full select-none text-[#1a3639]"
+                    aria-hidden
+                >
                     <text
                         x="500"
                         y="118"
@@ -159,7 +179,12 @@ export function Footer({ settings, dict, lang }) {
                         </span>
                         <span className="whitespace-nowrap">
                             {dict.footer2.websiteBy}{" "}
-                            <a href={AGENCY.url} target="_blank" rel="noopener" className="font-medium text-paper/80 hover:text-teal-200 link-underline">
+                            <a
+                                href={AGENCY.url}
+                                target="_blank"
+                                rel="noopener"
+                                className="font-medium text-paper/80 hover:text-teal-200 link-underline"
+                            >
                                 {AGENCY.name}
                             </a>
                         </span>

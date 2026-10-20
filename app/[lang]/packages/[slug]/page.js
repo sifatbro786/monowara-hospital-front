@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Layout";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { getMedia } from "@/lib/api/media";
 import { Icon, WhatsAppMark } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { PageSkeleton } from "@/components/ui/PageSkeleton";
@@ -16,6 +18,13 @@ import { getDepartments } from "@/lib/api/departments";
 import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
 import { whatsappLink } from "@/lib/utils";
+
+// Header photo per package category (media slots; Admin → Media management).
+const PKG_MEDIA = {
+    maternity: "header.bhrpc",
+    surgical: "header.careers",
+    checkup: "header.packages",
+};
 
 export async function generateStaticParams() {
     return (await getPackages()).map((p) => ({ slug: p.slug }));
@@ -34,12 +43,13 @@ export async function generateMetadata({ params }) {
 
 async function PackagePageContent({ params }) {
     const { lang, slug } = await params;
-    const [pkg, dict, settings, all, departments] = await Promise.all([
+    const [pkg, dict, settings, all, departments, media] = await Promise.all([
         getPackageBySlug(slug),
         getDictionary(lang),
         getSettings(),
         getPackages(),
         getDepartments(),
+        getMedia(),
     ]);
     if (!pkg) notFound();
 
@@ -56,37 +66,40 @@ async function PackagePageContent({ params }) {
 
     return (
         <>
-            <header className="border-b border-line bg-paper-2">
-                <Container className="py-10 lg:py-16">
+            <PageHeader
+                eyebrow={
                     <Link
                         href={href(lang, `/packages?category=${pkg.category}`)}
-                        className="eyebrow inline-flex items-center gap-2 hover:text-teal-900"
+                        className="inline-flex items-center gap-2 hover:text-paper"
                     >
                         <Icon name="arrow" size={14} className="rotate-180" />
                         {cat}
                     </Link>
-                    <h1 className="mt-6 max-w-3xl text-h1">{name}</h1>
-                    <p className="mt-4 max-w-2xl text-lg text-ink-2">{t(pkg.summary, lang)}</p>
-                    <div className="mt-8 flex flex-wrap gap-3">
-                        <Button appointment kind="package" context={name} variant="ink" size="lg">
-                            {dict.cta.callForPrice}
+                }
+                title={name}
+                lead={t(pkg.summary, lang)}
+                media={media[PKG_MEDIA[pkg.category] || "header.packages"]}
+                lang={lang}
+            >
+                <div className="mt-8 flex flex-wrap gap-3">
+                    <Button appointment kind="package" context={name} variant="bright" size="lg">
+                        {dict.cta.callForPrice}
+                    </Button>
+                    {wa && (
+                        <Button
+                            href={whatsappLink(
+                                wa.number,
+                                dict.appointment.messagePackage.replace("{name}", name),
+                            )}
+                            variant="light"
+                            size="lg"
+                        >
+                            <WhatsAppMark size={19} className="text-wa" />
+                            WhatsApp
                         </Button>
-                        {wa && (
-                            <Button
-                                href={whatsappLink(
-                                    wa.number,
-                                    dict.appointment.messagePackage.replace("{name}", name),
-                                )}
-                                variant="outline"
-                                size="lg"
-                            >
-                                <WhatsAppMark size={19} className="text-wa" />
-                                WhatsApp
-                            </Button>
-                        )}
-                    </div>
-                </Container>
-            </header>
+                    )}
+                </div>
+            </PageHeader>
 
             <section className="bg-paper py-14 lg:py-20">
                 <Container className="grid gap-10 lg:grid-cols-12 lg:gap-14">

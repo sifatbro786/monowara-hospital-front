@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Layout";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { getMedia } from "@/lib/api/media";
 import { Icon } from "@/components/ui/Icon";
 import { PageSkeleton } from "@/components/ui/PageSkeleton";
 import { ListCard } from "@/components/services/Blocks";
@@ -29,45 +31,49 @@ export async function generateMetadata({ params }) {
 
 async function JobPageContent({ params }) {
     const { lang, slug } = await params;
-    const [job, jobs, dict, settings] = await Promise.all([
+    const [job, jobs, dict, settings, media] = await Promise.all([
         getJobBySlug(slug),
         getJobs(),
         getDictionary(lang),
         getSettings(),
+        getMedia(),
     ]);
     if (!job) notFound();
     const c = dict.careers;
     return (
         <>
-            <header className="border-b border-line bg-paper-2">
-                <Container className="py-12 lg:py-16">
+            <PageHeader
+                eyebrow={
                     <Link
                         href={href(lang, "/careers")}
-                        className="eyebrow inline-flex items-center gap-2 hover:text-teal-900"
+                        className="inline-flex items-center gap-2 hover:text-paper"
                     >
                         <Icon name="arrow" size={14} className="rotate-180" />
                         {c.back}
                     </Link>
-                    <h1 className="mt-6 max-w-3xl text-h1">{t(job.title, lang)}</h1>
-                    <p className="mt-4 max-w-2xl text-lg text-ink-2">{t(job.summary, lang)}</p>
-                    <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-3 text-sm">
+                }
+                title={t(job.title, lang)}
+                lead={t(job.summary, lang)}
+                media={media["header.careers"]}
+                lang={lang}
+            >
+                <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-3 text-sm">
+                    <div>
+                        <dt className="text-paper/60">{c.type}</dt>
+                        <dd className="text-paper">{t(job.type, lang)}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-paper/60">{c.location}</dt>
+                        <dd className="text-paper">{t(job.location, lang)}</dd>
+                    </div>
+                    {job.deadline && (
                         <div>
-                            <dt className="text-ink-3">{c.type}</dt>
-                            <dd className="text-ink">{t(job.type, lang)}</dd>
+                            <dt className="text-paper/60">{c.deadline}</dt>
+                            <dd className="text-paper">{job.deadline}</dd>
                         </div>
-                        <div>
-                            <dt className="text-ink-3">{c.location}</dt>
-                            <dd className="text-ink">{t(job.location, lang)}</dd>
-                        </div>
-                        {job.deadline && (
-                            <div>
-                                <dt className="text-ink-3">{c.deadline}</dt>
-                                <dd className="text-ink">{job.deadline}</dd>
-                            </div>
-                        )}
-                    </dl>
-                </Container>
-            </header>
+                    )}
+                </dl>
+            </PageHeader>
             <Container className="grid gap-10 py-14 lg:grid-cols-12 lg:py-20">
                 <div className="grid content-start gap-5 lg:col-span-5">
                     <ListCard title={c.responsibilities} items={job.responsibilities} lang={lang} />

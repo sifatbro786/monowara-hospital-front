@@ -85,7 +85,7 @@ export default async function NotFound() {
             <div aria-hidden className="relative mx-auto w-full max-w-sm lg:col-span-5">
                 <Keystone className="absolute -top-5 left-1/2 z-10 w-24 -translate-x-1/2" />
                 <div className="relative aspect-4/5 overflow-hidden rounded-t-full border border-line bg-card">
-                    <span className="absolute inset-x-0 top-[34%] text-center font-display text-[clamp(5rem,12vw,8rem)] italic leading-none text-teal-700/90">
+                    <span className="absolute inset-x-0 top-[34%] text-center font-display text-[clamp(5rem,12vw,8rem)] leading-none text-teal-700/90">
                         {digits("404", lang)}
                     </span>
                     <svg

@@ -1,3 +1,4 @@
+import { BootScript } from "@/components/layout/BootScript";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { fontVariables } from "@/lib/fonts";
@@ -27,11 +28,18 @@ export async function generateMetadata({ params }) {
     const dict = await getDictionary(lang);
     return {
         metadataBase: new URL(SITE_URL),
-        title: { default: `${dict.meta.siteName} — ${dict.meta.tagline}`, template: `%s · ${dict.meta.siteName}` },
+        title: {
+            default: `${dict.meta.siteName} — ${dict.meta.tagline}`,
+            template: `%s · ${dict.meta.siteName}`,
+        },
         description: dict.meta.description,
         applicationName: dict.meta.siteName,
         alternates: { languages: { en: href("en", "/"), bn: href("bn", "/"), "x-default": "/" } },
-        openGraph: { siteName: dict.meta.legalName, locale: lang === "bn" ? "bn_BD" : "en_US", type: "website" },
+        openGraph: {
+            siteName: dict.meta.legalName,
+            locale: lang === "bn" ? "bn_BD" : "en_US",
+            type: "website",
+        },
         robots: INDEXABLE ? { index: true, follow: true } : { index: false, follow: false },
         formatDetection: { telephone: false },
     };
@@ -49,12 +57,16 @@ export default async function LangLayout({ children, params }) {
     const { lang } = await params;
     if (!hasLocale(lang)) notFound();
 
-    const [dict, settings, faqs] = await Promise.all([getDictionary(lang), getSettings(), getFaqs()]);
+    const [dict, settings, faqs] = await Promise.all([
+        getDictionary(lang),
+        getSettings(),
+        getFaqs(),
+    ]);
 
     return (
         <html lang={lang} className={fontVariables} suppressHydrationWarning>
             <head>
-                <script dangerouslySetInnerHTML={{ __html: bootScript }} />
+                <BootScript code={bootScript} />
             </head>
             <body className="flex min-h-dvh flex-col antialiased" suppressHydrationWarning>
                 <a
@@ -63,7 +75,11 @@ export default async function LangLayout({ children, params }) {
                 >
                     {dict.nav.skip}
                 </a>
-                <Loader skipLabel={dict.loader.skip} wordBn="মনোয়ারা হসপিটাল" wordEn="Monowara Hospital" />
+                <Loader
+                    skipLabel={dict.loader.skip}
+                    wordBn="মনোয়ারা হসপিটাল"
+                    wordEn="Monowara Hospital"
+                />
                 <AppointmentProvider lang={lang}>
                     <TopBar settings={settings} dict={dict} lang={lang} />
                     <Header settings={settings} dict={dict} lang={lang} />

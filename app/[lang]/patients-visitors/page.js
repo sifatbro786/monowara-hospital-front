@@ -57,7 +57,7 @@ export default async function PatientsVisitorsPage({ params }) {
                                         href={`#${s.id}`}
                                         className="flex gap-3 text-ink-2 hover:text-teal-800"
                                     >
-                                        <span className="w-5 font-display italic tabular-nums text-teal-700">
+                                        <span className="w-5 font-display tabular-nums text-teal-700">
                                             {digits(i + 1, lang)}
                                         </span>
                                         {t(s.heading, lang)}

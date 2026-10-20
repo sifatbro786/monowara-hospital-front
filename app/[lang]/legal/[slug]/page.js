@@ -71,7 +71,7 @@ async function LegalPageContent({ params }) {
                                         href={`#${s.id}`}
                                         className="-ml-px flex gap-3 border-l border-transparent py-1.5 pl-4 text-sm text-ink-2 hover:border-teal-600 hover:text-ink"
                                     >
-                                        <span className="font-display italic text-ink-3 tabular-nums">
+                                        <span className="font-display text-ink-3 tabular-nums">
                                             {digits(String(i + 1).padStart(2, "0"), lang)}
                                         </span>
                                         {t(s.heading, lang)}
@@ -110,7 +110,7 @@ async function LegalPageContent({ params }) {
                             className="scroll-mt-28 border-t border-line py-8 first:border-t-0 first:pt-0"
                         >
                             <h2 className="flex items-baseline gap-4 text-h3">
-                                <span className="font-display text-base italic text-teal-700 tabular-nums">
+                                <span className="font-display text-base text-teal-700 tabular-nums">
                                     {digits(String(i + 1).padStart(2, "0"), lang)}
                                 </span>
                                 {t(s.heading, lang)}
