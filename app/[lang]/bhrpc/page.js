@@ -14,15 +14,19 @@ import { getArticles } from "@/lib/api/content";
 import { ArticleCard } from "@/components/content/ArticleCard";
 import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
+import { pageMeta } from "@/lib/seo/metadata";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { breadcrumbSchema, clinicSchema } from "@/lib/seo/schema";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const [dict, b] = await Promise.all([getDictionary(lang), getBhrpc()]);
-    return {
+    return pageMeta({
+        lang,
+        path: "/bhrpc",
         title: `${b.short} — ${t(b.name, lang)}`,
         description: dict.bhrpc.metaDescription,
-        alternates: { canonical: href(lang, "/bhrpc") },
-    };
+    });
 }
 
 /** BHRPC — high-risk pregnancy programme (old /pregnancy-care). */
@@ -41,6 +45,23 @@ export default async function BhrpcPage({ params }) {
 
     return (
         <>
+            <JsonLd
+                data={[
+                    {
+                        ...clinicSchema({
+                            lang,
+                            path: "/bhrpc",
+                            name: t(b.name, lang),
+                            description: t(b.tagline, lang),
+                            telephone: settings.hotline,
+                        }),
+                        medicalSpecialty: "Obstetric",
+                    },
+                    breadcrumbSchema(lang, dict.nav.home, [
+                        { name: dict.nav.bhrpc, path: "/bhrpc" },
+                    ]),
+                ]}
+            />
             <PageHeader
                 eyebrow={x.eyebrow}
                 title={t(b.name, lang)}

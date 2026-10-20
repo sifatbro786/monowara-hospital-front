@@ -13,6 +13,9 @@ import { getSettings } from "@/lib/api/settings";
 import { getJobs, getJobBySlug } from "@/lib/api/pages";
 import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
+import { pageMeta } from "@/lib/seo/metadata";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 
 export async function generateStaticParams() {
     return (await getJobs()).map((j) => ({ slug: j.slug }));
@@ -22,11 +25,12 @@ export async function generateMetadata({ params }) {
     const { lang, slug } = await params;
     const j = await getJobBySlug(slug);
     if (!j) return {};
-    return {
+    return pageMeta({
+        lang,
+        path: `/careers/${slug}`,
         title: t(j.title, lang),
         description: t(j.summary, lang),
-        alternates: { canonical: href(lang, `/careers/${slug}`) },
-    };
+    });
 }
 
 async function JobPageContent({ params }) {
@@ -42,6 +46,12 @@ async function JobPageContent({ params }) {
     const c = dict.careers;
     return (
         <>
+            <JsonLd
+                data={breadcrumbSchema(lang, dict.nav.home, [
+                    { name: dict.nav.careers, path: "/careers" },
+                    { name: job.title, path: `/careers/${job.slug}` },
+                ])}
+            />
             <PageHeader
                 eyebrow={
                     <Link

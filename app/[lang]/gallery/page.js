@@ -4,17 +4,18 @@ import { getMedia } from "@/lib/api/media";
 import { GalleryGrid } from "@/components/content/GalleryGrid";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getGallery } from "@/lib/api/content";
-import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
+import { pageMeta } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const g = (await getDictionary(lang)).gallery;
-    return {
+    return pageMeta({
+        lang,
+        path: "/gallery",
         title: g.eyebrow,
         description: g.metaDescription,
-        alternates: { canonical: href(lang, "/gallery") },
-    };
+    });
 }
 
 export default async function GalleryPage({ params }) {

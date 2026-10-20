@@ -16,6 +16,9 @@ import { getPackages } from "@/lib/api/packages";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { cn } from "@/lib/utils";
+import { pageMeta } from "@/lib/seo/metadata";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 
 export async function generateStaticParams() {
     return (await getDepartments()).map((d) => ({ slug: d.slug }));
@@ -25,12 +28,13 @@ export async function generateMetadata({ params }) {
     const { lang, slug } = await params;
     const dept = await getDepartmentBySlug(slug);
     if (!dept) return {};
-    return {
+    return pageMeta({
+        lang,
+        path: `/departments/${slug}`,
         title: t(dept.seo?.title, lang) || t(dept.name, lang),
         description: t(dept.seo?.description, lang) || t(dept.summary, lang),
-        alternates: { canonical: href(lang, `/departments/${slug}`) },
-        openGraph: dept.image ? { images: [dept.image] } : undefined,
-    };
+        image: dept.image,
+    });
 }
 
 async function DepartmentPageContent({ params }) {
@@ -53,6 +57,12 @@ async function DepartmentPageContent({ params }) {
 
     return (
         <>
+            <JsonLd
+                data={breadcrumbSchema(lang, dict.nav.home, [
+                    { name: dict.nav.departments, path: "/departments" },
+                    { name: dept.name, path: `/departments/${dept.slug}` },
+                ])}
+            />
             <header className="border-b border-line bg-paper-2">
                 <Container className="grid gap-10 py-10 lg:grid-cols-12 lg:items-end lg:py-16">
                     <div className="lg:col-span-7">

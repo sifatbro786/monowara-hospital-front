@@ -11,16 +11,18 @@ import { getSitePage } from "@/lib/api/pages";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { telHref, formatPhone } from "@/lib/utils";
+import { pageMeta } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const page = await getSitePage("patients-visitors");
     return page
-        ? {
+        ? pageMeta({
+              lang,
+              path: "/patients-visitors",
               title: t(page.title, lang),
               description: t(page.summary, lang),
-              alternates: { canonical: href(lang, "/patients-visitors") },
-          }
+          })
         : {};
 }
 

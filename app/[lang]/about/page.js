@@ -12,16 +12,18 @@ import { getAesthetic } from "@/lib/api/aesthetic";
 import { getMedia } from "@/lib/api/media";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
+import { pageMeta } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const page = await getSitePage("about");
     return page
-        ? {
+        ? pageMeta({
+              lang,
+              path: "/about",
               title: t(page.title, lang),
               description: t(page.summary, lang),
-              alternates: { canonical: href(lang, "/about") },
-          }
+          })
         : {};
 }
 

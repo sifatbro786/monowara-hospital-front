@@ -8,6 +8,19 @@ import { Hero } from "@/components/home/Hero";
 import { QuickPanel } from "@/components/home/QuickPanel";
 import { Centres, Maternity, Packages, VisitUs, CtaBand } from "@/components/home/Sections";
 import { Doctors, Talks } from "@/components/home/People";
+import { pageMeta } from "@/lib/seo/metadata";
+
+export async function generateMetadata({ params }) {
+    const { lang } = await params;
+    const { meta } = await getDictionary(lang);
+    return pageMeta({
+        lang,
+        path: "/",
+        title: `${meta.siteName} — ${meta.tagline}`,
+        absoluteTitle: true,
+        description: meta.description,
+    });
+}
 
 // Homepage — section order follows the client's chosen concept (MH_Website_Concept.pdf).
 export default async function Home({ params }) {

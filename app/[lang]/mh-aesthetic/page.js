@@ -7,19 +7,22 @@ import { Prose } from "@/components/services/Blocks";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getAesthetic } from "@/lib/api/aesthetic";
 import { getMedia } from "@/lib/api/media";
-import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { telHref, whatsappLink, formatPhone } from "@/lib/utils";
+import { pageMeta } from "@/lib/seo/metadata";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { breadcrumbSchema, clinicSchema } from "@/lib/seo/schema";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const [dict, a] = await Promise.all([getDictionary(lang), getAesthetic()]);
-    return {
+    return pageMeta({
+        lang,
+        path: "/mh-aesthetic",
         title: t(a.name, lang),
         description: dict.aesthetic.metaDescription,
-        alternates: { canonical: href(lang, "/mh-aesthetic") },
-        openGraph: a.heroImage ? { images: [a.heroImage] } : undefined,
-    };
+        image: a.heroImage,
+    });
 }
 
 /** MH Aesthetic & Wellness — sub-brand page with its own desk numbers (not the hospital's). */
@@ -34,6 +37,20 @@ export default async function AestheticPage({ params }) {
 
     return (
         <>
+            <JsonLd
+                data={[
+                    clinicSchema({
+                        lang,
+                        path: "/mh-aesthetic",
+                        name,
+                        description: t(a.tagline, lang),
+                        image: a.heroImage,
+                        telephone: a.phone,
+                        email: a.email,
+                    }),
+                    breadcrumbSchema(lang, dict.nav.home, [{ name, path: "/mh-aesthetic" }]),
+                ]}
+            />
             <header className="relative isolate overflow-hidden bg-ink text-paper">
                 {hero && (
                     <Image

@@ -8,17 +8,18 @@ import { LiteYouTube } from "@/components/home/LiteYouTube";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getSettings } from "@/lib/api/settings";
 import { getHomeContent } from "@/lib/api/content";
-import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
+import { pageMeta } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const x = (await getDictionary(lang)).talks;
-    return {
+    return pageMeta({
+        lang,
+        path: "/expert-talks",
         title: x.eyebrow,
         description: x.metaDescription,
-        alternates: { canonical: href(lang, "/expert-talks") },
-    };
+    });
 }
 
 /** Expert talks — click-to-load YouTube (thumbnail only until play). Talks are the same

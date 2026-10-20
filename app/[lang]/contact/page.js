@@ -8,9 +8,9 @@ import { Emphasis } from "@/components/ui/Emphasis";
 import { ContactForm } from "@/components/forms/ContactForm";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getSettings } from "@/lib/api/settings";
-import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { telHref, whatsappLink, formatPhone } from "@/lib/utils";
+import { pageMeta } from "@/lib/seo/metadata";
 
 const SOCIAL = {
     facebook: ["Facebook", FaFacebookF],
@@ -22,11 +22,12 @@ const SOCIAL = {
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const c = (await getDictionary(lang)).contact;
-    return {
+    return pageMeta({
+        lang,
+        path: "/contact",
         title: c.eyebrow,
         description: c.metaDescription,
-        alternates: { canonical: href(lang, "/contact") },
-    };
+    });
 }
 
 export default async function ContactPage({ params }) {

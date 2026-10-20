@@ -13,6 +13,9 @@ import { getArticles, getArticleBySlug } from "@/lib/api/content";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { formatPhone } from "@/lib/utils";
+import { pageMeta } from "@/lib/seo/metadata";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { breadcrumbSchema, HOSPITAL_ID } from "@/lib/seo/schema";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://monowarahospital.com";
 const DATE = { en: "en-GB", bn: "bn-BD" };
@@ -25,12 +28,16 @@ export async function generateMetadata({ params }) {
     const { lang, slug } = await params;
     const a = await getArticleBySlug(slug);
     if (!a) return {};
-    return {
+    return pageMeta({
+        lang,
+        path: `/health-tips/${slug}`,
         title: t(a.title, lang),
         description: t(a.excerpt, lang),
-        alternates: { canonical: href(lang, `/health-tips/${slug}`) },
-        openGraph: { type: "article", images: a.image ? [a.image] : undefined },
-    };
+        image: a.image,
+        type: "article",
+        publishedTime: a.publishedAt,
+        modifiedTime: a.updatedAt,
+    });
 }
 
 async function ArticlePageContent({ params }) {
@@ -60,16 +67,19 @@ async function ArticlePageContent({ params }) {
         dateModified: a.updatedAt?.slice(0, 10),
         url: `${SITE_URL}${href(lang, `/health-tips/${a.slug}`)}`,
         ...(a.image && { image: `${SITE_URL}${a.image}` }),
-        publisher: { "@type": "Hospital", name: settings.legalName.en },
+        publisher: { "@type": "Hospital", "@id": HOSPITAL_ID, name: settings.legalName.en },
     };
 
     return (
         <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{
-                    __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-                }}
+            <JsonLd
+                data={[
+                    jsonLd,
+                    breadcrumbSchema(lang, dict.nav.home, [
+                        { name: dict.nav.healthTips, path: "/health-tips" },
+                        { name: a.title, path: `/health-tips/${a.slug}` },
+                    ]),
+                ]}
             />
             <article>
                 <header className="border-b border-line bg-paper-2">

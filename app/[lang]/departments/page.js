@@ -10,15 +10,17 @@ import { getFacilities, getDiagnostics } from "@/lib/api/services";
 import { getDoctors } from "@/lib/api/doctors";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
+import { pageMeta } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const d = (await getDictionary(lang)).departments;
-    return {
+    return pageMeta({
+        lang,
+        path: "/departments",
         title: d.eyebrow,
         description: d.metaDescription,
-        alternates: { canonical: href(lang, "/departments") },
-    };
+    });
 }
 
 /** Departments index — editorial numbered list (no icon-card grid), then facilities & diagnostics. */

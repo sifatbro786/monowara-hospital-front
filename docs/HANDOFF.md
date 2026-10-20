@@ -10,7 +10,21 @@
 | 2 — Content migration + Homepage | ✅ Done (2026-10-20) — run `node scripts/fetch-wp-images.mjs` once locally |
 | 3 — Doctors & Departments | ✅ Done (2026-10-20) |
 | 4 — Packages, booking & content pages | ✅ Done (2026-10-21) |
-| 5 — Polish, SEO & demo | — |
+| 5 — Polish, SEO & demo | 🟡 In progress — 5.1 done (2026-10-21) |
+
+---
+
+## Phase 5 — Polish, SEO & demo (3 steps)
+Each step is written to the repo + ticked before the next starts. On resume: continue at the first unticked step.
+- [x] **5.1 SEO foundation** (2026-10-21)
+  - `lib/seo/metadata.js` → `pageMeta({ lang, path, title, description, image?, type?, absoluteTitle?, publishedTime?, modifiedTime? })`. Every page's `generateMetadata` now returns it (24 pages + home). **Why:** Next merges metadata *shallowly* — pages that set `alternates: { canonical }` or `openGraph` were wiping the layout's hreflang and `og:siteName/locale`. Now every page emits canonical + `hreflang` en/bn/x-default + full OG (url, siteName, locale + alternateLocale, title, description, images) + `twitter:card`.
+  - OG images: branded 1200×630 JPEG per language `public/og/default-{en,bn}.jpg` (rendered by `scripts/og-card.py` with the site's own fonts + building photo; re-run after logo/photo change). Pages with a photo list it first and the card as fallback. Note: content photos are WebP — fine for Facebook/Google; **B1:** sharp writes a JPEG `og` rendition on upload so WhatsApp previews always show the doctor photo.
+  - `lib/seo/schema.js` + `components/seo/JsonLd.js`: `Hospital` (one `@id` = `${SITE_URL}/#hospital`, phones in E.164, 24/7 hours, socials) in the root layout; `MedicalClinic` with `parentOrganization` on `/mh-aesthetic` and `/bhrpc`; `BreadcrumbList` on doctor, department, facility, diagnostic, package, article, job, legal and management pages. Physician + MedicalWebPage now reference the hospital `@id`. Address is split by hand (⚠ B1: structured address fields in Settings).
+  - `app/sitemap.js` — 288 URLs (144 EN + 144 BN, matches the 4.9 crawl), each with xhtml hreflang alternates, `lastmod` from `updatedAt`, image entries for doctors/departments/facilities/diagnostics/articles. Built from the same `lib/api` services → admin additions appear after cache revalidation. `robots.js` unchanged: `Disallow: /` unless `NEXT_PUBLIC_SITE_ENV=production`, then it advertises the sitemap.
+  - Removed now-unused `href` imports; changed files formatted with Prettier (4 spaces, width 100 — same as the repo).
+  - Verified: `npm run build` ✅, `eslint .` ✅, `next start` + curl on `/`, `/bn`, doctor, BN article, facility, MH Aesthetic: correct canonical/hreflang/OG per language, JSON-LD parses; sitemap XML valid, 288 unique URLs.
+- [ ] **5.2 Quality & performance** — `loading.js` / `error.js` / `global-error.js`, image audit (`sizes`, eager only above the fold; `media/header-appointment.webp` is 630 KB, `header-packages` 263 KB → re-encode), a11y pass (focus order, contrast, form labels, dialog focus return, tap targets), motion polish, `data-wa-tap` → GA4-ready `dataLayer` hook, Lighthouse ≥ 90 mobile on home / doctor / department / packages (EN + BN).
+- [ ] **5.3 BN pass + demo** — Bangla copy proofing (names, dictionaries, data), cross-device QA (390/768/1440 + real Android Chrome), Vercel project + env (`NEXT_PUBLIC_SITE_ENV=demo`, `NEXT_PUBLIC_SITE_URL`), client demo checklist + open-items list → design lock.
 
 ---
 

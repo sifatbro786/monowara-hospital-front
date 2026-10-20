@@ -10,16 +10,17 @@ import { getDoctors } from "@/lib/api/doctors";
 import { getDepartments } from "@/lib/api/departments";
 import { BookingForm, BookingFormFromQuery } from "@/components/booking/BookingForm";
 import { t, digits } from "@/lib/i18n/t";
-import { href } from "@/lib/i18n/config";
+import { pageMeta } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const dict = await getDictionary(lang);
-    return {
+    return pageMeta({
+        lang,
+        path: "/appointment",
         title: dict.appointment.title,
         description: dict.appointment.lead,
-        alternates: { canonical: href(lang, "/appointment") },
-    };
+    });
 }
 
 /**

@@ -15,17 +15,19 @@ import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { WEEK } from "@/lib/utils/schedule";
 import { whatsappLink, cn } from "@/lib/utils";
+import { pageMeta } from "@/lib/seo/metadata";
 
 const PER_PAGE = 24;
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const d = (await getDictionary(lang)).doctors;
-    return {
+    return pageMeta({
+        lang,
+        path: "/doctors",
         title: d.metaTitle,
         description: d.metaDescription,
-        alternates: { canonical: href(lang, "/doctors") },
-    };
+    });
 }
 
 /**

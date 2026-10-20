@@ -8,15 +8,17 @@ import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getJobs } from "@/lib/api/pages";
 import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
+import { pageMeta } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const c = (await getDictionary(lang)).careers;
-    return {
+    return pageMeta({
+        lang,
+        path: "/careers",
         title: c.eyebrow,
         description: c.metaDescription,
-        alternates: { canonical: href(lang, "/careers") },
-    };
+    });
 }
 
 export default async function CareersPage({ params }) {

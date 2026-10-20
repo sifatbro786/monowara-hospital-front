@@ -2,7 +2,7 @@ import { BootScript } from "@/components/layout/BootScript";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { fontVariables } from "@/lib/fonts";
-import { locales, hasLocale, href } from "@/lib/i18n/config";
+import { locales, hasLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getSettings } from "@/lib/api/settings";
 import { getFaqs } from "@/lib/api/content";
@@ -13,8 +13,9 @@ import { FloatingDock } from "@/components/layout/FloatingDock";
 import { Loader } from "@/components/layout/Loader";
 import { AppointmentProvider } from "@/components/booking/AppointmentProvider";
 import { RevealObserver } from "@/components/motion/Reveal";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://monowarahospital.com";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { SITE_URL, defaultOgImage } from "@/lib/seo/metadata";
+import { hospitalSchema } from "@/lib/seo/schema";
 // Only the real production deploy is indexable; Vercel demo / previews are noindex.
 const INDEXABLE = process.env.NEXT_PUBLIC_SITE_ENV === "production";
 
@@ -34,12 +35,14 @@ export async function generateMetadata({ params }) {
         },
         description: dict.meta.description,
         applicationName: dict.meta.siteName,
-        alternates: { languages: { en: href("en", "/"), bn: href("bn", "/"), "x-default": "/" } },
+        // Pages set canonical/hreflang/OG through lib/seo pageMeta(); this is only the fallback.
         openGraph: {
             siteName: dict.meta.legalName,
             locale: lang === "bn" ? "bn_BD" : "en_US",
             type: "website",
+            images: [defaultOgImage(lang)],
         },
+        twitter: { card: "summary_large_image" },
         robots: INDEXABLE ? { index: true, follow: true } : { index: false, follow: false },
         formatDetection: { telephone: false },
     };
@@ -90,6 +93,7 @@ export default async function LangLayout({ children, params }) {
                     <FloatingDock settings={settings} faqs={faqs} dict={dict} lang={lang} />
                 </AppointmentProvider>
                 <RevealObserver />
+                <JsonLd data={hospitalSchema(settings, lang)} />
             </body>
         </html>
     );

@@ -18,6 +18,9 @@ import { getDepartments } from "@/lib/api/departments";
 import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
 import { whatsappLink } from "@/lib/utils";
+import { pageMeta } from "@/lib/seo/metadata";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 
 // Header photo per package category (media slots; Admin → Media management).
 const PKG_MEDIA = {
@@ -34,11 +37,12 @@ export async function generateMetadata({ params }) {
     const { lang, slug } = await params;
     const pkg = await getPackageBySlug(slug);
     if (!pkg) return {};
-    return {
+    return pageMeta({
+        lang,
+        path: `/packages/${slug}`,
         title: t(pkg.name, lang),
         description: t(pkg.summary, lang),
-        alternates: { canonical: href(lang, `/packages/${slug}`) },
-    };
+    });
 }
 
 async function PackagePageContent({ params }) {
@@ -66,6 +70,12 @@ async function PackagePageContent({ params }) {
 
     return (
         <>
+            <JsonLd
+                data={breadcrumbSchema(lang, dict.nav.home, [
+                    { name: dict.nav.packages, path: "/packages" },
+                    { name: pkg.name, path: `/packages/${pkg.slug}` },
+                ])}
+            />
             <PageHeader
                 eyebrow={
                     <Link

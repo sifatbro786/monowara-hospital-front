@@ -5,18 +5,19 @@ import { Emphasis } from "@/components/ui/Emphasis";
 import { ArticleCard } from "@/components/content/ArticleCard";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getArticles } from "@/lib/api/content";
-import { href } from "@/lib/i18n/config";
+import { pageMeta } from "@/lib/seo/metadata";
 
 const CATS = ["pregnancy", "general"];
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const tp = (await getDictionary(lang)).tips;
-    return {
+    return pageMeta({
+        lang,
+        path: "/health-tips",
         title: tp.eyebrow,
         description: tp.metaDescription,
-        alternates: { canonical: href(lang, "/health-tips") },
-    };
+    });
 }
 
 /** Health Tips & News — lead story, then one section per category (anchor chips, no query). */

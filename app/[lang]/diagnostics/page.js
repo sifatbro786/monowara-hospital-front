@@ -9,15 +9,17 @@ import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getDiagnostics } from "@/lib/api/services";
 import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
+import { pageMeta } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const s = (await getDictionary(lang)).services;
-    return {
+    return pageMeta({
+        lang,
+        path: "/diagnostics",
         title: s.diagnosticsEyebrow,
         description: s.metaDiagnostics,
-        alternates: { canonical: href(lang, "/diagnostics") },
-    };
+    });
 }
 
 /** Diagnostics index — information only (no test-report feature, per client). */

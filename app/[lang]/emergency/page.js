@@ -10,15 +10,17 @@ import { getFacilityBySlug } from "@/lib/api/services";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { telHref, formatPhone } from "@/lib/utils";
+import { pageMeta } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const e = (await getDictionary(lang)).emergency;
-    return {
+    return pageMeta({
+        lang,
+        path: "/emergency",
         title: e.eyebrow,
         description: e.metaDescription,
-        alternates: { canonical: href(lang, "/emergency") },
-    };
+    });
 }
 
 /** Emergency — call-first page. The loader never plays here (layout gate script). */

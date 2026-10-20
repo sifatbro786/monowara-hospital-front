@@ -4,17 +4,20 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { getMedia } from "@/lib/api/media";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getManagement } from "@/lib/api/pages";
-import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
+import { pageMeta } from "@/lib/seo/metadata";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const a = (await getDictionary(lang)).about;
-    return {
+    return pageMeta({
+        lang,
+        path: "/about/management",
         title: a.management,
         description: a.managementLead,
-        alternates: { canonical: href(lang, "/about/management") },
-    };
+    });
 }
 
 /** Management — the old site only had placeholders, so this renders an empty state until the
@@ -28,6 +31,12 @@ export default async function ManagementPage({ params }) {
 
     return (
         <>
+            <JsonLd
+                data={breadcrumbSchema(lang, dict.nav.home, [
+                    { name: dict.nav.about, path: "/about" },
+                    { name: dict.nav.management, path: "/about/management" },
+                ])}
+            />
             <PageHeader
                 eyebrow={a.eyebrow}
                 title=<>{a.management}</>

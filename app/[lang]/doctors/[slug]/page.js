@@ -15,6 +15,9 @@ import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
 import { WEEK, formatTime } from "@/lib/utils/schedule";
 import { whatsappLink, cn } from "@/lib/utils";
+import { pageMeta } from "@/lib/seo/metadata";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { breadcrumbSchema, HOSPITAL_ID } from "@/lib/seo/schema";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://monowarahospital.com";
 
@@ -31,12 +34,13 @@ export async function generateMetadata({ params }) {
         (doc.degrees ? s.replace("{degrees}", doc.degrees) : s.replace(/\{degrees\}[.।]\s*/, ""))
             .replace("{name}", t(doc.name, lang))
             .replace("{designation}", t(doc.designation, lang));
-    return {
+    return pageMeta({
+        lang,
+        path: `/doctors/${slug}`,
         title: fill(dict.doctor.metaTitle),
         description: fill(dict.doctor.metaDescription),
-        alternates: { canonical: href(lang, `/doctors/${slug}`) },
-        openGraph: doc.photo ? { images: [doc.photo] } : undefined,
-    };
+        image: doc.photo,
+    });
 }
 
 async function DoctorPageContent({ params }) {
@@ -75,6 +79,7 @@ async function DoctorPageContent({ params }) {
         description: doc.specialty?.en || undefined,
         hospitalAffiliation: {
             "@type": "Hospital",
+            "@id": HOSPITAL_ID,
             name: settings.legalName.en,
             address: settings.address.en,
             telephone: settings.hotline,
@@ -91,12 +96,14 @@ async function DoctorPageContent({ params }) {
 
     return (
         <>
-            <script
-                type="application/ld+json"
-                // JSON-LD only; "<" escaped so data can never close the script tag.
-                dangerouslySetInnerHTML={{
-                    __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-                }}
+            <JsonLd
+                data={[
+                    jsonLd,
+                    breadcrumbSchema(lang, dict.nav.home, [
+                        { name: dict.nav.findDoctor, path: "/doctors" },
+                        { name: doc.name, path: `/doctors/${doc.slug}` },
+                    ]),
+                ]}
             />
             <section className="border-b border-line bg-paper-2">
                 <Container className="py-10 lg:py-16">

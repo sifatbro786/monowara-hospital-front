@@ -9,17 +9,19 @@ import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getPackages } from "@/lib/api/packages";
 import { href } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
+import { pageMeta } from "@/lib/seo/metadata";
 
 const CATEGORIES = ["maternity", "surgical", "checkup"];
 
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const p = (await getDictionary(lang)).packages;
-    return {
+    return pageMeta({
+        lang,
+        path: "/packages",
         title: p.eyebrow,
         description: p.metaDescription,
-        alternates: { canonical: href(lang, "/packages") },
-    };
+    });
 }
 
 /** Packages — header prerendered; the ?category= filter (URL data) renders inside <Suspense>. */

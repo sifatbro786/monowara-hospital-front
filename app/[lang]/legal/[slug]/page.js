@@ -10,6 +10,9 @@ import { getLegalPage, getLegalSlugs } from "@/lib/api/pages";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { telHref, formatPhone } from "@/lib/utils";
+import { pageMeta } from "@/lib/seo/metadata";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 
 export async function generateStaticParams() {
     return (await getLegalSlugs()).map((slug) => ({ slug }));
@@ -19,11 +22,12 @@ export async function generateMetadata({ params }) {
     const { lang, slug } = await params;
     const page = await getLegalPage(slug);
     if (!page) return {};
-    return {
+    return pageMeta({
+        lang,
+        path: `/legal/${slug}`,
         title: t(page.title, lang),
         description: t(page.summary, lang),
-        alternates: { canonical: href(lang, `/legal/${slug}`) },
-    };
+    });
 }
 
 const DATE_FMT = { en: "en-GB", bn: "bn-BD" };
@@ -49,6 +53,11 @@ async function LegalPageContent({ params }) {
 
     return (
         <>
+            <JsonLd
+                data={breadcrumbSchema(lang, dict.nav.home, [
+                    { name: page.title, path: `/legal/${page.slug}` },
+                ])}
+            />
             <header className="border-b border-line bg-paper-2">
                 <Container className="py-14 lg:py-20">
                     <p className="eyebrow">{dict.meta.legalName}</p>
