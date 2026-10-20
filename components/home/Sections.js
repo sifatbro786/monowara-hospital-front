@@ -356,39 +356,72 @@ export function VisitUs({ settings, dict, lang }) {
     );
 }
 
-/* ───────── Closing CTA band ───────── */
+/* ───────── Closing CTA band — every WhatsApp desk listed (proposal §3) ───────── */
 export function CtaBand({ settings, dict, lang }) {
     const h = dict.home;
-    const wa = settings.primaryWhatsapp;
+    const desks = settings.whatsappNumbers;
     return (
         <Container as="section" aria-labelledby="cta-title" className="py-20 lg:py-28">
-            <div className="relative isolate overflow-hidden rounded-4xl bg-teal-900 px-7 py-10 text-paper sm:px-10 lg:flex lg:items-center lg:justify-between lg:gap-10 lg:px-14 lg:py-14">
+            <div className="relative isolate grid gap-10 overflow-hidden rounded-4xl bg-teal-900 px-7 py-10 text-paper sm:px-10 lg:grid-cols-12 lg:items-center lg:gap-14 lg:px-14 lg:py-14">
                 <ContourLines
                     className="absolute -right-20 -top-10 -z-10 h-104 w-176 text-teal-300/[0.14]"
                     count={10}
                 />
-                <div className="max-w-xl">
+                <div className="lg:col-span-6">
                     <h2 id="cta-title" className="text-h2 text-paper">
                         {h.ctaTitle}
                     </h2>
-                    <p className="mt-3 text-paper/75">{h.ctaLead}</p>
-                </div>
-                <div className="mt-8 flex flex-wrap gap-3 lg:mt-0 lg:shrink-0">
-                    {wa && (
-                        <Button
-                            href={whatsappLink(wa.number, dict.appointment.message)}
-                            variant="light"
-                            size="lg"
-                        >
-                            <WhatsAppMark size={20} className="text-wa" />
-                            WhatsApp
-                        </Button>
-                    )}
-                    <Button href={href(lang, "/appointment")} variant="bright" size="lg">
+                    <p className="mt-3 max-w-xl text-paper/75">{h.ctaLead}</p>
+                    <Button
+                        href={href(lang, "/appointment")}
+                        variant="bright"
+                        size="lg"
+                        className="mt-8"
+                    >
                         {h.ctaBook}
                         <Icon name="arrow" size={18} />
                     </Button>
                 </div>
+                {desks.length > 0 && (
+                    <div className="lg:col-span-6">
+                        <p className="text-sm font-medium text-paper/60">{h.desksTitle}</p>
+                        <ul className="mt-3 divide-y divide-paper/15 border-y border-paper/15">
+                            {desks.map((w) => (
+                                <li key={w._id}>
+                                    <a
+                                        href={whatsappLink(w.number, dict.appointment.message)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        data-wa-tap={w._id}
+                                        className="group flex items-center gap-4 py-4 outline-offset-4"
+                                    >
+                                        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-paper text-wa">
+                                            <WhatsAppMark size={21} />
+                                        </span>
+                                        <span className="min-w-0 flex-1">
+                                            <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-paper/70">
+                                                {t(w.label, lang)}
+                                                {w.isPrimary && (
+                                                    <span className="whitespace-nowrap rounded-pill bg-teal-300/20 px-2 py-0.5 text-[0.7rem] font-semibold text-teal-100">
+                                                        {h.desksPrimary}
+                                                    </span>
+                                                )}
+                                            </span>
+                                            <span className="mt-0.5 block font-display text-[1.45rem] leading-tight tabular-nums text-paper">
+                                                {digits(formatPhone(w.number), lang)}
+                                            </span>
+                                        </span>
+                                        <Icon
+                                            name="arrow"
+                                            size={18}
+                                            className="shrink-0 text-paper/50 transition-transform group-hover:translate-x-1 group-hover:text-paper"
+                                        />
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
         </Container>
     );

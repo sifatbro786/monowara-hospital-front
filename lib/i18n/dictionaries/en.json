@@ -157,7 +157,9 @@
         "mapTitle": "Map to Monowara Hospital",
         "ctaTitle": "Need a doctor's serial today?",
         "ctaLead": "Message us on WhatsApp or call — our front desk confirms your slot within minutes during working hours.",
-        "ctaBook": "Book online"
+        "ctaBook": "Book online",
+        "desksTitle": "WhatsApp a desk directly",
+        "desksPrimary": "Main desk"
     },
     "legal": {
         "updated": "Last updated",

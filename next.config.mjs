@@ -1,3 +1,5 @@
+import { legacyRedirects } from "./data/redirects.mjs";
+
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
     { key: "X-Content-Type-Options", value: "nosniff" },
@@ -20,6 +22,14 @@ const nextConfig = {
     },
     async headers() {
         return [{ source: "/:path*", headers: securityHeaders }];
+    },
+    // Old WordPress URLs → new routes (308). Runs before proxy.js, so /bn is unaffected.
+    async redirects() {
+        return legacyRedirects.map(([source, destination]) => ({
+            source,
+            destination,
+            permanent: true,
+        }));
     },
     turbopack: {
         rules: {

@@ -166,15 +166,11 @@
 }
 
 /* ───────────────────────── Motion ─────────────────────────
-   Calm reveals driven by IntersectionObserver (components/motion/Reveal).
+   Calm reveals: IntersectionObserver + Web Animations (components/motion/Reveal).
    No JS → content is visible (only hidden once html.js is set). */
 html.js [data-reveal] {
     opacity: 0;
     transform: translateY(14px);
-    transition:
-        opacity 0.7s var(--ease-calm),
-        transform 0.8s var(--ease-out-expo);
-    transition-delay: var(--reveal-delay, 0ms);
 }
 /* "clip": the element itself stays observable (a fully clipped box never
    intersects); its direct <span> child carries the wipe. */
@@ -186,19 +182,8 @@ html.js [data-reveal="clip"] > span {
     display: block;
     clip-path: inset(0 0 100% 0);
     transform: translateY(0.25em);
-    transition:
-        clip-path 1s var(--ease-out-expo),
-        transform 1s var(--ease-out-expo);
-    transition-delay: var(--reveal-delay, 0ms);
 }
-html.js [data-reveal].is-in {
-    opacity: 1;
-    transform: none;
-}
-html.js [data-reveal="clip"].is-in > span {
-    clip-path: inset(0 0 -0.2em 0);
-    transform: none;
-}
+/* The end state is held by a fill-forwards Web Animation (Reveal.js) — no class toggling. */
 
 @keyframes mh-pop {
     from {

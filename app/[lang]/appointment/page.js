@@ -33,13 +33,6 @@ export default async function AppointmentPage({ params }) {
                     <p className="mt-4 max-w-md font-display text-h2 text-ink">
                         {dict.meta.tagline}
                     </p>
-                    <p
-                        lang="bn"
-                        aria-hidden
-                        className="mt-8 font-bn-display text-[4.5rem] leading-none text-teal-500/15"
-                    >
-                        সেবা
-                    </p>
                 </div>
                 <div className="overflow-hidden rounded-3xl border border-line bg-card lg:col-span-7">
                     {/* static shell renders without context; ?for= fills in on the client */}

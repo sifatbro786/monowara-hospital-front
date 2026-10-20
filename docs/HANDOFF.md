@@ -7,10 +7,39 @@
 | Phase | State |
 |---|---|
 | **1 — Foundation & design system** | ✅ Done (2026-10-20) |
-| 2 — Content migration + Homepage | 🟡 Homepage done (2026-10-20); full WP migration pending |
+| 2 — Content migration + Homepage | ✅ Done (2026-10-20) — run `node scripts/fetch-wp-images.mjs` once locally |
 | 3 — Doctors & Departments | — |
 | 4 — Packages, booking & content pages | — |
 | 5 — Polish, SEO & demo | — |
+
+---
+
+## Phase 2 (part 2) — content migration + WhatsApp desks (2026-10-20)
+
+**Why not the WP REST script:** `/wp-json/wp/v2/types` exposes only post/page/media — the Medilink theme's `medilink_doctor` / `medilink_departments` types are not in REST. Content was read from the old site's sitemaps page by page (the build machine itself can't reach monowarahospital.com). Full log: `data/_migration-report.md`.
+
+**Done**
+- `data/doctors.js` — all **68** old profiles (66 active; `doctor-2`/`doctor-3` are MH Aesthetic stubs → `isActive:false` until confirmed). Same shape as before plus `affiliation{en,bn}`, `scheduleNote{en,bn}` (shown when no fixed timetable), `legacyUrl`. Bangla name/designation/specialty for every doctor (our transliteration). Slugs are clean `dr-<name>` (no titles); 9 existing slugs kept. Schedule typos normalised (am/pm swaps, duplicate rows, a row without a day) — each listed in the report.
+- `data/departments.js` — EN/BN summaries for all 22, `image` → `/uploads/departments/<slug>.webp`, `legacySlugs`.
+- `data/facilities.js`, `data/diagnostics.js` — EN/BN summaries, images, `legacySlugs`.
+- `data/redirects.mjs` + `next.config.mjs redirects()` — **115** permanent redirects from old WP URLs (doctors, specialist pages, facilities filed under `/departments`, wrong-slug pairs from master plan §3, BHRPC articles → `/health-tips`, pages like `/appointment-form`, `/our-doctors`, `/pregnancy-care`, MH Aesthetic treatments). Trailing-slash URLs take 2 hops (Next strips the slash first) — fine for SEO.
+- `scripts/fetch-wp-images.mjs` — downloads 84 photos into `public/uploads/{doctors,departments,facilities}/` (doctors cropped 4:5 → 600×750 WebP via sharp, others ≤1200px WebP). Skips existing files; `--force` re-downloads; failures → `scripts/fetch-wp-images.log`.
+- Homepage `CtaBand` now lists **every active WhatsApp desk** (label, number, "Main desk" tag on the primary) beside the Book button — the proposal §3 "multiple highlighted numbers" band, without adding another section. New dict keys `home.desksTitle`, `home.desksPrimary` (EN + BN).
+
+**Decisions**
+1. Slug fixes over old URLs (e.g. `jannatul-ferdousi` was actually Prof. Rowshan Ara Begum) — the old URL 308s to the new one.
+2. Name conflicts on the old site resolved toward the page heading unless the photo/URL/bio all disagree with it (e.g. Rezaul *Karim*, not *Haque*). All flagged ⚠ CONFIRM in the report.
+3. Non-physicians: physiotherapist and dietitian shown without "Dr."; PhD nutritionist uses ড. (not ডা.) in Bangla.
+4. Old profile phone (+880 1715-839400) is the front desk → not stored per doctor.
+5. Department/facility images are wired in data but not rendered yet (Phase 3 pages), so nothing breaks before the download script runs. Home Centres still use their existing photos.
+
+**Fixes (21:30)**
+- Hydration mismatch on every `[data-reveal]` element (Phase 1 bug): `RevealObserver` (root layout) added `is-in` before streamed page segments hydrated. Now reveals use the Web Animations API (`el.animate`, `fill:"forwards"`) and never write classes/attributes onto server HTML; `.is-in` rules + transitions removed from `globals.css`. Dev check EN/BN: 0 hydration warnings, nothing left hidden after scrolling.
+- `MODULE_TYPELESS_PACKAGE_JSON` warning: `next.config.mjs` loads the redirect map through plain Node → renamed to `data/redirects.mjs`. **Delete the old `data/redirects.js`** (no longer imported).
+
+**Verified**: `npm run build` ✅, `eslint .` ✅. `next start` + curl: `/`, `/bn`, `/bn/appointment` 200; `/doctors/consultant-dr-israt-zebin/` → `/doctors/dr-ishrat-jabeen`, `/departments/gyne-obs-specialist` → `/departments/gynaecology-obstetrics`, `/pregnancy-care` → `/packages?category=maternity` (308). Playwright 1440/390 EN + BN: CTA band OK, no horizontal overflow.
+
+**Pending (client)** — see `data/_migration-report.md`: 5 doctors have no portrait anywhere on the old site (`photo: null`), Bangla name proofreading, 11 profiles with no degrees, 7 without a timetable, 59 BMDC numbers, ⚠ name/photo conflicts (Rezaul Karim/Haque, Gobinda Banik photo filename, Ishaq/Eshaque, Swapan's surname, Munny Momotaz's rank), whether Dr. Ahmed Ali / Dr. Mehzabeen are current MH Aesthetic doctors.
 
 ---
 
@@ -43,7 +72,7 @@ Client picked `MH_Website_Concept.pdf` as the homepage. The page now follows its
 **Revision 3 (Sifat, 20:00): concept-style hero, no stats, fewer teal sections, appointment = page**
 - Hero now follows the concept layout in teal: gradient teal band with a rounded bottom, copy on the left, the building in a rounded 5:4 photo card on the right (`hero/hospital-building-card.webp`, set via `slide.cardMedia`), an offset hairline frame, a "Own building" tag and a floating 24/7 badge. **No stats anywhere** (`data/home.js` keyNumbers are kept for admin but not rendered).
 - Centres and Expert talks are back to light (no full-teal sections apart from the hero). Light tints only: paper / mint / paper-2.
-- **Appointment is now a page, not a modal.** `AppointmentProvider` only turns `[data-appt]` clicks into `router.push('/appointment?for=<name>&kind=package')`. `/appointment` reads `?for`/`?kind` client-side (`AppointmentFromQuery` inside Suspense, so the page stays static) and prefills WhatsApp: doctors use `appointment.messageWith`, packages use `appointment.messagePackage`. The modal (Dialog) is still used by the mobile menu and the dock. ⚠️ The master plan §4.4 said "modal"; Sifat changed this on 2026-10-20 — confirm with the client.
+- **Appointment is now a page, not a modal.** `AppointmentProvider` only turns `[data-appt]` clicks into `router.push('/appointment?for=<name>&kind=package')`. `/appointment` reads `?for`/`?kind` client-side (`AppointmentFromQuery` inside Suspense, so the page stays static) and prefills WhatsApp: doctors use `appointment.messageWith`, packages use `appointment.messagePackage`. The modal (Dialog) is still used by the mobile menu and the dock. ✅ **Client confirmed (2026-10-20): appointment stays a page.** This replaces master plan §4.4 ("modal").
 
 **Revision 4**: Centres cards fade in the centre's photo under a teal gradient on hover/focus (text turns white; falls back to the building photo). Footer Terms link was covered by the fixed dock on desktop → dock container is `pointer-events-none` (buttons re-enabled) and the footer bottom bar has `md:pr-24`.
 
@@ -103,7 +132,10 @@ See `data/_placeholders.md` and master plan §7 — WhatsApp desk labels + prima
 
 Not done in this environment: `git commit` (no shell on the Windows machine from this session — files were written into the repo directly; commit locally).
 
-## Next — Phase 2 remaining
-1. `scripts/migrate-wp.mjs` (run locally — the build container can't reach monowarahospital.com): WP REST `/wp-json/wp/v2/{doctor,departments,pages,media}` → `data/doctors.js`, enrich `departments.js` / `facilities.js` / `diagnostics.js`, download images to `public/uploads/...`, drop junk (`doctor-2`, `doctor-3`), log inconsistencies (schedule conflicts, rezaul-haque/karim) to `data/_migration-report.md`.
-2. ~~doctors/packages services~~ ✅ done — the migration only needs to fill `data/doctors.js` in the same shape.
-3. ~~Full homepage~~ ✅ done. Still open on it: a WhatsApp desks band (proposal §3), patient stories once consent arrives, and BN doctor names.
+## Next — Phase 3 (Doctors & Departments)
+Before starting: Sifat runs `npm install && node scripts/fetch-wp-images.mjs`, checks `public/uploads/doctors/` visually, commits.
+1. `/doctors` directory: server-rendered filters (department, day, name `q`) using `getDoctors()` params (same as the homepage search form), pagination, empty state, `scheduleNote` fallback. Static + client-side refine without breaking no-JS.
+2. `/doctors/[slug]` profile: arch portrait, degrees, affiliation, full weekly timetable (BD week), BMDC when present, Book (Call for Appointment) + WhatsApp with doctor context, related doctors, `Physician` JSON-LD. `generateStaticParams` from `getDoctors()`.
+3. `/departments` index + `/departments/[slug]` (summary, doctors in the department, related facilities/diagnostics); `/facilities/[slug]`, `/diagnostics` index + `[slug]`.
+4. Leave badge (`leave` field) and "Available today" on cards (client-side day check, no hydration mismatch).
+5. Still open from Phase 2: Bangla-slug old URL redirect, patient stories after consent.
