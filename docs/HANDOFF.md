@@ -8,9 +8,67 @@
 |---|---|
 | **1 — Foundation & design system** | ✅ Done (2026-10-20) |
 | 2 — Content migration + Homepage | ✅ Done (2026-10-20) — run `node scripts/fetch-wp-images.mjs` once locally |
-| 3 — Doctors & Departments | — |
-| 4 — Packages, booking & content pages | — |
+| 3 — Doctors & Departments | ✅ Done (2026-10-20) |
+| 4 — Packages, booking & content pages | ✅ Done (2026-10-21) |
 | 5 — Polish, SEO & demo | — |
+
+---
+
+## Post-Phase-4: photo headers + media slots (2026-10-21)
+- `components/ui/PageHeader.js` — inner-page header; with a media slot it is a photo band (image + deep-teal wash strongest behind the copy, bottom fade; falls back to a plain teal band if the file is missing), without one the paper band. Used by doctors, departments, diagnostics, packages, health-tips, gallery, expert-talks, careers, contact, patients-visitors, management, BHRPC; emergency + MH Aesthetic keep their own headers with the same slot images.
+- `data/media.js` + `lib/api/media.js` `getMedia()` → `{ [key]: { src, alt, position, overlay } }`. This is the contract for the admin **Media management** page (one row per slot: upload → `/uploads/media/…`, `revalidateTag("media")`).
+- `scripts/fetch-stock-images.mjs` downloads the 11 Unsplash placeholders (sandbox can't reach Unsplash). Own photos processed from Sifat's downloads: 8 `uploads/aesthetic/*` (treatment cards now show), `media/header-bhrpc.webp`, `media/header-mh-aesthetic.webp`, `aesthetic/reception.webp` (shown above the aesthetic desk card).
+- Root-level copies in `public/` (Hydra-fecial-img…, section-bg.webp, bread-2-2.webp, …) are now duplicates and can be deleted.
+
+## Phase 4 — Packages, booking & content pages (2026-10-21) ✅
+Each step is written to the repo + ticked before the next starts. On resume: continue at the first unticked step.
+- [x] 4.0 Dev errors: "URL data outside `<Suspense>`" on every `[slug]` page (`partialPrefetching` is on) → page body moved into `<XContent>` inside `<Suspense fallback={<PageSkeleton/>}>` (doctors, departments, facilities, diagnostics, legal). `priority` (deprecated in Next 16) → `loading="eager" fetchPriority="high"`; diagnostics index: first 3 images eager (LCP warning).
+- [x] 4.1 Detail content + layout (done: `data/department-content.js` — description, 4–7 services, 4–6 conditions for all 22 departments; `data/service-content.js` — facility description/features/`whenTo`, diagnostic description/tests/timing/preparation; merged into the docs. Old site had only generic copy — kept its facts (pathology 7am–12pm, haemo + peritoneal dialysis), no invented figures. New `components/services/Blocks.js`: `Prose` (serif lede), `ListCard`, `NumberedList`, `VisitSteps` (3-step deep-teal band). Department page: overview + conditions → numbered services → doctors → your visit → packages → chips. Facility/diagnostic page: overview + features/tests (+ timing/prep) → emergency "when to come" band → your visit. ⚠ Client to review all medical copy.)
+- [x] 4.2 MH Aesthetic data (done: `data/aesthetic.js` singleton — about, mission/vision, phone 01329-672808, WhatsApp …807, email, Sat–Fri 10–7, 8 treatments with images, team ids; `lib/api/aesthetic.js` `getAesthetic()` populates the team. Old aesthetic page lists Dr. Ahmed Ali and Dr. Syeda Samina Mahjabin → `doctor-2`/`doctor-3` profiles **activated** (68 active doctors; doctor-3 renamed to `dr-syeda-samina-mahjabin`, redirect updated — CONFIRM). 8 aesthetic photos added to `fetch-wp-images.mjs` (92 total).)
+- [x] 4.3 Packages (done: `/packages` — category chips via `?category=` inside `<Suspense>`, grouped sections, price note; `/packages/[slug]` — description, who it's for, typical stay, inclusions card, Call for Price + WhatsApp, department doctors, related packages; `components/packages/PackageCard.js`; `data/package-content.js` (description/whoFor/typicalStay ⚠ CONFIRM stays); `getPackageBySlug`; dict `packages.*`)
+- [x] 4.4 `/appointment` + `bookingMode` (done: `components/booking/BookingForm.js` — name, BD mobile validation, department → doctor, preferred date (min = today in Dhaka, set after mount), note, honeypot; `?for=` preselects the doctor. Static phase submit = validated WhatsApp hand-off with all fields; B3 swaps it for `POST /api/v1/appointments`. `numbers` (default) = panel only, `both` = panel + form, `form` = form first. Preview: set `bookingMode: "both"` in `data/settings.js`.)
+- [x] 4.5 `/bhrpc` + `/mh-aesthetic` (done: `data/bhrpc.js` + `getBhrpc()` — about, who it's for, services, 7-doctor team from the old page, maternity packages, visit steps; full name ⚠ CONFIRM. `/mh-aesthetic` — dark hero over `hero/mh-aesthetic.webp`, about + mission/vision, aesthetic desk card (own phone/WhatsApp/email/hours), 8 treatment cards with "Ask on WhatsApp" to the aesthetic number, team cards use the aesthetic WhatsApp. BHRPC "topics" links added in 4.7 with the articles.)
+- [x] 4.6 `/about`, `/about/management`, `/patients-visitors`, `/emergency` (done: `data/site-pages.js` — about (story, 4 pillars, mission/vision from the old site; **no stats**) and patients-visitors sections with menu anchors `#visiting-hours` `#admission` `#billing` `#corporate-insurance` `#feedback`, ⚠ CONFIRM flags on hours/payment/insurance; `management = []` → empty state until the hospital sends names (old site had "Mr. ABC" placeholders); `getSitePage`, `getManagement`; emergency page = call-first (big emergency number, hotline, directions, when-to-come from the emergency facility doc, what to bring). New `check` icon.)
+- [x] 4.7 Health tips, gallery, expert talks (done: `data/articles.js` — 6 EN/BN articles: the 4 old BHRPC topics (pregnancy diabetes, high BP, thalassaemia, genetic counselling) + dengue + heart-attack signs, ⚠ medical review, `author: null` until a doctor agrees to a byline; `/health-tips` lead story + category sections, `/health-tips/[slug]` with MedicalWebPage JSON-LD, disclaimer with emergency number, related, BHRPC CTA; old BHRPC URLs now 308 to the matching article. `data/gallery.js` (12 own photos, hospital/diagnostic) + `components/content/GalleryGrid.js` filter + native-dialog lightbox (arrows/Esc). `/expert-talks` uses the homepage talks list with LiteYouTube. BHRPC page now lists the pregnancy articles. `getArticles`, `getArticleBySlug`, `getGallery`.)
+- [x] 4.8 Careers + Contact (done: `data/careers.js` — only the always-open CV bank (no real openings known; no invented jobs), `getJobs`/`getJobBySlug`; `/careers` list, `/careers/[slug]` with `components/forms/ApplyForm.js` — name/phone/email/position, CV PDF/DOC/DOCX ≤5 MB validated in the browser, honeypot; static submit = email fallback (mailto with subject) because files need the backend — B3: multipart POST → multer. `/contact` — every number/desk/email/hours/socials, `ContactForm` (validated → WhatsApp hand-off; B3: POST + Nodemailer), map + directions. Shared `components/forms/Fields.js`.)
+- [x] 4.9 QA (done: crawler from `/` + `/bn` reached 288 internal pages, 0 non-200; Playwright 390/768/1440 on 50 routes (25 × EN/BN): no horizontal overflow, 0 console errors; dev pass: 0 browser errors. Dev-server log noise about `instant` validation came only from images missing in the build sandbox (public/ isn't copied there) — not a code issue.)
+
+
+**New routes** (EN + BN, all static or PPR): `/packages`, `/packages/[slug]`, `/appointment` (+ optional form), `/bhrpc`, `/mh-aesthetic`, `/about`, `/about/management`, `/patients-visitors`, `/emergency`, `/health-tips`, `/health-tips/[slug]`, `/gallery`, `/expert-talks`, `/careers`, `/careers/[slug]`, `/contact`. Every proposal page now exists.
+
+**New data (Mongo-shaped)**: `department-content`, `service-content`, `package-content`, `aesthetic`, `bhrpc`, `site-pages` (+ `management`), `articles`, `gallery`, `careers`. Services: `getAesthetic`, `getBhrpc`, `getPackageBySlug`, `getSitePage`, `getManagement`, `getArticles`, `getArticleBySlug`, `getGallery`, `getJobs`, `getJobBySlug`, `getFacilityBySlug`, `getDiagnosticBySlug`.
+
+**Decisions**
+1. All forms (booking, contact, careers) validate in the browser and degrade without a backend: booking/contact → WhatsApp hand-off with every field; careers → email fallback (files need the API). Each has a honeypot and length limits; B3 replaces the submit with POST + server-side zod, rate limit, Nodemailer, multer.
+2. No invented records: no fake jobs, management names, testimonials or statistics. Empty states instead.
+3. Medical copy is general patient information, written to be safe ("follow the desk's instructions"), and flagged for the hospital's review.
+4. `doctor-2` / `doctor-3` are MH Aesthetic team members per the old aesthetic page → activated (68 doctors).
+5. `[slug]` pages read params inside `<Suspense>` (partialPrefetching); `priority` → `loading="eager"`.
+
+**Pending (client)**: review of all medical copy (departments, facilities, diagnostics, packages, articles); BHRPC full name; aesthetic email/WhatsApp; visiting hours, payment methods, insurance partners; management names/photos/messages; real job openings; package inclusions + typical stays; MH Aesthetic doctor confirmations.
+
+---
+
+## Phase 3 — Doctors & Departments (2026-10-20) ✅
+Work in steps; each step is written to the repo + ticked before the next starts. On resume: read this list, continue at the first unticked step.
+- [x] 3.1 `/doctors` directory (done: `app/[lang]/doctors/page.js`; `getDoctors` q also matches specialty + department name; DoctorCard shows `scheduleNote`; dict `doctors.*`) — filters (department, day, q) via GET query = `getDoctors()` params, results in `<Suspense>` (searchParams = runtime API), pagination, empty state, `scheduleNote` on cards
+- [x] 3.2 `/doctors/[slug]` (done: `app/[lang]/doctors/[slug]/page.js`, 132 static paths, hidden doctors 404, dict `doctor.*`) — profile, full weekly timetable, BMDC, affiliation, Book + WhatsApp, related doctors, Physician JSON-LD, `generateStaticParams`
+- [x] 3.3 `/departments` index + `/departments/[slug]` (done: numbered editorial list + facilities/diagnostics links; detail = summary, doctors, related packages via new `package.departments[]` + `getPackages({department})`, all-departments chip nav; dict `departments.*`)
+- [x] 3.4 `/facilities/[slug]`, `/diagnostics` index + `/diagnostics/[slug]` (done: shared `components/services/ServiceDetail.js` — 24/7 tag, call desk / emergency number for emergency+ambulance, Book, timing/preparation box for diagnostics, sibling chips; `getFacilityBySlug` / `getDiagnosticBySlug`; dict `services.*`)
+- [x] 3.5 Leave badge + "Available today" (done: `components/doctor/DoctorStatus.js`, client-only after mount in Asia/Dhaka time → no hydration mismatch; on cards + profile). QA 390/768/1440: no overflow on 9 new routes; dev hydration warnings 0.
+
+
+**New routes** (all statically generated, EN + BN): `/doctors` (filters in `<Suspense>`), `/doctors/[slug]` (66×2), `/departments`, `/departments/[slug]` (22×2), `/facilities/[slug]` (10×2), `/diagnostics`, `/diagnostics/[slug]` (6×2).
+
+**Decisions**
+1. Directory filters are a plain GET form; only the result list reads `searchParams` (runtime API) inside `<Suspense>`, so the header/shell is prerendered and it works without JS. Inputs whitelisted (department slug, day ∈ WEEK, q ≤ 60 chars, page ≤ 50) — same rules the API validator will use.
+2. Search `q` matches name (EN/BN), degrees, specialty and department name.
+3. "Today / On leave" is computed in the browser (Dhaka time) after mount — static HTML can't know the date, and rendering it on the server would break caching/hydration.
+4. Packages ↔ departments via `package.departments[]` (ids) — the admin will edit this list.
+5. Emergency + ambulance facility pages call the emergency number; others call the hotline + Book.
+6. No `/facilities` index page (master plan §2 lists only `facilities/[slug]`); the departments index lists them.
+
+**Pending**: real department descriptions/services (admin), diagnostic timing + preparation notes (client), facility/department photos after `fetch-wp-images.mjs`, doctor portraits for 5 doctors.
 
 ---
 
@@ -132,10 +190,10 @@ See `data/_placeholders.md` and master plan §7 — WhatsApp desk labels + prima
 
 Not done in this environment: `git commit` (no shell on the Windows machine from this session — files were written into the repo directly; commit locally).
 
-## Next — Phase 3 (Doctors & Departments)
-Before starting: Sifat runs `npm install && node scripts/fetch-wp-images.mjs`, checks `public/uploads/doctors/` visually, commits.
-1. `/doctors` directory: server-rendered filters (department, day, name `q`) using `getDoctors()` params (same as the homepage search form), pagination, empty state, `scheduleNote` fallback. Static + client-side refine without breaking no-JS.
-2. `/doctors/[slug]` profile: arch portrait, degrees, affiliation, full weekly timetable (BD week), BMDC when present, Book (Call for Appointment) + WhatsApp with doctor context, related doctors, `Physician` JSON-LD. `generateStaticParams` from `getDoctors()`.
-3. `/departments` index + `/departments/[slug]` (summary, doctors in the department, related facilities/diagnostics); `/facilities/[slug]`, `/diagnostics` index + `[slug]`.
-4. Leave badge (`leave` field) and "Available today" on cards (client-side day check, no hydration mismatch).
-5. Still open from Phase 2: Bangla-slug old URL redirect, patient stories after consent.
+## Next — Phase 5 (Polish, SEO & demo)
+Before starting: `npm install && node scripts/fetch-wp-images.mjs` (now 92 images incl. aesthetic), check photos, commit.
+1. BN content pass (proof Bangla names/copy with the client's list), metadata + OG image per page (`opengraph-image` for doctors/articles), JSON-LD: Hospital + MedicalClinic (layout), BreadcrumbList on detail pages.
+2. `app/sitemap.js` (all static params, EN + BN alternates), robots stays noindex on Vercel.
+3. `loading.js` / `error.js` states, image audit (sizes, eager only above the fold), Lighthouse ≥ 90 mobile, a11y pass (focus order, contrast, labels, skip link), motion polish.
+4. FAQ chatbot content from the client (dock already works), WhatsApp tap analytics hook (`data-wa-tap`) ready for GA4.
+5. Cross-device QA, Vercel deploy, client demo checklist → design lock.

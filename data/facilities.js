@@ -1,6 +1,8 @@
 // Mock `facilities` collection (services & facilities pages, proposal §5.1).
 // Phase 2: summaries written by us from the old site's facility pages; images from the old
 // facility tiles (run scripts/fetch-wp-images.mjs for the ones marked "download").
+import { facilityContent } from "./service-content.js";
+
 const stamp = "2026-10-20T00:00:00.000Z";
 
 const rows = [
@@ -121,7 +123,9 @@ export const facilities = rows.map((r, i) => ({
     slug: r.slug,
     name: { en: r.name[0], bn: r.name[1] },
     summary: { en: r.summary[0], bn: r.summary[1] },
-    description: { en: "", bn: "" },
+    description: facilityContent[r.slug]?.description ?? { en: "", bn: "" },
+    features: facilityContent[r.slug]?.features ?? [], // [{ en, bn }]
+    whenTo: facilityContent[r.slug]?.whenTo ?? null, // optional "when to come" note
     is24x7: r.is24x7,
     image: r.image ? `/uploads/facilities/${r.image}` : null,
     isActive: true,

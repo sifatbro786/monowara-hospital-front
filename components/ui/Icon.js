@@ -57,6 +57,7 @@ const paths = {
         </>
     ),
     pulse: <path d="M3 12h4l2-5 4 10 2-5h6" />,
+    check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
     clipboard: (
         <>
             <rect x="5" y="4.5" width="14" height="16" rx="2" />

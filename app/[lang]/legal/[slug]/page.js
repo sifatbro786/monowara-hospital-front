@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/PageSkeleton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Layout";
@@ -26,7 +28,7 @@ export async function generateMetadata({ params }) {
 
 const DATE_FMT = { en: "en-GB", bn: "bn-BD" };
 
-export default async function LegalPage({ params }) {
+async function LegalPageContent({ params }) {
     const { lang, slug } = await params;
     const [page, dict, settings, slugs] = await Promise.all([
         getLegalPage(slug),
@@ -146,5 +148,15 @@ export default async function LegalPage({ params }) {
                 </article>
             </Container>
         </>
+    );
+}
+
+// params are URL data → read inside <Suspense> so the shared App Shell stays URL-independent
+// (partialPrefetching). generateStaticParams still prerenders every page in full.
+export default function LegalPage({ params }) {
+    return (
+        <Suspense fallback={<PageSkeleton />}>
+            <LegalPageContent params={params} />
+        </Suspense>
     );
 }

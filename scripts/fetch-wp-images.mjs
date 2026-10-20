@@ -18,6 +18,38 @@ const CONCURRENCY = 4;
 /** [{ src: old URL, dest: path under public/ }] — generated from data/*.js in Phase 2 */
 const MANIFEST = [
     {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/08/WhatsApp-Image-2024-08-28-at-17.55.44_0bf60348.jpg",
+        dest: "/uploads/aesthetic/skin-analyzer.webp",
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/08/Hydra-fecial-img.webp",
+        dest: "/uploads/aesthetic/hydrafacial.webp",
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/08/Laser-img-1.webp",
+        dest: "/uploads/aesthetic/laser.webp",
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/08/prp-img-1.webp",
+        dest: "/uploads/aesthetic/prp.webp",
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/08/filler-jpg.webp",
+        dest: "/uploads/aesthetic/fillers.webp",
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/08/Glutahine-img.webp",
+        dest: "/uploads/aesthetic/glutathione.webp",
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/08/breast-treatment-img.webp",
+        dest: "/uploads/aesthetic/breast-treatment.webp",
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/08/plustic-surgery.webp",
+        dest: "/uploads/aesthetic/plastic-burn-surgery.webp",
+    },
+    {
         src: "https://monowarahospital.com/wp-content/uploads/2024/07/Prof.-Dr.-Nasrin-Akhter.webp",
         dest: "/uploads/doctors/dr-nasrin-akhter.webp",
     },

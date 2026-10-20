@@ -50,7 +50,8 @@ export async function Header({ settings, dict, lang }) {
                         alt={dict.meta.legalName}
                         width={300}
                         height={64}
-                        priority
+                        loading="eager"
+                        fetchPriority="high"
                         className="h-10 w-auto lg:h-11"
                     />
                 </Link>

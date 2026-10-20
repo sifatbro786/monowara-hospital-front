@@ -8,7 +8,7 @@ so the planned REST migration script was dropped; profiles were read page by pag
 ## Result
 | Collection | Migrated | Notes |
 |---|---|---|
-| doctors | **68 profiles → 66 active + 2 hidden** | 9 kept their existing slugs/photos. Bangla name + designation + specialty written for all (our transliteration — **client to proof**). BMDC on 7 profiles only. |
+| doctors | **68 profiles, all active** (doctor-2/-3 activated in Phase 4 — they are MH Aesthetic team members) | 9 kept their existing slugs/photos. Bangla name + designation + specialty written for all (our transliteration — **client to proof**). BMDC on 7 profiles only. |
 | departments | 22 | Old specialist pages had only generic copy → we wrote 1-line EN/BN summaries. Tiles mapped to `/uploads/departments/<slug>.webp`. |
 | facilities | 10 | EN/BN summaries; 6 photos to download. |
 | diagnostics | 6 | EN/BN summaries; 3 photos to download. Ultrasonography has no photo. |

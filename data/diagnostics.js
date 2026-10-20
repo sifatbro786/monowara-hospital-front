@@ -1,5 +1,7 @@
-// Mock `diagnostics` collection (proposal §5.1 — timing + preparation notes filled in Phase 3).
+// Mock `diagnostics` collection (proposal §5.1). Content in data/service-content.js (Phase 4).
 // No test-report feature (client meeting, Oct 2026) — these are information pages only.
+import { diagnosticContent } from "./service-content.js";
+
 const stamp = "2026-10-20T00:00:00.000Z";
 
 const rows = [
@@ -70,8 +72,10 @@ export const diagnostics = rows.map((r, i) => ({
     slug: r.slug,
     name: { en: r.name[0], bn: r.name[1] },
     summary: { en: r.summary[0], bn: r.summary[1] },
-    timing: { en: "", bn: "" },
-    preparation: { en: "", bn: "" },
+    description: diagnosticContent[r.slug]?.description ?? { en: "", bn: "" },
+    tests: diagnosticContent[r.slug]?.tests ?? [], // [{ en, bn }]
+    timing: diagnosticContent[r.slug]?.timing ?? { en: "", bn: "" },
+    preparation: diagnosticContent[r.slug]?.preparation ?? { en: "", bn: "" },
     image: r.image,
     isActive: true,
     order: i + 1,

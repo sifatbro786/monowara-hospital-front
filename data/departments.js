@@ -1,7 +1,9 @@
 // Mock `departments` collection (specialties only — facilities & diagnostics are separate
 // collections). Phase 2: summaries written from the old site's specialist pages (which only
 // had generic copy), images from the old department tiles, `legacySlugs` → 308 redirects.
-// Long-form `description` and `services` are written per department in Phase 3.
+// Long-form description / services / conditions live in data/department-content.js (Phase 4).
+import { departmentContent } from "./department-content.js";
+
 const stamp = "2026-10-20T00:00:00.000Z";
 
 const rows = [
@@ -237,8 +239,9 @@ export const departments = rows.map((r, i) => ({
     slug: r.slug,
     name: { en: r.name[0], bn: r.name[1] },
     summary: { en: r.summary[0], bn: r.summary[1] },
-    description: { en: "", bn: "" },
-    services: [],
+    description: departmentContent[r.slug]?.description ?? { en: "", bn: "" },
+    services: departmentContent[r.slug]?.services ?? [], // [{ en, bn }]
+    conditions: departmentContent[r.slug]?.conditions ?? [], // [{ en, bn }]
     image: r.image ? `/uploads/departments/${r.slug}.webp` : null,
     isFeatured: !!r.isFeatured,
     isActive: true,

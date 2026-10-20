@@ -113,7 +113,7 @@ export function Hero({ slide, settings, dict, lang }) {
                                 src={media.src}
                                 alt={t(media.alt, lang)}
                                 fill
-                                priority
+                                loading="eager"
                                 fetchPriority="high"
                                 quality={85}
                                 sizes="(min-width: 1024px) 38rem, 100vw"
@@ -123,16 +123,6 @@ export function Hero({ slide, settings, dict, lang }) {
                                 <Icon name="pin" size={13} />
                                 {h.heroOwnBuilding}
                             </p>
-                        </div>
-
-                        <div className="absolute -bottom-6 left-4 flex items-center gap-3 rounded-2xl bg-white py-3 pl-3 pr-5 text-ink shadow-[0_20px_40px_-20px_rgb(0_0_0/0.45)] sm:-left-6">
-                            <span className="grid size-10 place-items-center rounded-full bg-emergency-soft text-emergency">
-                                <Icon name="pulse" size={20} />
-                            </span>
-                            <span className="leading-tight">
-                                <span className="block text-sm font-semibold">{h.heroBadge}</span>
-                                <span className="block text-xs text-ink-3">{h.heroBadgeSub}</span>
-                            </span>
                         </div>
                     </figure>
                 )}

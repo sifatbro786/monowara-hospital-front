@@ -36,9 +36,9 @@ export const legacyRedirects = [
         "breast-treatment",
     ].map((s) => [`/departments/${s}`, "/mh-aesthetic"]),
     // ── BHRPC pregnancy articles (Bangla) filed under /departments → Health Tips (master plan §3) ──
-    ["/departments/diabetes", "/health-tips"],
-    ["/departments/thelasemia", "/health-tips"],
-    ["/departments/genetic-counseling", "/health-tips"],
+    ["/departments/diabetes", "/health-tips/pregnancy-diabetes"],
+    ["/departments/thelasemia", "/health-tips/thalassaemia"],
+    ["/departments/genetic-counseling", "/health-tips/genetic-counselling"],
     // ── wrong-slug pairs on the old site (master plan §3) ──
     ["/departments/chest-and-medicine", "/facilities/emergency"], // old "Emergency" menu link
     // ── doctors, departments, facilities, diagnostics ──
@@ -98,7 +98,7 @@ export const legacyRedirects = [
     ["/doctors/humaira-nabi", "/doctors/humayra-nabi"],
     ["/doctors/a-k-m-rezaul-karim", "/doctors/dr-akm-rezaul-karim"],
     ["/doctors/doctor-2", "/doctors/dr-ahmed-ali"],
-    ["/doctors/doctor-3", "/doctors/dr-mehzabeen"],
+    ["/doctors/doctor-3", "/doctors/dr-syeda-samina-mahjabin"],
     ["/departments/gyne-obs-specialist", "/departments/gynaecology-obstetrics"],
     ["/departments/gynecology", "/facilities/dialysis"], // old page was Dialysis
     ["/departments/surgery-specialist", "/departments/general-laparoscopic-surgery"],

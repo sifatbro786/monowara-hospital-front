@@ -67,7 +67,28 @@
         "emergencyNote": "Medical emergency? Don't wait for a serial — call the emergency line now.",
         "message": "Hello Monowara Hospital, I would like to book an appointment",
         "messageWith": "Hello Monowara Hospital, I would like to book an appointment with {name}.",
-        "messagePackage": "Hello Monowara Hospital, I would like to know the price and details of: {name}."
+        "messagePackage": "Hello Monowara Hospital, I would like to know the price and details of: {name}.",
+        "form": {
+            "title": "Or send us a request",
+            "lead": "Fill in a few details and we'll call you back to confirm the serial.",
+            "name": "Your name",
+            "phone": "Mobile number",
+            "department": "Department",
+            "anyDepartment": "Any department",
+            "doctor": "Doctor",
+            "anyDoctor": "Any doctor",
+            "date": "Preferred date",
+            "note": "Anything we should know?",
+            "submit": "Send via WhatsApp",
+            "note2": "The desk replies during working hours.",
+            "errName": "Please enter your name.",
+            "errPhone": "Enter a Bangladeshi mobile number, e.g. 01712345678.",
+            "errDate": "Pick today or a later date.",
+            "waIntro": "Appointment request — Monowara Hospital website",
+            "sentTitle": "Request ready in WhatsApp",
+            "sentLead": "Send the message in WhatsApp and our desk will confirm your serial. If WhatsApp didn't open, call the hotline above.",
+            "again": "Send another request"
+        }
     },
     "dock": {
         "whatsapp": "Chat on WhatsApp",
@@ -174,5 +195,298 @@
         "eyebrow": "Error 404",
         "helpTitle": "Where to next?",
         "emergencyLine": "Emergency, 24/7"
+    },
+    "doctors": {
+        "eyebrow": "Find a doctor",
+        "title": "Our *specialists*",
+        "lead": "{count} consultants across {depts} departments. Filter by department, day or name, then book a serial on the phone or WhatsApp.",
+        "department": "Department",
+        "allDepartments": "All departments",
+        "day": "Day",
+        "anyDay": "Any day",
+        "name": "Doctor's name",
+        "namePlaceholder": "e.g. Nasima, cardiology",
+        "apply": "Show doctors",
+        "clear": "Clear filters",
+        "results": "{count} doctors",
+        "resultsOne": "1 doctor",
+        "emptyTitle": "No doctor matches these filters",
+        "emptyLead": "Try another day or department — or message our desk and we'll find the right specialist for you.",
+        "page": "Page {n} of {total}",
+        "prev": "Previous page",
+        "next": "Next page",
+        "loading": "Loading doctors…",
+        "days": {
+            "sat": "Saturday",
+            "sun": "Sunday",
+            "mon": "Monday",
+            "tue": "Tuesday",
+            "wed": "Wednesday",
+            "thu": "Thursday",
+            "fri": "Friday"
+        },
+        "metaTitle": "Find a doctor",
+        "metaDescription": "Specialist doctors at Monowara Hospital, Siddeshwari, Dhaka — chamber days and times, departments, and appointments by phone or WhatsApp.",
+        "pagination": "Pages"
+    },
+    "doctor": {
+        "back": "All doctors",
+        "department": "Department",
+        "degrees": "Qualifications",
+        "affiliation": "Also at",
+        "bmdc": "BMDC reg.",
+        "chamber": "Chamber schedule",
+        "chamberLead": "Times are for the chamber at Monowara Hospital. Please confirm your serial before coming.",
+        "closed": "No chamber",
+        "byAppointment": "By appointment",
+        "book": "Book a serial",
+        "whatsapp": "WhatsApp the desk",
+        "related": "Other doctors in {dept}",
+        "onLeave": "On leave until {date}",
+        "metaTitle": "{name} — {designation}",
+        "metaDescription": "{name}, {designation} at Monowara Hospital, Siddeshwari, Dhaka. {degrees}. Chamber days and times, and booking by phone or WhatsApp.",
+        "today": "Today"
+    },
+    "departments": {
+        "eyebrow": "Departments",
+        "title": "Specialist *departments*",
+        "lead": "{count} specialties under one roof in Siddeshwari, with chambers seven days a week.",
+        "doctorsCount": "{count} doctors",
+        "doctorsOne": "1 doctor",
+        "facilitiesTitle": "Services & facilities",
+        "diagnosticsTitle": "Diagnostics",
+        "all": "All departments",
+        "doctorsTitle": "Doctors in this department",
+        "noDoctors": "Chamber details for this department are being updated — call the desk for today's specialist.",
+        "packagesTitle": "Related packages",
+        "metaDescription": "Departments at Monowara Hospital, Siddeshwari, Dhaka — find specialists by department and book by phone or WhatsApp.",
+        "overview": "Overview",
+        "conditionsTitle": "Conditions we treat",
+        "servicesTitle": "What we offer"
+    },
+    "services": {
+        "facilitiesEyebrow": "Services & facilities",
+        "diagnosticsEyebrow": "Diagnostics",
+        "diagnosticsTitle": "Tests & *imaging*",
+        "diagnosticsLead": "Lab tests, imaging and heart and gut investigations on site. Ask the desk about timing and preparation before you come.",
+        "open247": "Open 24/7",
+        "timing": "Timing",
+        "preparation": "Before your test",
+        "askDesk": "Call the desk for timing and how to prepare.",
+        "call": "Call the desk",
+        "callEmergency": "Call emergency",
+        "others": "Other services",
+        "metaDiagnostics": "Diagnostics at Monowara Hospital, Siddeshwari, Dhaka — pathology, CT scan, X-ray, ECG, echo, Holter and endoscopy.",
+        "features": "What's here",
+        "tests": "Tests available",
+        "whenTo": "When to come to emergency"
+    },
+    "visit": {
+        "eyebrow": "Your visit",
+        "title": "Seeing a specialist, step by step",
+        "steps": [
+            {
+                "title": "Book a serial",
+                "body": "Call the hotline or message us on WhatsApp with the doctor's name. The desk confirms the day and your serial."
+            },
+            {
+                "title": "Bring your papers",
+                "body": "Arrive 15 minutes early with old prescriptions, reports and X-ray or scan films."
+            },
+            {
+                "title": "Tests in the same building",
+                "body": "Lab, imaging and the pharmacy are on site, so most tests can be done the same day."
+            }
+        ]
+    },
+    "packages": {
+        "eyebrow": "Health packages",
+        "title": "Packages, *explained* before you come",
+        "lead": "Maternity, surgical and check-up packages. Prices change with tests and room choice, so every package is quoted on the phone — the price you hear is always current.",
+        "all": "All",
+        "categories": {
+            "maternity": "Maternity",
+            "surgical": "Surgical",
+            "checkup": "Health check-ups"
+        },
+        "categoryLead": {
+            "maternity": "From antenatal visits to delivery, with the NICU next door.",
+            "surgical": "Fixed packages for common operations in our own theatres.",
+            "checkup": "Simple, doctor-reviewed check-ups for adults."
+        },
+        "includes": "What's included",
+        "includesPending": "The desk will share the full list of inclusions when you call.",
+        "whoFor": "Who it's for",
+        "stay": "Typical stay",
+        "priceNote": "Prices depend on room type and any extra tests. Call or WhatsApp for today's price.",
+        "related": "Other {cat} packages",
+        "doctors": "Doctors for this package",
+        "back": "All packages",
+        "metaDescription": "Maternity, surgical and health check-up packages at Monowara Hospital, Dhaka — call for price."
+    },
+    "bhrpc": {
+        "eyebrow": "Pregnancy care",
+        "whoFor": "Who BHRPC is for",
+        "services": "What the programme includes",
+        "team": "The BHRPC team",
+        "topics": "Read before your visit",
+        "topicsLead": "Short Bangla guides from our obstetric team.",
+        "packages": "Maternity packages",
+        "metaDescription": "High-risk pregnancy care at Monowara Hospital, Dhaka — feto-maternal specialist, planned scans, diabetes and blood-pressure care, NICU in the same building."
+    },
+    "aesthetic": {
+        "eyebrow": "Sub-brand of Monowara Hospital",
+        "contact": "Aesthetic desk",
+        "phone": "Phone",
+        "whatsapp": "WhatsApp",
+        "email": "Email",
+        "hours": "Hours",
+        "location": "Where",
+        "treatments": "Treatments",
+        "treatmentsLead": "Every treatment starts with a doctor's consultation. Prices are shared on the phone.",
+        "enquire": "Ask on WhatsApp",
+        "team": "Our aesthetic team",
+        "mission": "Mission",
+        "vision": "Vision",
+        "enquiry": "Hello MH Aesthetic, I would like to know about: {name}.",
+        "metaDescription": "MH Aesthetic & Wellness Clinic at Monowara Hospital, Dhaka — doctor-led skin analysis, HydraFacial, laser, PRP, fillers and plastic surgery. Sat–Fri 10am–7pm."
+    },
+    "about": {
+        "eyebrow": "About us",
+        "why": "Why families choose us",
+        "mission": "Mission",
+        "vision": "Vision",
+        "units": "Our units",
+        "unitsLead": "Two dedicated units inside the hospital.",
+        "management": "Management",
+        "managementLead": "The people who run Monowara Hospital.",
+        "managementEmpty": "Profiles of the board and management team will be published here soon.",
+        "message": "Message",
+        "meetDoctors": "Meet our doctors",
+        "visit": "Visit us"
+    },
+    "pv": {
+        "eyebrow": "Patients & visitors",
+        "confirm": "Details may change — please confirm with the front desk.",
+        "contents": "On this page",
+        "help": "Need help with anything else?"
+    },
+    "emergency": {
+        "eyebrow": "Emergency · 24/7",
+        "title": "Emergency? Call now.",
+        "lead": "Our emergency unit is open 24 hours, every day. Call ahead if you can — the team will be ready when you arrive.",
+        "ambulance": "Ambulance",
+        "directions": "Directions to the emergency entrance",
+        "bring": "If you can, bring",
+        "bringList": [
+            "The patient's current medicines",
+            "Previous prescriptions and reports",
+            "National ID or birth certificate",
+            "A phone and someone to stay with the patient"
+        ],
+        "notEmergency": "Not an emergency? Book a specialist serial instead.",
+        "metaDescription": "24/7 emergency unit at Monowara Hospital, Siddeshwari, Dhaka — call the emergency line, ambulance, ICU and NICU."
+    },
+    "tips": {
+        "eyebrow": "Health tips & news",
+        "title": "Health advice from our *doctors*",
+        "lead": "Short, practical guides — in Bangla and English — on pregnancy and the problems we see most often.",
+        "categories": {
+            "pregnancy": "Pregnancy",
+            "general": "General health"
+        },
+        "read": "{n} min read",
+        "disclaimer": "This article is general information, not a diagnosis. Please see a doctor about your own symptoms. In an emergency, call {phone}.",
+        "related": "Keep reading",
+        "all": "All articles",
+        "bhrpcCta": "Pregnancy care at BHRPC",
+        "metaDescription": "Health tips from Monowara Hospital, Dhaka — pregnancy, diabetes, thalassaemia, dengue and heart health, in Bangla and English."
+    },
+    "gallery": {
+        "eyebrow": "Gallery",
+        "title": "Inside Monowara Hospital",
+        "lead": "Our building, wards, theatres and diagnostics.",
+        "all": "All",
+        "categories": {
+            "hospital": "Hospital",
+            "diagnostic": "Diagnostics"
+        },
+        "close": "Close",
+        "prev": "Previous photo",
+        "next": "Next photo",
+        "metaDescription": "Photos of Monowara Hospital, Siddeshwari, Dhaka — wards, operation theatres, NICU and diagnostics."
+    },
+    "talks": {
+        "eyebrow": "Expert talks",
+        "title": "Health advice on *video*",
+        "lead": "Our doctors answer common questions on the hospital's YouTube channel.",
+        "channel": "Watch more on YouTube",
+        "metaDescription": "Videos from Monowara Hospital doctors — pregnancy, child health and more."
+    },
+    "careers": {
+        "eyebrow": "Careers",
+        "title": "Work with *us*",
+        "lead": "Doctors, nurses, technologists and support staff — join a hospital that has cared for Dhaka families for over three decades.",
+        "openings": "Open positions",
+        "type": "Role",
+        "location": "Location",
+        "deadline": "Apply by",
+        "responsibilities": "What you'll do",
+        "requirements": "What we look for",
+        "apply": "Apply",
+        "applyLead": "Fill in your details and attach your CV.",
+        "back": "All positions",
+        "metaDescription": "Careers at Monowara Hospital, Siddeshwari, Dhaka — send your CV.",
+        "form": {
+            "name": "Full name",
+            "phone": "Mobile number",
+            "email": "Email",
+            "position": "Position",
+            "cv": "CV",
+            "cvHint": "PDF or Word, up to 5 MB.",
+            "note": "Short note (optional)",
+            "submit": "Continue",
+            "errName": "Please enter your name.",
+            "errPhone": "Enter a Bangladeshi mobile number, e.g. 01712345678.",
+            "errEmail": "Enter a valid email address.",
+            "errCv": "Please attach your CV.",
+            "errCvType": "CV must be a PDF or Word file.",
+            "errCvSize": "CV must be 5 MB or smaller.",
+            "doneTitle": "Almost done — email your CV",
+            "doneLead": "Online uploads open soon. For now, please email your CV to {email} — we've filled in the subject for you.",
+            "emailCv": "Email my CV",
+            "mailSubject": "Job application"
+        }
+    },
+    "contact": {
+        "eyebrow": "Contact",
+        "title": "Talk to *us*",
+        "lead": "The front desk answers 24 hours a day. For a doctor's serial, call or WhatsApp; for anything else, send a message.",
+        "address": "Address",
+        "hotline": "Hotline",
+        "emergency": "Emergency",
+        "phones": "Other numbers",
+        "email": "Email",
+        "hours": "Hours",
+        "social": "Follow us",
+        "formTitle": "Send a message",
+        "directions": "Get directions",
+        "metaDescription": "Contact Monowara Hospital, 54 Siddeshwari Road, Ramna, Dhaka-1217 — hotline, emergency, WhatsApp, email and map.",
+        "form": {
+            "name": "Your name",
+            "phone": "Mobile number",
+            "email": "Email (optional)",
+            "subject": "Subject",
+            "message": "Message",
+            "submit": "Send via WhatsApp",
+            "errName": "Please enter your name.",
+            "errPhone": "Enter a Bangladeshi mobile number, e.g. 01712345678.",
+            "errEmail": "Enter a valid email address.",
+            "errMessage": "Please write a short message.",
+            "waIntro": "Message from the Monowara Hospital website",
+            "sentTitle": "Message ready in WhatsApp",
+            "sentLead": "Send it in WhatsApp and our desk will reply during working hours.",
+            "again": "Send another message"
+        }
     }
 }

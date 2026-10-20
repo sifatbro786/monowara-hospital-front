@@ -1,6 +1,8 @@
 // Mock `packages` collection (proposal §5.1). Prices are never shown — every package is
 // "Call for Price". `inclusions` for check-ups follow the examples in the client's concept;
 // maternity/surgical inclusions are empty until the hospital sends the real lists (CONFIRM).
+import { packageContent } from "./package-content.js";
+
 const stamp = "2026-10-20T00:00:00.000Z";
 
 // category: "maternity" | "surgical" | "checkup"
@@ -104,8 +106,22 @@ const rows = [
     },
 ];
 
+// Related departments (department detail pages list these). Ids, like doctor.department.
+const DEPTS = {
+    maternity: ["dept_gynaecology-obstetrics"],
+    surgical: ["dept_general-laparoscopic-surgery"],
+    "basic-health-check": ["dept_medicine"],
+    "executive-health-check": ["dept_medicine"],
+    "diabetes-care-check": ["dept_diabetes-endocrinology"],
+    "heart-health-check": ["dept_cardiology"],
+};
+
 export const packages = rows.map((p, i) => ({
     _id: `pkg_${p.slug}`,
+    departments: DEPTS[p.slug] || DEPTS[p.category] || [],
+    description: packageContent[p.slug]?.description ?? { en: "", bn: "" },
+    whoFor: packageContent[p.slug]?.whoFor ?? null,
+    typicalStay: packageContent[p.slug]?.typicalStay ?? null, // CONFIRM
     inclusions: [],
     image: null,
     priceMode: "call", // never show a price on the website (proposal §5.1)

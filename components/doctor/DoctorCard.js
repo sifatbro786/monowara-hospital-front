@@ -6,6 +6,7 @@ import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
 import { summariseSchedule } from "@/lib/utils/schedule";
 import { whatsappLink, cn } from "@/lib/utils";
+import { DoctorStatus } from "./DoctorStatus";
 
 /** Doctor card — portrait inside the logo's arch. Reused by the directory in Phase 3. */
 export function DoctorCard({ doctor, dict, lang, waNumber, className }) {
@@ -38,6 +39,13 @@ export function DoctorCard({ doctor, dict, lang, waNumber, className }) {
                 )}
             </Link>
             <div className="mt-4 flex flex-1 flex-col px-1">
+                <DoctorStatus
+                    schedule={doctor.schedule}
+                    leave={doctor.leave}
+                    labels={{ today: dict.doctor.today, onLeave: dict.doctor.onLeave }}
+                    lang={lang}
+                    className="mb-2 self-start"
+                />
                 {doctor.department && (
                     <p className="text-xs font-semibold text-teal-700">
                         {t(doctor.department.name, lang)}
@@ -49,6 +57,12 @@ export function DoctorCard({ doctor, dict, lang, waNumber, className }) {
                     </Link>
                 </h3>
                 <p className="mt-1 text-[0.8rem] leading-snug text-ink-3">{doctor.degrees}</p>
+                {lines.length === 0 && doctor.scheduleNote && (
+                    <p className="mt-3 flex gap-1.5 text-[0.8rem] text-ink-2">
+                        <Icon name="clock" size={14} className="mt-0.75 shrink-0 text-teal-700" />
+                        <span>{t(doctor.scheduleNote, lang)}</span>
+                    </p>
+                )}
                 {lines.length > 0 && (
                     <ul className="mt-3 space-y-1 text-[0.8rem] text-ink-2">
                         {lines.slice(0, 2).map((l) => (

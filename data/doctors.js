@@ -1469,20 +1469,28 @@ export const doctors = [
             { day: "thu", from: "10:00", to: "19:00" },
             { day: "fri", from: "10:00", to: "19:00" },
         ],
-        isActive: false,
-        legacyUrl: "/doctors/doctor-2/",
+        legacyUrl: "/doctors/doctor-2/", // listed in the MH Aesthetic team (old /mhaesthetic) → active
     },
     {
-        slug: "dr-mehzabeen",
-        name: { en: "Dr. Mehzabeen", bn: "ডা. মেহজাবীন" },
-        designation: { en: "Cosmetic Surgeon", bn: "কসমেটিক সার্জন" },
+        slug: "dr-syeda-samina-mahjabin",
+        name: { en: "Dr. Syeda Samina Mahjabin", bn: "ডা. সৈয়দা সামিনা মাহজাবীন" },
+        designation: {
+            en: "Clinical Dermatology & Aesthetic Medicine",
+            bn: "ক্লিনিক্যাল ডার্মাটোলজি ও অ্যাসথেটিক মেডিসিন",
+        },
         degrees: "",
-        specialty: { en: "Cosmetic & aesthetic procedures", bn: "কসমেটিক ও অ্যাসথেটিক প্রসিডিউর" },
+        specialty: {
+            en: "Aesthetic dermatology and laser — MH Aesthetic & Wellness",
+            bn: "অ্যাসথেটিক ডার্মাটোলজি ও লেজার — এমএইচ অ্যাসথেটিক",
+        },
         affiliation: null,
         department: "dept_dermatology-venereology",
-        photo: "/uploads/doctors/dr-mehzabeen.webp",
+        photo: "/uploads/doctors/dr-mehzabeen.webp", // file name kept from Phase 2 download
         schedule: [],
-        isActive: false,
-        legacyUrl: "/doctors/doctor-3/",
+        scheduleNote: {
+            en: "At MH Aesthetic, Sat–Fri 10am–7pm — call the aesthetic desk",
+            bn: "এমএইচ অ্যাসথেটিকে, শনি–শুক্র সকাল ১০টা–সন্ধ্যা ৭টা — অ্যাসথেটিক ডেস্কে কল করুন",
+        },
+        legacyUrl: "/doctors/doctor-3/", // old page "Dr. Mehzabeen"; MH Aesthetic team lists Dr. Syeda Samina Mahjabin — CONFIRM
     },
 ].map(doc);
