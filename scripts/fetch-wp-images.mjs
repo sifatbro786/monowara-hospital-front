@@ -15,8 +15,55 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
 const FORCE = process.argv.includes("--force");
 const CONCURRENCY = 4;
 
-/** [{ src: old URL, dest: path under public/ }] — generated from data/*.js in Phase 2 */
+/** [{ src: old URL, dest: path under public/, replace? }] — generated from data/*.js in Phase 2 */
 const MANIFEST = [
+    // Homepage doctors: the copies in public/ were the old site's 230×230 thumbnails → replace with
+    // the full-size originals (`replace: true` re-downloads even if the file exists).
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/07/Dr.-Nasima-Begum.webp",
+        dest: "/uploads/doctors/dr-nasima-begum.webp",
+        replace: true,
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/07/Dr.-Amiruzzaman-Khan.webp",
+        dest: "/uploads/doctors/dr-amiruzzaman-khan.webp",
+        replace: true,
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/07/Dr.-Debashish-Saha-1.webp",
+        dest: "/uploads/doctors/dr-debashish-saha.webp",
+        replace: true,
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/07/Dr.-ISHRAT-JABEEN.webp",
+        dest: "/uploads/doctors/dr-ishrat-jabeen.webp",
+        replace: true,
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/07/Dr.-Mohammad-Hanif.webp",
+        dest: "/uploads/doctors/dr-mohammad-hanif.webp",
+        replace: true,
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/07/Dr.-Roys-Uddin.webp",
+        dest: "/uploads/doctors/dr-royes-uddin.webp",
+        replace: true,
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/02/Khaleada-Akter.webp",
+        dest: "/uploads/doctors/dr-khaleda-akter-bhuiyan.webp",
+        replace: true,
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/08/Dr.-Mahfuza-Asma.webp",
+        dest: "/uploads/doctors/dr-mahfuja-asma.webp",
+        replace: true,
+    },
+    {
+        src: "https://monowarahospital.com/wp-content/uploads/2024/07/Dr.-Noor-E-Ferdous-Nimmi.webp",
+        dest: "/uploads/doctors/dr-noor-e-ferdous-nimmi.webp",
+        replace: true,
+    },
     {
         src: "https://monowarahospital.com/wp-content/uploads/2024/08/WhatsApp-Image-2024-08-28-at-17.55.44_0bf60348.jpg",
         dest: "/uploads/aesthetic/skin-analyzer.webp",
@@ -400,9 +447,9 @@ const exists = (p) =>
         () => false,
     );
 
-async function one({ src, dest }) {
+async function one({ src, dest, replace }) {
     const out = join(ROOT, dest);
-    if (!FORCE && (await exists(out))) return "skip";
+    if (!FORCE && !replace && (await exists(out))) return "skip";
     const res = await fetch(src, { headers: { "User-Agent": "mh-migration/1.0" } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const input = Buffer.from(await res.arrayBuffer());

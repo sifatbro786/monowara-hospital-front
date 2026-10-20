@@ -114,19 +114,26 @@ async function DoctorPageContent({ params }) {
                         <Icon name="arrow" size={16} className="rotate-180" />
                         {p.back}
                     </Link>
-                    <div className="mt-8 grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-14">
-                        <div className="relative mx-auto aspect-4/5 w-full max-w-sm overflow-hidden rounded-t-full rounded-b-3xl bg-teal-100 lg:col-span-4 lg:mx-0">
-                            {doc.photo && (
-                                <Image
-                                    src={doc.photo}
-                                    alt={name}
-                                    fill
-                                    loading="eager"
-                                    fetchPriority="high"
-                                    sizes="(min-width: 1024px) 24rem, 90vw"
-                                    className="object-cover object-top"
-                                />
-                            )}
+                    <div className="mt-8 grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-14">
+                        {/* Portrait: rounded card + offset hairline frame (same motif as the home hero) */}
+                        <div className="relative mx-auto w-full max-w-72 lg:col-span-4 lg:mx-0 lg:max-w-80">
+                            <div
+                                aria-hidden
+                                className="absolute inset-0 translate-x-3 translate-y-3 rounded-[1.75rem] border border-teal-300"
+                            />
+                            <div className="relative aspect-4/5 overflow-hidden rounded-[1.75rem] bg-teal-100 shadow-[0_18px_40px_-24px_rgba(12,42,45,0.45)]">
+                                {doc.photo && (
+                                    <Image
+                                        src={doc.photo}
+                                        alt={name}
+                                        fill
+                                        loading="eager"
+                                        fetchPriority="high"
+                                        sizes="(min-width: 1024px) 20rem, 18rem"
+                                        className="object-cover object-[50%_15%]"
+                                    />
+                                )}
+                            </div>
                         </div>
                         <div className="lg:col-span-8 lg:pb-4">
                             {doc.department && (
