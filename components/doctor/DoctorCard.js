@@ -8,7 +8,7 @@ import { summariseSchedule } from "@/lib/utils/schedule";
 import { whatsappLink, cn } from "@/lib/utils";
 import { DoctorStatus } from "./DoctorStatus";
 
-/** Doctor card — portrait inside the logo's arch. Reused by the directory in Phase 3. */
+/** Doctor card — compact 3:2 portrait (head & shoulders), so a 4-up row fits a laptop screen. */
 export function DoctorCard({ doctor, dict, lang, waNumber, className }) {
     const name = t(doctor.name, lang);
     const profile = href(lang, `/doctors/${doctor.slug}`);
@@ -24,7 +24,7 @@ export function DoctorCard({ doctor, dict, lang, waNumber, className }) {
         >
             <Link
                 href={profile}
-                className="relative block aspect-4/5 overflow-hidden rounded-t-full rounded-b-2xl bg-teal-100"
+                className="relative block aspect-3/2 overflow-hidden rounded-2xl bg-teal-100"
                 tabIndex={-1}
                 aria-hidden
             >
@@ -34,11 +34,11 @@ export function DoctorCard({ doctor, dict, lang, waNumber, className }) {
                         alt=""
                         fill
                         sizes="(min-width: 1024px) 17rem, 70vw"
-                        className="object-cover object-top transition-transform duration-700 ease-out-expo group-hover:scale-[1.03]"
+                        className="object-contain object-[50%_15%] transition-transform duration-700 ease-out-expo group-hover:scale-[1.03]"
                     />
                 )}
             </Link>
-            <div className="mt-4 flex flex-1 flex-col px-1">
+            <div className="mt-3.5 flex flex-1 flex-col px-1">
                 <DoctorStatus
                     schedule={doctor.schedule}
                     leave={doctor.leave}
@@ -77,7 +77,7 @@ export function DoctorCard({ doctor, dict, lang, waNumber, className }) {
                         ))}
                     </ul>
                 )}
-                <div className="mt-auto flex gap-2 pt-5">
+                <div className="mt-auto flex gap-2 pt-4">
                     <button
                         type="button"
                         data-appt=""
