@@ -22,6 +22,7 @@
 - Round 2: `/appointment` now uses PageHeader (`header.appointment`, Unsplash slot, so it shows only after running the fetch script) + numbered visit steps on the left; `/packages/[slug]` (photo by category: maternity→bhrpc, surgical→careers, checkup→packages) and `/careers/[slug]` use photo headers too. Legal pages, 404 and detail pages with their own photo stay plain on purpose.
 - Dev warnings fixed: `[...rest]` catch-all `export const instant = false` (404 needs no instant shell); the theme/loader boot `<script>` goes through `components/layout/BootScript.js` (rendered only in SSR/hydration, so a client re-render, e.g. a 404, no longer creates a `<script>` tag). `/talks` → 308 `/expert-talks`.
 - Footer wordmark: viewBox `-4 -26 1008 196` (Bangla vowel signs were clipped at the top), solid `#1a3639` instead of `paper/6` alpha (overlapping glyphs showed seams).
+- `/about` header: own building photo (`header.about`) full-bleed with a paper wash + ink copy (light photo, so no teal wash). Reveal "clip": after the wipe the held `clip-path` is swapped for `none` — a held clip kept the old box size and cut multi-line Bangla hero titles after the font swap / EN↔BN switch.
 - Every display numeral (section numbers, steps, service lists, 404) is now upright, no italic. The italic accent stays only for `<Emphasis>` words.
 
 ## Phase 4 — Packages, booking & content pages (2026-10-21) ✅

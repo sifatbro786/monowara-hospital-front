@@ -9,6 +9,7 @@ import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getSitePage } from "@/lib/api/pages";
 import { getBhrpc } from "@/lib/api/programs";
 import { getAesthetic } from "@/lib/api/aesthetic";
+import { getMedia } from "@/lib/api/media";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 
@@ -26,14 +27,16 @@ export async function generateMetadata({ params }) {
 
 export default async function AboutPage({ params }) {
     const { lang } = await params;
-    const [dict, page, bhrpc, aesthetic] = await Promise.all([
+    const [dict, page, bhrpc, aesthetic, media] = await Promise.all([
         getDictionary(lang),
         getSitePage("about"),
         getBhrpc(),
         getAesthetic(),
+        getMedia(),
     ]);
     if (!page) notFound();
     const a = dict.about;
+    const hero = media["header.about"];
     const units = [
         { to: "/bhrpc", eyebrow: bhrpc.short, title: bhrpc.name, body: bhrpc.tagline },
         {
@@ -46,23 +49,27 @@ export default async function AboutPage({ params }) {
 
     return (
         <>
-            <header className="border-b border-line bg-paper-2">
-                <Container className="grid gap-10 py-14 lg:grid-cols-12 lg:items-end lg:py-20">
-                    <div className="lg:col-span-6">
+            <header className="relative isolate overflow-hidden border-b border-line bg-[#e4f1f2]">
+                <Image
+                    src={hero.src}
+                    alt={t(hero.alt, lang)}
+                    fill
+                    loading="eager"
+                    fetchPriority="high"
+                    sizes="100vw"
+                    className="-z-20 object-cover"
+                    style={{ objectPosition: hero.position }}
+                />
+                {/* paper wash on the copy side only; the photo's own sky does the rest */}
+                <div
+                    aria-hidden
+                    className="absolute inset-0 -z-10 bg-linear-to-r from-paper/95 via-paper/75 to-transparent max-lg:via-paper/85 max-lg:to-paper/40"
+                />
+                <Container className="flex min-h-[26rem] items-center py-16 lg:min-h-[34rem] lg:py-24">
+                    <div className="max-w-xl">
                         <p className="eyebrow">{a.eyebrow}</p>
                         <h1 className="mt-4 text-h1">{t(page.title, lang)}</h1>
-                        <p className="mt-4 max-w-xl text-lg text-ink-2">{t(page.summary, lang)}</p>
-                    </div>
-                    <div className="relative aspect-5/4 overflow-hidden rounded-3xl bg-teal-900 lg:col-span-6">
-                        <Image
-                            src="/uploads/hero/hospital-building-card.webp"
-                            alt={dict.home.heroOwnBuilding}
-                            fill
-                            loading="eager"
-                            fetchPriority="high"
-                            sizes="(min-width: 1024px) 40rem, 92vw"
-                            className="object-cover"
-                        />
+                        <p className="mt-4 text-lg text-ink-2">{t(page.summary, lang)}</p>
                     </div>
                 </Container>
             </header>

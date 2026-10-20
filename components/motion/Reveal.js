@@ -25,13 +25,23 @@ export function RevealObserver() {
             done.add(el);
             const delay = parseFloat(getComputedStyle(el).getPropertyValue("--reveal-delay")) || 0;
             if (el.dataset.reveal === "clip") {
-                el.firstElementChild?.animate(
+                const child = el.firstElementChild;
+                if (!child) return;
+                const wipe = child.animate(
                     [
                         { clipPath: "inset(0 0 100% 0)", transform: "translateY(0.25em)" },
                         { clipPath: "inset(0 0 -0.2em 0)", transform: "none" },
                     ],
                     { duration: 1000, delay, easing: expo, fill: "forwards" },
                 );
+                // A held clip-path keeps the box size it was resolved against: when the text
+                // reflows later (Bangla font swap, EN↔BN switch) lines below the first get cut.
+                // Swap it for a clip-free end state (constant keyframes, so nothing interpolates).
+                wipe.onfinish = () => {
+                    const end = { clipPath: "none", transform: "none" };
+                    child.animate([end, end], { duration: 1, fill: "forwards" });
+                    wipe.cancel();
+                };
                 return;
             }
             el.animate([{ opacity: 0 }, { opacity: 1 }], {

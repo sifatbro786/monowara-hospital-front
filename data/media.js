@@ -140,6 +140,14 @@ const rows = [
         source: { type: "own" },
     },
     {
+        key: "header.about",
+        page: "/about",
+        src: "/uploads/hero/hospital-building-wide.webp",
+        alt: L("Monowara Hospital building, Siddeshwari", "মনোয়ারা হসপিটাল ভবন, সিদ্ধেশ্বরী"),
+        source: { type: "own" }, // light photo: About uses a paper wash + ink text, not the teal one
+        position: "70% 20%",
+    },
+    {
         key: "header.management",
         page: "/about/management",
         src: "/uploads/hero/hospital-building-wide.webp",
