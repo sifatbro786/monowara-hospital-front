@@ -14,6 +14,19 @@
 
 ---
 
+## Post-Phase-5: homepage motion + doctor card photo (2026-10-21)
+- **Why no animation package until now:** deliberate — the site used one IntersectionObserver + Web Animations API (`components/motion/Reveal.js`, 0 KB dependency) to protect LCP on slow phones. Sifat asked for a premium, light homepage motion layer → added **`motion@13.5.1`** (framer-motion, `motion/react`), pinned exact (14.x was a 3-week-old major).
+- `components/motion/Motion.js` — `MotionRoot` (LazyMotion `strict` + async `features.js` chunk, `MotionConfig reducedMotion="user"`), `FadeUp`, `Stagger`/`StaggerItem`, `DrawRule`, `PhotoReveal`, `Drift` (scroll parallax, off with reduced motion). Calm only: expo ease, 0.85–1.3 s, no springs/loops/count-ups.
+- **Scope = homepage only** (`app/[lang]/page.js` wraps in `<MotionRoot>`). Every `m.*` must be inside it, otherwise it stays at `initial` (invisible). Inner pages keep `RevealObserver` unchanged.
+- `Section` got an opt-in `animate` prop (header rises + hairline rule draws) — default off, other pages untouched.
+- What moves: hero photo + contour lines drift on scroll · QuickPanel uses the CSS `data-enter` (above the fold — never an opacity-0 motion element in the first viewport; the hero h1 stays the LCP) · Centres content stagger (cells stay opaque — `gap-px bg-line` grid would flash) · Maternity photo unclips + settles, "মাতৃত্ব" fades in, rows stagger · Packages cards stagger (hover lift now uses `translate`, not `transform`, because motion owns `transform`) · doctor cards rise per card (off-screen rail cards animate when scrolled to) · talks, Visit us rows, CTA band + WhatsApp desks.
+- **Doctor card photo:** `aspect-3/2` → `aspect-6/5`, focal `50% 18%`. WP portraits are 268×386 (0.69): 3:2 showed only forehead→chin; 6:5 shows head + shoulders, card +~40 px (laptop 4-up still fits). Photos are low-res → soft on 2× screens until the hospital sends originals (B1 upload: ≥ 800 px wide).
+- Verified: `npm run build` ✅, `eslint` ✅ on changed files, Playwright 1440 + 390 + reduced-motion: nothing left hidden in view, no horizontal overflow, no page errors.
+- **Sifat:** run `npm install` once (new dependency).
+- **Key numbers back on the homepage** (Sifat, 18:13 — client's concept PDF had a stat row; overrides revision 3 "no stats"). `KeyNumbers` redesigned, placed right under the QuickPanel: hairline-separated columns (2×2 on mobile), large serif numeral + unit as an italic teal accent (`33`+, `24`/7, `7` days — split by regex, works with Bangla digits), short teal rule that draws in, staggered rise. Still static figures (no count-up, no white stat cards). Data = `data/home.js` `keyNumbers` (admin-editable; ⚠ client to confirm 33+ years and 100 beds).
+
+---
+
 ## Phase 5 — Polish, SEO & demo (3 steps)
 Each step is written to the repo + ticked before the next starts. On resume: continue at the first unticked step.
 - [x] **5.1 SEO foundation** (2026-10-21)
@@ -62,7 +75,7 @@ Checked the code against the proposal (§3, §5.1–5.5, §7, §8) and **ran the
 | 11 | Blank optional settings (map, hours, socials, address, invalid `bookingMode`) would crash pages. | `normaliseSettings()` fills defaults (map links fall back to a name+address search). |
 | 12 | `t()` returned "" when only Bangla was filled; talk titles read `.bn` directly. | `t()` falls back to any filled language; talk titles use it. |
 
-Not changed (decisions): only the **first** active hero slide is used (single-hero design — the admin should edit one hero, not a slider); key numbers stay hidden (Sifat's revision 3); old-WordPress redirects stay in `data/redirects.mjs` (build-time) — admin slug renames use `previousSlugs` instead.
+Not changed (decisions): only the **first** active hero slide is used (single-hero design — the admin should edit one hero, not a slider); key numbers ~~stay hidden (Sifat's revision 3)~~ → shown again under the QuickPanel (2026-10-21, see Post-Phase-5); old-WordPress redirects stay in `data/redirects.mjs` (build-time) — admin slug renames use `previousSlugs` instead.
 
 ---
 

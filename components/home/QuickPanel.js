@@ -54,7 +54,11 @@ export function QuickPanel({ departments, settings, dict, lang }) {
 
     return (
         <Container className="relative z-10 -mt-32 sm:-mt-36">
-            <div className="rounded-[1.75rem] border border-line bg-card p-4 shadow-[0_30px_70px_-35px_rgb(7_38_41/0.45)] sm:p-6 lg:p-7">
+            <div
+                data-enter
+                style={{ "--reveal-delay": "300ms" }}
+                className="rounded-[1.75rem] border border-line bg-card p-4 shadow-[0_30px_70px_-35px_rgb(7_38_41/0.45)] sm:p-6 lg:p-7"
+            >
                 <form
                     action={href(lang, "/doctors")}
                     method="get"

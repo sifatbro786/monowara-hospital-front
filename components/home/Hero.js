@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Icon, WhatsAppMark } from "@/components/ui/Icon";
 import { Emphasis } from "@/components/ui/Emphasis";
 import { ContourLines } from "@/components/ui/Ornaments";
+import { Drift } from "@/components/motion/Motion";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { telHref, whatsappLink, formatPhone } from "@/lib/utils";
@@ -25,7 +26,14 @@ export function Hero({ slide, settings, dict, lang }) {
             data-track="hero"
             className="relative isolate overflow-hidden rounded-b-4xl bg-[linear-gradient(140deg,#0b6a6f_0%,#0a5a5e_45%,#084649_100%)] text-white lg:rounded-b-[3rem]"
         >
-            <ContourLines className="pointer-events-none absolute -left-40 bottom-0 -z-10 h-136 w-4xl text-white/[0.07]" />
+            {/* background lines drift slower than the page → quiet depth */}
+            <Drift
+                range={[0, 90]}
+                offset={["start start", "end start"]}
+                className="pointer-events-none absolute -left-40 bottom-0 -z-10"
+            >
+                <ContourLines className="h-136 w-4xl text-white/[0.07]" />
+            </Drift>
 
             <Container className="grid items-center gap-12 pb-48 pt-12 sm:pb-52 lg:grid-cols-12 lg:gap-12 lg:pb-56 lg:pt-20">
                 <div className="lg:col-span-6">
@@ -112,16 +120,23 @@ export function Hero({ slide, settings, dict, lang }) {
                         />
 
                         <div className="relative aspect-5/4 overflow-hidden rounded-[1.75rem] bg-teal-900 shadow-[0_40px_80px_-40px_rgb(0_0_0/0.55)]">
-                            <Image
-                                src={media.src}
-                                alt={t(media.alt, lang)}
-                                fill
-                                loading="eager"
-                                fetchPriority="high"
-                                quality={85}
-                                sizes="(min-width: 1024px) 38rem, 100vw"
-                                className="object-cover"
-                            />
+                            {/* taller than the frame so the scroll drift never shows an edge */}
+                            <Drift
+                                range={[0, 48]}
+                                offset={["start start", "end start"]}
+                                className="absolute inset-x-0 -top-[8%] -bottom-[8%]"
+                            >
+                                <Image
+                                    src={media.src}
+                                    alt={t(media.alt, lang)}
+                                    fill
+                                    loading="eager"
+                                    fetchPriority="high"
+                                    quality={85}
+                                    sizes="(min-width: 1024px) 38rem, 100vw"
+                                    className="object-cover"
+                                />
+                            </Drift>
                             <p className="absolute right-4 top-4 hidden items-center gap-1.5 rounded-pill bg-white/90 sm:inline-flex px-3 py-1.5 text-xs font-medium text-teal-900">
                                 <Icon name="pin" size={13} />
                                 {h.heroOwnBuilding}

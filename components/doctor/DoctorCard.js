@@ -8,7 +8,11 @@ import { summariseSchedule } from "@/lib/utils/schedule";
 import { whatsappLink, cn } from "@/lib/utils";
 import { DoctorStatus } from "./DoctorStatus";
 
-/** Doctor card — compact 3:2 portrait (head & shoulders), so a 4-up row fits a laptop screen. */
+/**
+ * Doctor card — 6:5 photo. Source portraits are ~0.69 (268×386 from WP): 3:2 kept only
+ * forehead→chin; 6:5 with a high focal point shows head + shoulders while a 4-up row
+ * still fits a laptop screen (+~40px card height vs 3:2).
+ */
 export function DoctorCard({ doctor, dict, lang, waNumber, className }) {
     const name = t(doctor.name, lang);
     const profile = href(lang, `/doctors/${doctor.slug}`);
@@ -25,7 +29,7 @@ export function DoctorCard({ doctor, dict, lang, waNumber, className }) {
         >
             <Link
                 href={profile}
-                className="relative block aspect-3/2 overflow-hidden rounded-2xl bg-teal-100"
+                className="relative block aspect-6/5 overflow-hidden rounded-2xl"
                 tabIndex={-1}
                 aria-hidden
             >
@@ -35,7 +39,7 @@ export function DoctorCard({ doctor, dict, lang, waNumber, className }) {
                         alt=""
                         fill
                         sizes="(min-width: 1024px) 17rem, 70vw"
-                        className="object-contain object-[50%_15%] transition-transform duration-700 ease-out-expo group-hover:scale-[1.03]"
+                        className="object-cover object-[50%_35%] transition-transform duration-700 ease-out-expo group-hover:scale-[1.03]"
                     />
                 )}
             </Link>

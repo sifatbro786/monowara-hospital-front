@@ -153,7 +153,7 @@ export function Footer({ settings, dict, lang }) {
 
                 {/* Bangla wordmark as a graphic: an SVG scaled to the container, so it is
                     always fully visible at any width (never wider than the page). */}
-                <svg
+                {/* <svg
                     viewBox="-4 -26 1008 196"
                     className="mt-16 block h-auto w-full select-none text-[#1a3639]"
                     aria-hidden
@@ -169,9 +169,9 @@ export function Footer({ settings, dict, lang }) {
                     >
                         মনোয়ারা হসপিটাল
                     </text>
-                </svg>
+                </svg> */}
 
-                <div className="flex flex-col gap-3 border-t border-paper/15 pb-24 pt-6 text-sm md:pr-24 md:pb-6 text-paper/55 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-col mt-16 gap-3 border-t border-paper/15 pb-24 pt-6 text-sm md:pr-24 md:pb-6 text-paper/55 md:flex-row md:items-center md:justify-between">
                     <p>
                         © {year} {t(settings.legalName, lang)} {f.rights}
                         <span className="mx-2 text-paper/25" aria-hidden>

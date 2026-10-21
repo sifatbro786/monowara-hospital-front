@@ -3,6 +3,7 @@ import { Section } from "@/components/ui/Layout";
 import { Icon } from "@/components/ui/Icon";
 import { Emphasis } from "@/components/ui/Emphasis";
 import { DoctorCard } from "@/components/doctor/DoctorCard";
+import { FadeUp, Stagger, StaggerItem } from "@/components/motion/Motion";
 import { Rail } from "./Rail";
 import { LiteYouTube } from "./LiteYouTube";
 import { href } from "@/lib/i18n/config";
@@ -12,6 +13,7 @@ export function Doctors({ doctors, settings, dict, lang }) {
     const h = dict.home;
     return (
         <Section
+            animate
             tone="alt"
             number={digits("03", lang)}
             eyebrow={h.doctorsEyebrow}
@@ -27,9 +29,12 @@ export function Doctors({ doctors, settings, dict, lang }) {
             }
         >
             <Rail label={h.doctorsTitle.replace(/\*/g, "")} prevLabel={h.prev} nextLabel={h.next}>
-                {doctors.map((d) => (
-                    <li
+                {doctors.map((d, i) => (
+                    // own in-view trigger per card: cards off to the right animate when scrolled to
+                    <FadeUp
+                        as="li"
                         key={d._id}
+                        delay={i < 4 ? i * 0.08 : 0}
                         className="w-[78%] shrink-0 snap-start xs:w-68 lg:w-[calc((100%-3rem)/4)]"
                     >
                         <DoctorCard
@@ -38,7 +43,7 @@ export function Doctors({ doctors, settings, dict, lang }) {
                             lang={lang}
                             waNumber={settings.primaryWhatsapp?.number}
                         />
-                    </li>
+                    </FadeUp>
                 ))}
             </Rail>
         </Section>
@@ -53,6 +58,7 @@ export function Talks({ talks, stories = [], settings, dict, lang }) {
     const [first, ...rest] = talks;
     return (
         <Section
+            animate
             number={digits("04", lang)}
             eyebrow={h.talksEyebrow}
             title={<Emphasis text={h.talksTitle} />}
@@ -72,7 +78,7 @@ export function Talks({ talks, stories = [], settings, dict, lang }) {
         >
             {first && (
                 <div className="grid gap-8 lg:grid-cols-12">
-                    <figure className="lg:col-span-7">
+                    <FadeUp as="figure" className="lg:col-span-7">
                         <LiteYouTube
                             id={first.youtubeId}
                             title={t(first.title, lang)}
@@ -87,10 +93,16 @@ export function Talks({ talks, stories = [], settings, dict, lang }) {
                             </p>
                             <p className="mt-1 text-sm text-ink-3">{t(first.speaker, lang)}</p>
                         </figcaption>
-                    </figure>
-                    <ul className="grid gap-6 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1">
+                    </FadeUp>
+                    <Stagger
+                        as="ul"
+                        delay={0.15}
+                        gap={0.1}
+                        className="grid gap-6 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1"
+                    >
                         {rest.map((v) => (
-                            <li
+                            <StaggerItem
+                                as="li"
                                 key={v._id}
                                 className="grid gap-4 lg:grid-cols-[13rem_1fr] lg:items-start"
                             >
@@ -110,17 +122,17 @@ export function Talks({ talks, stories = [], settings, dict, lang }) {
                                     </p>
                                     <p className="mt-1 text-sm text-ink-3">{t(v.speaker, lang)}</p>
                                 </div>
-                            </li>
+                            </StaggerItem>
                         ))}
-                    </ul>
+                    </Stagger>
                 </div>
             )}
             {quotes.length > 0 && (
                 <div className={first ? "mt-16 border-t border-line pt-10" : undefined}>
                     <h3 className="eyebrow">{h.storiesTitle}</h3>
-                    <ul className="mt-6 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <Stagger as="ul" className="mt-6 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                         {quotes.map((st) => (
-                            <li key={st._id}>
+                            <StaggerItem as="li" key={st._id}>
                                 <figure>
                                     <blockquote className="font-display text-xl leading-snug text-ink [&:lang(bn)]:leading-relaxed">
                                         “{t(st.quote, lang)}”
@@ -130,9 +142,9 @@ export function Talks({ talks, stories = [], settings, dict, lang }) {
                                         {st.context && ` · ${t(st.context, lang)}`}
                                     </figcaption>
                                 </figure>
-                            </li>
+                            </StaggerItem>
                         ))}
-                    </ul>
+                    </Stagger>
                 </div>
             )}
         </Section>

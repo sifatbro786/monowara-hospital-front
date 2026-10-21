@@ -1,11 +1,9 @@
 import { cn } from "@/lib/utils";
+import { FadeUp, DrawRule } from "@/components/motion/Motion";
 
 export function Container({ as: Tag = "div", className, children, ...rest }) {
     return (
-        <Tag
-            className={cn("mx-auto w-full max-w-336 px-4 sm:px-6 lg:px-10", className)}
-            {...rest}
-        >
+        <Tag className={cn("mx-auto w-full max-w-336 px-4 sm:px-6 lg:px-10", className)} {...rest}>
             {children}
         </Tag>
     );
@@ -23,6 +21,7 @@ export function Section({
     lead,
     action,
     tone = "paper",
+    animate = false, // homepage only: header rises in + rule draws (needs <MotionRoot>)
     className,
     children,
     ...rest
@@ -52,9 +51,16 @@ export function Section({
                                 </span>
                             )}
                             {eyebrow && <span className="eyebrow">{eyebrow}</span>}
-                            <span className="rule flex-1" aria-hidden />
+                            {animate ? (
+                                <DrawRule className="rule flex-1" />
+                            ) : (
+                                <span className="rule flex-1" aria-hidden />
+                            )}
                         </div>
-                        <div className="mt-6 grid gap-6 lg:grid-cols-12 lg:items-end">
+                        <HeaderBody
+                            animate={animate}
+                            className="mt-6 grid gap-6 lg:grid-cols-12 lg:items-end"
+                        >
                             {title && <h2 className="text-h2 lg:col-span-7">{title}</h2>}
                             {(lead || action) && (
                                 <div className="flex flex-col gap-5 lg:col-span-5 lg:items-end lg:text-right">
@@ -62,12 +68,22 @@ export function Section({
                                     {action}
                                 </div>
                             )}
-                        </div>
+                        </HeaderBody>
                     </header>
                 )}
                 {children}
             </Container>
         </section>
+    );
+}
+
+function HeaderBody({ animate, className, children }) {
+    return animate ? (
+        <FadeUp className={className} delay={0.05}>
+            {children}
+        </FadeUp>
+    ) : (
+        <div className={className}>{children}</div>
     );
 }
 

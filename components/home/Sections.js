@@ -5,29 +5,68 @@ import { Button } from "@/components/ui/Button";
 import { Icon, WhatsAppMark } from "@/components/ui/Icon";
 import { Emphasis } from "@/components/ui/Emphasis";
 import { ContourLines } from "@/components/ui/Ornaments";
+import {
+    FadeUp,
+    Stagger,
+    StaggerItem,
+    PhotoReveal,
+    Drift,
+    DrawRule,
+} from "@/components/motion/Motion";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
-import { telHref, whatsappLink, formatPhone } from "@/lib/utils";
+import { telHref, whatsappLink, formatPhone, cn } from "@/lib/utils";
 
-/* ───────── Key numbers — static figures (no count-up), hairline separated ───────── */
+/* ───────── Key numbers — sits under the QuickPanel. Static figures (no count-up, per the
+   anti-template rules): big serif numeral, the unit (+, /7, days) as an italic teal accent,
+   a short teal rule that draws in, hairline-separated columns instead of white stat cards. ───────── */
+const splitValue = (v) => {
+    const m = /^([\d০-৯]+)(.*)$/.exec(v ?? "");
+    return m ? [m[1], m[2]] : [v, ""];
+};
+
 export function KeyNumbers({ items, dict, lang }) {
+    if (!items?.length) return null;
     return (
-        <Container as="section" aria-label={dict.home.numbersLabel} className="pt-14 lg:pt-20">
-            <dl className="grid grid-cols-2 border-y border-line lg:grid-cols-4">
-                {items.map((n, i) => (
-                    <div
-                        key={n._id}
-                        data-reveal
-                        style={{ "--reveal-delay": `${i * 70}ms` }}
-                        className="flex flex-col-reverse gap-1 border-line px-2 py-7 odd:border-r sm:px-6 lg:border-r lg:py-9 lg:last:border-r-0"
-                    >
-                        <dt className="text-sm text-ink-2">{t(n.label, lang)}</dt>
-                        <dd className="font-display text-[clamp(2.25rem,1.6rem+2.4vw,3.4rem)] leading-none text-teal-800">
-                            {t(n.value, lang)}
-                        </dd>
-                    </div>
-                ))}
-            </dl>
+        <Container as="section" aria-label={dict.home.numbersLabel} className="pt-12 lg:pt-16">
+            <Stagger
+                as="dl"
+                gap={0.09}
+                className="grid grid-cols-2 lg:grid-cols-4 [&>div:nth-child(n+3)]:border-t [&>div:nth-child(n+3)]:border-line-soft lg:[&>div:nth-child(n+3)]:border-t-0"
+            >
+                {items.map((n, i) => {
+                    const [num, unit] = splitValue(t(n.value, lang));
+                    return (
+                        <StaggerItem
+                            key={n._id}
+                            className={cn(
+                                "flex flex-col-reverse justify-end py-7 pr-3 lg:px-8 lg:py-4",
+                                i % 2 === 1 && "border-l border-line-soft pl-5 lg:pl-8",
+                                i > 0 && "lg:border-l lg:border-line-soft",
+                                i === 0 && "lg:pl-0",
+                            )}
+                        >
+                            <dt className="mt-3 max-w-[22ch] text-[0.9rem] leading-snug text-ink-2">
+                                {t(n.label, lang)}
+                            </dt>
+                            <dd className="font-display leading-none text-teal-900">
+                                <DrawRule
+                                    className="mb-5 block h-0.5 w-8 rounded-full bg-teal-500"
+                                    delay={0.2 + i * 0.09}
+                                />
+                                <span className="text-[clamp(2.6rem,1.9rem+2.6vw,3.9rem)] tracking-[-0.02em] tabular-nums">
+                                    {num}
+                                </span>
+                                {unit && (
+                                    <em className="ml-0.5 text-[clamp(1.6rem,1.3rem+1.2vw,2.3rem)] text-teal-600">
+                                        {unit.trim() === unit ? unit : `\u00a0${unit.trim()}`}
+                                    </em>
+                                )}
+                            </dd>
+                        </StaggerItem>
+                    );
+                })}
+            </Stagger>
         </Container>
     );
 }
@@ -39,6 +78,7 @@ export function Centres({ items, dict, lang }) {
     const h = dict.home;
     return (
         <Section
+            animate
             number={digits("01", lang)}
             eyebrow={h.servicesEyebrow}
             title={<Emphasis text={h.servicesTitle} />}
@@ -52,53 +92,55 @@ export function Centres({ items, dict, lang }) {
                 </Link>
             }
         >
-            <ul className="grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+            <Stagger
+                as="ul"
+                className="grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4"
+            >
                 {items.map((c, i) => (
-                    <li
-                        key={c._id}
-                        data-reveal
-                        style={{ "--reveal-delay": `${(i % 4) * 60}ms` }}
-                        className="bg-card"
-                    >
-                        <Link
-                            href={href(lang, c.href)}
-                            className="group relative isolate flex h-full min-h-60 flex-col gap-3 overflow-hidden p-6 lg:min-h-72 lg:p-7"
-                        >
-                            {/* photo layer — hover / keyboard focus only, so the grid stays calm at rest */}
-                            <Image
-                                src={c.image || CENTRE_FALLBACK}
-                                alt=""
-                                fill
-                                sizes="(min-width: 1024px) 20rem, 50vw"
-                                className="-z-20 scale-[1.06] object-cover opacity-0 transition-[opacity,transform] duration-700 ease-out-expo group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100"
-                            />
-                            <span
-                                aria-hidden
-                                className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgb(7_38_41/0.92)_0%,rgb(7_38_41/0.55)_50%,rgb(7_38_41/0.12)_100%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100"
-                            />
+                    // cell stays opaque (the hairline grid is the bg showing through gap-px);
+                    // only its content rises in
+                    <li key={c._id} className="bg-card">
+                        <StaggerItem className="h-full">
+                            <Link
+                                href={href(lang, c.href)}
+                                className="group relative isolate flex h-full min-h-60 flex-col gap-3 overflow-hidden p-6 lg:min-h-72 lg:p-7"
+                            >
+                                {/* photo layer — hover / keyboard focus only, so the grid stays calm at rest */}
+                                <Image
+                                    src={c.image || CENTRE_FALLBACK}
+                                    alt=""
+                                    fill
+                                    sizes="(min-width: 1024px) 20rem, 50vw"
+                                    className="-z-20 scale-[1.06] object-cover opacity-0 transition-[opacity,transform] duration-700 ease-out-expo group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100"
+                                />
+                                <span
+                                    aria-hidden
+                                    className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgb(7_38_41/0.92)_0%,rgb(7_38_41/0.55)_50%,rgb(7_38_41/0.12)_100%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100"
+                                />
 
-                            <span className="font-display text-sm text-teal-700/80 tabular-nums transition-colors duration-500 group-hover:text-teal-200">
-                                {digits(String(i + 1).padStart(2, "0"), lang)}
-                            </span>
-                            <h3 className="text-h3 text-ink transition-colors duration-500 group-hover:text-white">
-                                {t(c.title, lang)}
-                            </h3>
-                            <p className="text-[0.95rem] text-ink-2 transition-colors duration-500 group-hover:text-white/85">
-                                {t(c.summary, lang)}
-                            </p>
-                            <span className="mt-auto pt-3">
-                                <span className="inline-grid size-9 place-items-center rounded-full border border-line text-ink-3 transition-colors duration-500 group-hover:border-white group-hover:bg-white group-hover:text-teal-800">
-                                    <Icon
-                                        name="arrow"
-                                        size={16}
-                                        className="transition-transform duration-500 group-hover:translate-x-0.5"
-                                    />
+                                <span className="font-display text-sm text-teal-700/80 tabular-nums transition-colors duration-500 group-hover:text-teal-200">
+                                    {digits(String(i + 1).padStart(2, "0"), lang)}
                                 </span>
-                            </span>
-                        </Link>
+                                <h3 className="text-h3 text-ink transition-colors duration-500 group-hover:text-white">
+                                    {t(c.title, lang)}
+                                </h3>
+                                <p className="text-[0.95rem] text-ink-2 transition-colors duration-500 group-hover:text-white/85">
+                                    {t(c.summary, lang)}
+                                </p>
+                                <span className="mt-auto pt-3">
+                                    <span className="inline-grid size-9 place-items-center rounded-full border border-line text-ink-3 transition-colors duration-500 group-hover:border-white group-hover:bg-white group-hover:text-teal-800">
+                                        <Icon
+                                            name="arrow"
+                                            size={16}
+                                            className="transition-transform duration-500 group-hover:translate-x-0.5"
+                                        />
+                                    </span>
+                                </span>
+                            </Link>
+                        </StaggerItem>
                     </li>
                 ))}
-            </ul>
+            </Stagger>
         </Section>
     );
 }
@@ -110,30 +152,40 @@ export function Maternity({ packages, dict, lang }) {
         <Container as="section" aria-labelledby="maternity-title" className="py-6 lg:py-10">
             <div className="grid overflow-hidden rounded-4xl border border-line bg-card lg:grid-cols-2">
                 <div className="relative min-h-72 lg:min-h-full">
-                    <Image
-                        src="/uploads/facilities/nicu-care.webp"
-                        alt=""
-                        fill
-                        sizes="(min-width: 1024px) 42rem, 100vw"
-                        className="object-cover"
-                    />
-                    <p
+                    <PhotoReveal className="absolute inset-0 overflow-hidden">
+                        <Image
+                            src="/uploads/facilities/nicu-care.webp"
+                            alt=""
+                            fill
+                            sizes="(min-width: 1024px) 42rem, 100vw"
+                            className="object-cover"
+                        />
+                    </PhotoReveal>
+                    <FadeUp
+                        as="p"
+                        delay={0.45}
+                        y={12}
                         lang="bn"
                         aria-hidden
                         className="absolute bottom-5 left-6 font-bn-display text-5xl leading-none text-white/85 drop-shadow-[0_2px_12px_rgb(0_0_0/0.35)] sm:text-6xl"
                     >
                         মাতৃত্ব
-                    </p>
+                    </FadeUp>
                 </div>
-                <div className="p-7 sm:p-10 lg:p-14">
+                <FadeUp delay={0.1} className="p-7 sm:p-10 lg:p-14">
                     <p className="eyebrow">{h.maternityEyebrow}</p>
                     <h2 id="maternity-title" className="mt-4 text-h2">
                         {h.maternityTitle}
                     </h2>
                     <p className="mt-4 text-ink-2">{h.maternityLead}</p>
-                    <ul className="mt-7 divide-y divide-line-soft border-y border-line-soft">
+                    <Stagger
+                        as="ul"
+                        delay={0.25}
+                        className="mt-7 divide-y divide-line-soft border-y border-line-soft"
+                    >
                         {packages.map((p) => (
-                            <li
+                            <StaggerItem
+                                as="li"
                                 key={p._id}
                                 className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
                             >
@@ -154,9 +206,9 @@ export function Maternity({ packages, dict, lang }) {
                                     <Icon name="phone" size={15} />
                                     {dict.cta.callForPrice}
                                 </Button>
-                            </li>
+                            </StaggerItem>
                         ))}
-                    </ul>
+                    </Stagger>
                     <Button
                         appointment
                         kind="package"
@@ -167,7 +219,7 @@ export function Maternity({ packages, dict, lang }) {
                         {h.maternityCta}
                         <Icon name="arrow" size={18} />
                     </Button>
-                </div>
+                </FadeUp>
             </div>
         </Container>
     );
@@ -178,6 +230,7 @@ export function Packages({ checkups, surgical, dict, lang }) {
     const h = dict.home;
     return (
         <Section
+            animate
             tone="mint"
             number={digits("02", lang)}
             eyebrow={h.packagesEyebrow}
@@ -193,13 +246,13 @@ export function Packages({ checkups, surgical, dict, lang }) {
                 </Link>
             }
         >
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {checkups.map((p, i) => (
-                    <li
+            <Stagger as="ul" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {checkups.map((p) => (
+                    <StaggerItem
+                        as="li"
                         key={p._id}
-                        data-reveal
-                        style={{ "--reveal-delay": `${i * 70}ms` }}
-                        className="flex flex-col rounded-card bg-card p-6 shadow-[0_1px_0_rgb(12_42_45/0.04),0_18px_40px_-28px_rgb(7_38_41/0.4)] transition-transform duration-500 hover:-translate-y-1"
+                        // hover lift uses the `translate` property (not transform) — motion owns transform
+                        className="flex flex-col rounded-card bg-card p-6 shadow-[0_1px_0_rgb(12_42_45/0.04),0_18px_40px_-28px_rgb(7_38_41/0.4)] transition-[translate,box-shadow] duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-[0_1px_0_rgb(12_42_45/0.04),0_26px_50px_-30px_rgb(7_38_41/0.5)]"
                     >
                         <h3 className="text-[1.3rem] leading-snug">{t(p.name, lang)}</h3>
                         <p className="mt-2 text-sm text-ink-2">{t(p.summary, lang)}</p>
@@ -232,12 +285,15 @@ export function Packages({ checkups, surgical, dict, lang }) {
                                 {dict.cta.callForPrice}
                             </Button>
                         </div>
-                    </li>
+                    </StaggerItem>
                 ))}
-            </ul>
+            </Stagger>
 
             {surgical.length > 0 && (
-                <div className="mt-8 flex flex-col gap-3 rounded-card bg-mint-2 p-5 sm:flex-row sm:items-center sm:gap-5 sm:p-6">
+                <FadeUp
+                    delay={0.15}
+                    className="mt-8 flex flex-col gap-3 rounded-card bg-mint-2 p-5 sm:flex-row sm:items-center sm:gap-5 sm:p-6"
+                >
                     <p className="shrink-0 text-sm">
                         <span className="font-semibold text-ink">{h.surgicalTitle}</span>{" "}
                         <span className="text-ink-2">· {h.surgicalLead}</span>
@@ -258,7 +314,7 @@ export function Packages({ checkups, surgical, dict, lang }) {
                             </li>
                         ))}
                     </ul>
-                </div>
+                </FadeUp>
             )}
         </Section>
     );
@@ -326,15 +382,18 @@ export function VisitUs({ settings, dict, lang }) {
     return (
         <section aria-labelledby="visit-title" className="bg-mint">
             <Container className="py-16 lg:py-24">
-                <div className="grid overflow-hidden rounded-4xl bg-card shadow-[0_24px_60px_-40px_rgb(7_38_41/0.5)] lg:grid-cols-12">
+                <FadeUp
+                    y={24}
+                    className="grid overflow-hidden rounded-4xl bg-card shadow-[0_24px_60px_-40px_rgb(7_38_41/0.5)] lg:grid-cols-12"
+                >
                     <div className="p-7 sm:p-10 lg:col-span-5 lg:p-12">
                         <p className="eyebrow">{h.visitEyebrow}</p>
                         <h2 id="visit-title" className="mt-4 text-h2">
                             <Emphasis text={h.visitTitle} />
                         </h2>
-                        <ul className="mt-8 space-y-6">
+                        <Stagger as="ul" delay={0.2} gap={0.09} className="mt-8 space-y-6">
                             {rows.map((r) => (
-                                <li key={r.title} className="flex gap-4">
+                                <StaggerItem as="li" key={r.title} className="flex gap-4">
                                     <span className="grid size-10 shrink-0 place-items-center rounded-full bg-teal-50 text-teal-700">
                                         <Icon name={r.icon} size={19} />
                                     </span>
@@ -346,9 +405,9 @@ export function VisitUs({ settings, dict, lang }) {
                                             </p>
                                         ))}
                                     </div>
-                                </li>
+                                </StaggerItem>
                             ))}
-                        </ul>
+                        </Stagger>
                         <div className="mt-9 flex flex-wrap gap-3">
                             <Button href={settings.map.directions} variant="ink">
                                 <Icon name="pin" size={17} />
@@ -369,7 +428,7 @@ export function VisitUs({ settings, dict, lang }) {
                             className="absolute inset-0 size-full border-0 grayscale-35"
                         />
                     </div>
-                </div>
+                </FadeUp>
             </Container>
         </section>
     );
@@ -381,11 +440,14 @@ export function CtaBand({ settings, dict, lang }) {
     const desks = settings.whatsappNumbers;
     return (
         <Container as="section" aria-labelledby="cta-title" className="py-20 lg:py-28">
-            <div className="relative isolate grid gap-10 overflow-hidden rounded-4xl bg-teal-900 px-7 py-10 text-paper sm:px-10 lg:grid-cols-12 lg:items-center lg:gap-14 lg:px-14 lg:py-14">
-                <ContourLines
-                    className="absolute -right-20 -top-10 -z-10 h-104 w-176 text-teal-300/[0.14]"
-                    count={10}
-                />
+            <FadeUp
+                y={28}
+                duration={1.1}
+                className="relative isolate grid gap-10 overflow-hidden rounded-4xl bg-teal-900 px-7 py-10 text-paper sm:px-10 lg:grid-cols-12 lg:items-center lg:gap-14 lg:px-14 lg:py-14"
+            >
+                <Drift range={[-40, 40]} className="absolute -right-20 -top-10 -z-10">
+                    <ContourLines className="h-104 w-176 text-teal-300/[0.14]" count={10} />
+                </Drift>
                 <div className="lg:col-span-6">
                     <h2 id="cta-title" className="text-h2 text-paper">
                         {h.ctaTitle}
@@ -404,9 +466,13 @@ export function CtaBand({ settings, dict, lang }) {
                 {desks.length > 0 && (
                     <div className="lg:col-span-6">
                         <p className="text-sm font-medium text-paper/60">{h.desksTitle}</p>
-                        <ul className="mt-3 divide-y divide-paper/15 border-y border-paper/15">
+                        <Stagger
+                            as="ul"
+                            delay={0.25}
+                            className="mt-3 divide-y divide-paper/15 border-y border-paper/15"
+                        >
                             {desks.map((w) => (
-                                <li key={w._id}>
+                                <StaggerItem as="li" key={w._id}>
                                     <a
                                         href={whatsappLink(w.number, dict.appointment.message)}
                                         target="_blank"
@@ -436,12 +502,12 @@ export function CtaBand({ settings, dict, lang }) {
                                             className="shrink-0 text-paper/50 transition-transform group-hover:translate-x-1 group-hover:text-paper"
                                         />
                                     </a>
-                                </li>
+                                </StaggerItem>
                             ))}
-                        </ul>
+                        </Stagger>
                     </div>
                 )}
-            </div>
+            </FadeUp>
         </Container>
     );
 }
