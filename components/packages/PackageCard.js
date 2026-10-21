@@ -19,10 +19,10 @@ export function PackageCard({ pkg, dict, lang }) {
                 <ul className="mt-4 flex flex-wrap gap-1.5">
                     {pkg.inclusions.slice(0, 4).map((x) => (
                         <li
-                            key={x}
+                            key={x.en}
                             className="rounded-pill bg-paper px-2.5 py-1 text-xs text-ink-2"
                         >
-                            {x}
+                            {t(x, lang)}
                         </li>
                     ))}
                 </ul>

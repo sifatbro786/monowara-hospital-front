@@ -66,7 +66,7 @@ async function PackagePageContent({ params }) {
     const doctors = dept
         ? (await getDoctors({ department: dept.slug, featured: true, limit: 4 })).items
         : [];
-    const inclusions = (pkg.inclusions || []).map((x) => ({ en: x, bn: x }));
+    const inclusions = pkg.inclusions || [];
 
     return (
         <>

@@ -1,9 +1,11 @@
 // Mock `packages` collection (proposal §5.1). Prices are never shown — every package is
 // "Call for Price". `inclusions` for check-ups follow the examples in the client's concept;
 // maternity/surgical inclusions are empty until the hospital sends the real lists (CONFIRM).
+// `inclusions` items are { en, bn } like every other translatable field.
 import { packageContent } from "./package-content.js";
 
 const stamp = "2026-10-20T00:00:00.000Z";
+const L = (en, bn) => ({ en, bn });
 
 // category: "maternity" | "surgical" | "checkup"
 const rows = [
@@ -42,7 +44,12 @@ const rows = [
             en: "A yearly baseline for adults.",
             bn: "প্রাপ্তবয়স্কদের বার্ষিক প্রাথমিক চেকআপ।",
         },
-        inclusions: ["CBC", "Blood sugar", "Urine R/E", "Chest X-ray"],
+        inclusions: [
+            L("CBC", "সিবিসি"),
+            L("Blood sugar", "ব্লাড সুগার"),
+            L("Urine R/E", "ইউরিন আর/ই"),
+            L("Chest X-ray", "বুকের এক্স-রে"),
+        ],
     },
     {
         slug: "executive-health-check",
@@ -52,7 +59,11 @@ const rows = [
             en: "A broader panel with a specialist consultation.",
             bn: "বিস্তৃত পরীক্ষা ও বিশেষজ্ঞ পরামর্শসহ।",
         },
-        inclusions: ["Extended blood panel", "Imaging", "Specialist consultation"],
+        inclusions: [
+            L("Extended blood panel", "বিস্তারিত রক্ত পরীক্ষা"),
+            L("Imaging", "ইমেজিং"),
+            L("Specialist consultation", "বিশেষজ্ঞের পরামর্শ"),
+        ],
     },
     {
         slug: "diabetes-care-check",
@@ -62,14 +73,22 @@ const rows = [
             en: "Track control and catch complications early.",
             bn: "নিয়ন্ত্রণ পর্যবেক্ষণ ও জটিলতা আগেভাগে শনাক্ত।",
         },
-        inclusions: ["HbA1c", "Lipid profile", "Creatinine"],
+        inclusions: [
+            L("HbA1c", "HbA1c"),
+            L("Lipid profile", "লিপিড প্রোফাইল"),
+            L("Creatinine", "ক্রিয়েটিনিন"),
+        ],
     },
     {
         slug: "heart-health-check",
         category: "checkup",
         name: { en: "Heart Health Check", bn: "হার্ট হেলথ চেক" },
         summary: { en: "A focused look at your heart.", bn: "হৃদযন্ত্রের জন্য বিশেষ চেকআপ।" },
-        inclusions: ["ECG", "Echocardiography", "Lipid profile"],
+        inclusions: [
+            L("ECG", "ইসিজি"),
+            L("Echocardiography", "ইকোকার্ডিওগ্রাফি"),
+            L("Lipid profile", "লিপিড প্রোফাইল"),
+        ],
     },
     {
         slug: "musolmani",

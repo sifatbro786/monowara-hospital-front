@@ -10,7 +10,7 @@
 | 2 — Content migration + Homepage | ✅ Done (2026-10-20) — run `node scripts/fetch-wp-images.mjs` once locally |
 | 3 — Doctors & Departments | ✅ Done (2026-10-20) |
 | 4 — Packages, booking & content pages | ✅ Done (2026-10-21) |
-| 5 — Polish, SEO & demo | 🟡 In progress — 5.1 + 5.2 done (2026-10-21) |
+| 5 — Polish, SEO & demo | ✅ Done (2026-10-21) — Vercel deploy + client demo by Sifat (`docs/DEMO_CHECKLIST.md`) |
 
 ---
 
@@ -32,10 +32,15 @@ Each step is written to the repo + ticked before the next starts. On resume: con
   - **Bangla fonts:** moved from next/font to `@font-face` in `globals.css` with stable versioned URLs `public/fonts/bn/*.v1.woff2` (immutable cache header in `next.config.mjs`); the layout preloads Tiro 400 + Hind 400 **on BN pages only** (next/font preloads per route, and EN/BN share one route). BN header swap shift 0.11–0.34 → 0–0.013. On EN, the "বাংলা" switch label uses the system Bangla font, so EN pages no longer download Hind (3 × ~70 KB); only Tiro is still fetched for the footer wordmark. `scripts/og-card.py` reads the new paths.
   - **WhatsApp / call tap analytics:** `components/analytics/TapTracker.js` — one delegated capture listener for every `wa.me` and `tel:` link (no per-link tagging needed) → `window.dataLayer.push({ event: "contact_tap", channel, desk, number, section, page_path, lang })`. `section` = nearest `data-track` (topbar, hero, dock, doctor-card, appointment, mobile-menu) → id → landmark. No analytics script loaded yet (B4: GTM/GA4 reads the queue; B3 can POST it to `/api/v1/taps` for the admin board).
   - **Lighthouse (mobile, simulated slow 4G, local `next start`)** — Accessibility 100, Best practices 100 everywhere; SEO 69 = only `is-crawlable` (demo is `noindex` on purpose → 100 on production). Performance without the intro loader: EN home 90, doctor 89, department 80–95, packages 85, directory 88; BN 76–78. With the loader (first visit): −2…−10. Observed (unthrottled) LCP 0.3–1.3 s. What's left is bytes before LCP under the 1.6 Mbps model: Latin fonts ~154 KB + Bangla ~150 KB (BN) + Next/React JS ~170 KB; fonts are already subset (Bangla = Bengali glyphs only). Re-measure with PageSpeed Insights on Vercel (CDN + Brotli) in 5.3.
-  - ⚠ **Decision for Sifat/client — intro loader:** it covers the first visit for ~2.5 s before the page is visible, which costs FCP/LCP on every first visit (what Google measures). Options: keep as is (client asked for it), show it on the homepage only, or shorten to ~1.5 s. Not changed without approval.
-  - Delete on the PC (moved, no longer used): `app/fonts/hind-siliguri-bengali-{400,500,600}-normal.woff2`, `app/fonts/tiro-bangla-bengali-400-normal.woff2`.
+  - Intro loader decision → resolved in 5.3 (homepage only).
+  - Old Bangla font files in `app/fonts/` deleted by Sifat (moved to `public/fonts/bn/`).
   - Verified: `npm run build` ✅, `eslint .` ✅, esbuild on all changed JS ✅, axe 0 violations, keyboard pass, tap events checked in EN + BN.
-- [ ] **5.3 BN pass + demo** — Bangla copy proofing (names, dictionaries, data), cross-device QA (390/768/1440 + real Android Chrome), Vercel project + env (`NEXT_PUBLIC_SITE_ENV=demo`, `NEXT_PUBLIC_SITE_URL`), client demo checklist + open-items list → design lock.
+- [x] **5.3 BN pass + demo** (2026-10-21)
+  - **Intro loader → homepage only** (Sifat's decision): the boot script now shows it only on `/` and `/bn` (first view per session; still skipped with `?ref=call` and reduced motion). Inner pages — where search traffic lands — never wait for it. Verified: `/`, `/bn` show it; `/doctors`, `/bn/departments/…`, `/emergency`, `/?ref=call` don't.
+  - **BN pass (automated scan of dictionaries + every `{en,bn}` field in data/, then a crawl of all 144 BN pages for visible English text / ASCII digits):** dictionaries complete (no missing keys). Fixed: 48 doctor affiliations had no Bangla (26 institutions → Bangla names added); package inclusions were plain English strings → now `{en,bn}` like every other translatable field (`data/packages.js`, rendered with `t()` in PackageCard, home Packages, package detail). Kept in English on purpose (standard in BD): degrees, BMDC numbers, HbA1c, emails, phone examples in form errors. Two affiliations used pre-2024 names → updated to the institutes' current official names, marked CONFIRM in `data/doctors.js`. Bangla copy still needs a native proofread by the hospital (names are our transliterations).
+  - **Cross-device QA crawl** (all 288 sitemap URLs at 390 and 1440 + 70 at 768): 0 non-200, 0 horizontal overflow, 0 page errors, 0 broken own images. Only failures: YouTube thumbnails through `/_next/image` (the sandbox can't reach i.ytimg.com — works on Vercel).
+  - **Vercel readiness:** `package.json` `engines.node >=20.9.0` (Next 16 requirement). Env vars, deploy steps, pre-demo checks, a 15-minute demo script, the consolidated list of what the hospital must send, and the design-lock sign-off list are in **`docs/DEMO_CHECKLIST.md`**.
+  - Verified: `npm run build` ✅, `eslint .` ✅, esbuild ✅.
 
 ---
 
@@ -220,10 +225,9 @@ See `data/_placeholders.md` and master plan §7 — WhatsApp desk labels + prima
 
 Not done in this environment: `git commit` (no shell on the Windows machine from this session — files were written into the repo directly; commit locally).
 
-## Next — Phase 5 (Polish, SEO & demo)
-Before starting: `npm install && node scripts/fetch-wp-images.mjs` (now 92 images incl. aesthetic), check photos, commit.
-1. BN content pass (proof Bangla names/copy with the client's list), metadata + OG image per page (`opengraph-image` for doctors/articles), JSON-LD: Hospital + MedicalClinic (layout), BreadcrumbList on detail pages.
-2. `app/sitemap.js` (all static params, EN + BN alternates), robots stays noindex on Vercel.
-3. `loading.js` / `error.js` states, image audit (sizes, eager only above the fold), Lighthouse ≥ 90 mobile, a11y pass (focus order, contrast, labels, skip link), motion polish.
-4. FAQ chatbot content from the client (dock already works), WhatsApp tap analytics hook (`data-wa-tap`) ready for GA4.
-5. Cross-device QA, Vercel deploy, client demo checklist → design lock.
+## Next — after design lock (backend track)
+Before: Sifat deploys to Vercel and runs the client demo with `docs/DEMO_CHECKLIST.md`; collect the §4 items; client signs §5.
+1. **B1 `mh-api`** (Express, modular): Mongoose models mirroring `data/*` (incl. `{en,bn}` package inclusions, structured settings address, media slots), auth (JWT HttpOnly cookie + refresh), RBAC, zod, rate limit, custom NoSQL sanitising, multer + sharp (same rules as `scripts/optimize-media.mjs`; also a JPEG OG rendition per upload), Nodemailer.
+2. **B2 admin** in `app/admin` (all proposal §5.4 modules + FAQ, hero, media slots, WhatsApp tap analytics from `contact_tap` events).
+3. **B3** `DATA_SOURCE=api`, `revalidateTag` on admin save, forms POST to the API.
+4. **B4** VPS (Nginx, PM2, SSL, Mongo auth + backups), `NEXT_PUBLIC_SITE_ENV=production`, GA4/GTM reading `dataLayer`, Search Console + sitemap.

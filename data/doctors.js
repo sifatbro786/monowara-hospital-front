@@ -1,7 +1,7 @@
 // Mock `doctors` collection — migrated from monowarahospital.com (all profiles in
 // medilink_doctor-sitemap.xml, read 2026-10-20). Shape = future Mongo `Doctor` model.
 // - Bangla names/designations are our transliterations → client to proof (data/_migration-report.md).
-// - `affiliation` = the doctor's main institution as published (BN filled later from admin).
+// - `affiliation` = the doctor's main institution as published (BN added in 5.3 — client to proofread).
 // - `schedule`: BD week (sat…fri), 24h "HH:MM". Old-site typos normalised — see the report.
 // - `scheduleNote` replaces the timetable when no fixed chamber hours are published.
 // - `legacyUrl` feeds the 308 redirects in data/redirects.mjs (keeps old Google links alive).
@@ -37,7 +37,10 @@ export const doctors = [
             en: "Gynaecologist, obstetrician & surgeon — special interest in pain-free normal delivery",
             bn: "গাইনি, প্রসূতি ও সার্জন — ব্যথামুক্ত নরমাল ডেলিভারিতে বিশেষ আগ্রহ",
         },
-        affiliation: { en: "Enam Medical College Hospital, Savar", bn: "" },
+        affiliation: {
+            en: "Enam Medical College Hospital, Savar",
+            bn: "এনাম মেডিকেল কলেজ হাসপাতাল, সাভার",
+        },
         department: "dept_gynaecology-obstetrics",
         photo: "/uploads/doctors/dr-nasima-begum.webp",
         schedule: [
@@ -92,7 +95,10 @@ export const doctors = [
         designation: { en: "Assistant Professor, Medicine", bn: "সহকারী অধ্যাপক, মেডিসিন" },
         degrees: "MBBS, BCS (Health), MD (Internal Medicine)",
         specialty: { en: "Medicine specialist", bn: "মেডিসিন বিশেষজ্ঞ" },
-        affiliation: { en: "Mugda Medical College & Hospital, Dhaka", bn: "" },
+        affiliation: {
+            en: "Mugda Medical College & Hospital, Dhaka",
+            bn: "মুগদা মেডিকেল কলেজ ও হাসপাতাল, ঢাকা",
+        },
         department: "dept_medicine",
         photo: "/uploads/doctors/dr-ishrat-jabeen.webp",
         schedule: [
@@ -118,7 +124,10 @@ export const doctors = [
             en: "Medicine, liver, diabetes & stomach — endoscopy and colonoscopy",
             bn: "মেডিসিন, লিভার, ডায়াবেটিস ও পেটের রোগ — এন্ডোস্কপি ও কোলোনোস্কপি",
         },
-        affiliation: { en: "National Gastroliver Institute & Hospital, Dhaka", bn: "" },
+        affiliation: {
+            en: "National Gastroliver Institute & Hospital, Dhaka",
+            bn: "জাতীয় গ্যাস্ট্রোলিভার ইনস্টিটিউট ও হাসপাতাল, ঢাকা",
+        },
         department: "dept_gastroenterology-liver",
         photo: "/uploads/doctors/dr-royes-uddin.webp",
         schedule: [
@@ -168,7 +177,10 @@ export const doctors = [
             en: "Medicine & kidney disease specialist",
             bn: "মেডিসিন ও কিডনি রোগ বিশেষজ্ঞ",
         },
-        affiliation: { en: "Bangladesh Medical University (ex-PG Hospital), Dhaka", bn: "" },
+        affiliation: {
+            en: "Bangladesh Medical University (ex-PG Hospital), Dhaka",
+            bn: "বাংলাদেশ মেডিকেল বিশ্ববিদ্যালয় (সাবেক পিজি হাসপাতাল), ঢাকা",
+        },
         department: "dept_nephrology",
         photo: "/uploads/doctors/dr-debashish-saha.webp",
         schedule: [
@@ -188,7 +200,10 @@ export const doctors = [
             en: "ENT & head-neck surgeon — ear microsurgery and endoscopic sinus surgery",
             bn: "নাক-কান-গলা ও হেড-নেক সার্জন — কানের মাইক্রোসার্জারি ও এন্ডোস্কোপিক সাইনাস সার্জারি",
         },
-        affiliation: { en: "National Institute of ENT, Tejgaon, Dhaka", bn: "" },
+        affiliation: {
+            en: "National Institute of ENT, Tejgaon, Dhaka",
+            bn: "জাতীয় নাক কান গলা ইনস্টিটিউট, তেজগাঁও, ঢাকা",
+        },
         department: "dept_ent",
         photo: "/uploads/doctors/dr-mohammad-hanif.webp",
         schedule: [
@@ -217,7 +232,10 @@ export const doctors = [
             en: "Obs, gynae & infertility — laparoscopic and hysteroscopic surgery",
             bn: "প্রসূতি, গাইনি ও বন্ধ্যাত্ব — ল্যাপারোস্কোপিক ও হিস্টেরোস্কোপিক সার্জারি",
         },
-        affiliation: { en: "United Medical College & Hospital", bn: "" },
+        affiliation: {
+            en: "United Medical College & Hospital",
+            bn: "ইউনাইটেড মেডিকেল কলেজ ও হাসপাতাল",
+        },
         department: "dept_gynaecology-obstetrics",
         photo: "/uploads/doctors/dr-khaleda-akter-bhuiyan.webp",
         schedule: [
@@ -260,7 +278,7 @@ export const doctors = [
             en: "Feto-maternal medicine, minimal-access laparoscopic surgery, reproductive medicine & urogynaecology",
             bn: "ফিটো-ম্যাটার্নাল মেডিসিন, ল্যাপারোস্কোপিক সার্জারি, প্রজনন চিকিৎসা ও ইউরোগাইনোকোলজি",
         },
-        affiliation: { en: "Dhaka Medical College Hospital", bn: "" },
+        affiliation: { en: "Dhaka Medical College Hospital", bn: "ঢাকা মেডিকেল কলেজ হাসপাতাল" },
         department: "dept_gynaecology-obstetrics",
         photo: "/uploads/doctors/dr-nasrin-akhter.webp",
         schedule: [
@@ -286,7 +304,10 @@ export const doctors = [
             en: "Gynaecological surgery — former head of department",
             bn: "গাইনি সার্জারি — সাবেক বিভাগীয় প্রধান",
         },
-        affiliation: { en: "Holy Family Red Crescent Medical College Hospital", bn: "" },
+        affiliation: {
+            en: "Holy Family Red Crescent Medical College Hospital",
+            bn: "হলি ফ্যামিলি রেড ক্রিসেন্ট মেডিকেল কলেজ হাসপাতাল",
+        },
         department: "dept_gynaecology-obstetrics",
         photo: "/uploads/doctors/dr-rowshan-ara-begum.webp",
         schedule: [],
@@ -308,7 +329,7 @@ export const doctors = [
             en: "Gynaecological surgery — former head of department, DMCH",
             bn: "গাইনি সার্জারি — ঢাকা মেডিকেলের সাবেক বিভাগীয় প্রধান",
         },
-        affiliation: { en: "Dhaka Medical College Hospital", bn: "" },
+        affiliation: { en: "Dhaka Medical College Hospital", bn: "ঢাকা মেডিকেল কলেজ হাসপাতাল" },
         department: "dept_gynaecology-obstetrics",
         photo: "/uploads/doctors/dr-anwara-begum.webp",
         schedule: [],
@@ -324,7 +345,10 @@ export const doctors = [
         designation: { en: "Senior Consultant, Gynaecology", bn: "সিনিয়র কনসালট্যান্ট, গাইনি" },
         degrees: "MBBS, MCPS",
         specialty: { en: "Gynaecology & obstetrics", bn: "গাইনি ও প্রসূতি" },
-        affiliation: { en: "Holy Family Red Crescent Medical College & Hospital, Dhaka", bn: "" },
+        affiliation: {
+            en: "Holy Family Red Crescent Medical College & Hospital, Dhaka",
+            bn: "হলি ফ্যামিলি রেড ক্রিসেন্ট মেডিকেল কলেজ ও হাসপাতাল, ঢাকা",
+        },
         department: "dept_gynaecology-obstetrics",
         photo: "/uploads/doctors/dr-mehrose-alam-chowdhury.webp",
         schedule: [
@@ -375,7 +399,7 @@ export const doctors = [
             en: "Gynae oncology, laparoscopy, hysteroscopy & colposcopy",
             bn: "গাইনি অনকোলজি, ল্যাপারোস্কপি, হিস্টেরোস্কপি ও কলপোস্কপি",
         },
-        affiliation: { en: "Dhaka Medical College Hospital", bn: "" },
+        affiliation: { en: "Dhaka Medical College Hospital", bn: "ঢাকা মেডিকেল কলেজ হাসপাতাল" },
         department: "dept_gynaecology-obstetrics",
         photo: null, // CONFIRM: no portrait on the old site (file deleted) — ask the client
         schedule: [
@@ -522,7 +546,10 @@ export const doctors = [
             en: "General & laparoscopic surgeon — Principal and Head of Surgery, Mugda MCH",
             bn: "জেনারেল ও ল্যাপারোস্কোপিক সার্জন — অধ্যক্ষ ও সার্জারি বিভাগীয় প্রধান, মুগদা মেডিকেল কলেজ",
         },
-        affiliation: { en: "Mugda Medical College & Hospital", bn: "" },
+        affiliation: {
+            en: "Mugda Medical College & Hospital",
+            bn: "মুগদা মেডিকেল কলেজ ও হাসপাতাল",
+        },
         department: "dept_general-laparoscopic-surgery",
         photo: "/uploads/doctors/dr-md-mustafizur-rahman.webp",
         schedule: [
@@ -545,7 +572,10 @@ export const doctors = [
             en: "Complex general surgery — former Head of Surgery, Sir Salimullah Medical College",
             bn: "জটিল জেনারেল সার্জারি — স্যার সলিমুল্লাহ মেডিকেল কলেজের সাবেক সার্জারি বিভাগীয় প্রধান",
         },
-        affiliation: { en: "Sir Salimullah Medical College & Mitford Hospital", bn: "" },
+        affiliation: {
+            en: "Sir Salimullah Medical College & Mitford Hospital",
+            bn: "স্যার সলিমুল্লাহ মেডিকেল কলেজ ও মিটফোর্ড হাসপাতাল",
+        },
         department: "dept_general-laparoscopic-surgery",
         photo: "/uploads/doctors/dr-syed-mahbubul-alam.webp",
         schedule: [
@@ -566,7 +596,10 @@ export const doctors = [
             en: "Breast, laparoscopic & general surgery — trained in cancer surgery",
             bn: "ব্রেস্ট, ল্যাপারোস্কোপিক ও জেনারেল সার্জারি — ক্যান্সার সার্জারিতে প্রশিক্ষিত",
         },
-        affiliation: { en: "National Institute of Cancer Research & Hospital", bn: "" },
+        affiliation: {
+            en: "National Institute of Cancer Research & Hospital",
+            bn: "জাতীয় ক্যান্সার গবেষণা ইনস্টিটিউট ও হাসপাতাল",
+        },
         department: "dept_general-laparoscopic-surgery",
         photo: "/uploads/doctors/dr-laila-shireen.webp",
         schedule: [
@@ -591,7 +624,10 @@ export const doctors = [
             en: "Laparoscopic, breast & colorectal surgery",
             bn: "ল্যাপারোস্কোপিক, ব্রেস্ট ও কোলোরেক্টাল সার্জারি",
         },
-        affiliation: { en: "Ad-din Medical College Hospital", bn: "" },
+        affiliation: {
+            en: "Ad-din Medical College Hospital",
+            bn: "আদ্-দ্বীন মেডিকেল কলেজ হাসপাতাল",
+        },
         department: "dept_general-laparoscopic-surgery",
         photo: "/uploads/doctors/dr-sadia-armin-khan.webp",
         schedule: [],
@@ -613,7 +649,10 @@ export const doctors = [
             en: "Breast, burn, plastic & cosmetic surgery",
             bn: "ব্রেস্ট, বার্ন, প্লাস্টিক ও কসমেটিক সার্জারি",
         },
-        affiliation: { en: "Prof. Tayrunnesa Memorial Medical College & Hospital", bn: "" },
+        affiliation: {
+            en: "Prof. Tayrunnesa Memorial Medical College & Hospital",
+            bn: "অধ্যাপক তায়রুন্নেসা মেমোরিয়াল মেডিকেল কলেজ ও হাসপাতাল",
+        },
         department: "dept_plastic-surgery",
         photo: "/uploads/doctors/dr-munny-momotaz.webp",
         schedule: [
@@ -638,7 +677,11 @@ export const doctors = [
             en: "Plastic, burn, hand & aesthetic surgery",
             bn: "প্লাস্টিক, বার্ন, হ্যান্ড ও অ্যাসথেটিক সার্জারি",
         },
-        affiliation: { en: "Sheikh Hasina National Institute of Burn & Plastic Surgery", bn: "" },
+        // renamed by the government in 2024 (was "Sheikh Hasina National Institute of Burn & Plastic Surgery") — CONFIRM
+        affiliation: {
+            en: "National Institute of Burn & Plastic Surgery, Dhaka",
+            bn: "জাতীয় বার্ন ও প্লাস্টিক সার্জারি ইনস্টিটিউট, ঢাকা",
+        },
         department: "dept_plastic-surgery",
         photo: "/uploads/doctors/dr-masroor-ur-rahman-abir.webp",
         schedule: [
@@ -657,7 +700,7 @@ export const doctors = [
         },
         degrees: "MBBS, MD, FCCP, FESC, FACC",
         specialty: { en: "Advanced cardiovascular care", bn: "উন্নত হৃদরোগ চিকিৎসা" },
-        affiliation: { en: "Bangladesh Medical University", bn: "" },
+        affiliation: { en: "Bangladesh Medical University", bn: "বাংলাদেশ মেডিকেল বিশ্ববিদ্যালয়" },
         department: "dept_cardiology",
         photo: "/uploads/doctors/dr-sajal-krisno-banerjee.webp",
         schedule: [],
@@ -695,7 +738,10 @@ export const doctors = [
         designation: { en: "Professor, Medicine", bn: "অধ্যাপক, মেডিসিন" },
         degrees: "MBBS, FCPS (Medicine), FACP",
         specialty: { en: "Internal medicine", bn: "ইন্টারনাল মেডিসিন" },
-        affiliation: { en: "Mugda Medical College & Hospital, Dhaka", bn: "" },
+        affiliation: {
+            en: "Mugda Medical College & Hospital, Dhaka",
+            bn: "মুগদা মেডিকেল কলেজ ও হাসপাতাল, ঢাকা",
+        },
         department: "dept_medicine",
         photo: "/uploads/doctors/dr-gobinda-chandra-banik.webp",
         schedule: [],
@@ -733,7 +779,10 @@ export const doctors = [
             en: "Internal & sleep medicine — hypertension, diabetes, rheumatic pain, insomnia and sleep apnoea",
             bn: "ইন্টারনাল ও স্লিপ মেডিসিন — উচ্চ রক্তচাপ, ডায়াবেটিস, বাতব্যথা, অনিদ্রা ও স্লিপ অ্যাপনিয়া",
         },
-        affiliation: { en: "MAG Osmani Medical College, Sylhet", bn: "" },
+        affiliation: {
+            en: "MAG Osmani Medical College, Sylhet",
+            bn: "এম এ জি ওসমানী মেডিকেল কলেজ, সিলেট",
+        },
         department: "dept_medicine",
         photo: "/uploads/doctors/dr-moniruzzaman-ahmed.webp",
         schedule: [
@@ -755,7 +804,7 @@ export const doctors = [
             en: "Internal medicine — former Head of Medicine, DMCH",
             bn: "ইন্টারনাল মেডিসিন — ঢাকা মেডিকেলের সাবেক মেডিসিন বিভাগীয় প্রধান",
         },
-        affiliation: { en: "Dhaka Medical College Hospital", bn: "" },
+        affiliation: { en: "Dhaka Medical College Hospital", bn: "ঢাকা মেডিকেল কলেজ হাসপাতাল" },
         department: "dept_medicine",
         photo: "/uploads/doctors/dr-abul-kashem-khandaker.webp",
         schedule: [],
@@ -777,7 +826,10 @@ export const doctors = [
             en: "Chest medicine, allergy, asthma & TB — interventional pulmonologist",
             bn: "বক্ষব্যাধি, অ্যালার্জি, অ্যাজমা ও যক্ষ্মা — ইন্টারভেনশনাল পালমোনোলজিস্ট",
         },
-        affiliation: { en: "NIDCH, Mohakhali, Dhaka", bn: "" },
+        affiliation: {
+            en: "NIDCH, Mohakhali, Dhaka",
+            bn: "জাতীয় বক্ষব্যাধি ইনস্টিটিউট ও হাসপাতাল (এনআইডিসিএইচ), মহাখালী, ঢাকা",
+        },
         department: "dept_chest-medicine",
         photo: "/uploads/doctors/dr-bk-biswas.webp",
         schedule: [
@@ -796,7 +848,10 @@ export const doctors = [
         },
         degrees: "MBBS, BCS (Health), MRCP (UK), CCD (BIRDEM), MD (Chest)",
         specialty: { en: "Medicine & chest specialist", bn: "মেডিসিন ও বক্ষব্যাধি বিশেষজ্ঞ" },
-        affiliation: { en: "NIDCH, Mohakhali, Dhaka", bn: "" },
+        affiliation: {
+            en: "NIDCH, Mohakhali, Dhaka",
+            bn: "জাতীয় বক্ষব্যাধি ইনস্টিটিউট ও হাসপাতাল (এনআইডিসিএইচ), মহাখালী, ঢাকা",
+        },
         department: "dept_chest-medicine",
         photo: "/uploads/doctors/dr-sharmin-afroz.webp",
         schedule: [
@@ -821,7 +876,7 @@ export const doctors = [
             en: "Diabetes, thyroid & hormone disorders",
             bn: "ডায়াবেটিস, থাইরয়েড ও হরমোনজনিত রোগ",
         },
-        affiliation: { en: "Ad-din Women's Medical College", bn: "" },
+        affiliation: { en: "Ad-din Women's Medical College", bn: "আদ্-দ্বীন উইমেন্স মেডিকেল কলেজ" },
         department: "dept_diabetes-endocrinology",
         photo: null, // CONFIRM: no portrait on the old site (file deleted) — ask the client
         schedule: [
@@ -839,7 +894,7 @@ export const doctors = [
         designation: { en: "Diabetologist", bn: "ডায়াবেটিস বিশেষজ্ঞ" },
         degrees: "MBBS, CCD",
         specialty: { en: "Diabetes management", bn: "ডায়াবেটিস নিয়ন্ত্রণ ও চিকিৎসা" },
-        affiliation: { en: "BIRDEM General Hospital", bn: "" },
+        affiliation: { en: "BIRDEM General Hospital", bn: "বারডেম জেনারেল হাসপাতাল" },
         department: "dept_diabetes-endocrinology",
         photo: "/uploads/doctors/dr-sultana-rehana-akhtar.webp",
         schedule: [
@@ -854,7 +909,11 @@ export const doctors = [
         designation: { en: "Consultant, Gastroliver", bn: "কনসালট্যান্ট, গ্যাস্ট্রোলিভার" },
         degrees: "MBBS, BCS (Health), MD, CCD",
         specialty: { en: "Gastro, liver & diabetes care", bn: "গ্যাস্ট্রো, লিভার ও ডায়াবেটিস" },
-        affiliation: { en: "Sheikh Russel National Gastroliver Institute & Hospital", bn: "" },
+        // renamed by the government in 2024 (was "Sheikh Russel National Gastroliver Institute & Hospital") — CONFIRM
+        affiliation: {
+            en: "National Gastroliver Institute & Hospital, Dhaka",
+            bn: "জাতীয় গ্যাস্ট্রোলিভার ইনস্টিটিউট ও হাসপাতাল, ঢাকা",
+        },
         department: "dept_gastroenterology-liver",
         photo: "/uploads/doctors/dr-chinmoy-saha.webp",
         schedule: [
@@ -873,7 +932,10 @@ export const doctors = [
         },
         degrees: "MBBS, MS, FACS",
         specialty: { en: "Brain & spine neurosurgery", bn: "মস্তিষ্ক ও মেরুদণ্ডের নিউরোসার্জারি" },
-        affiliation: { en: "Sir Salimullah Medical College & Mitford Hospital", bn: "" },
+        affiliation: {
+            en: "Sir Salimullah Medical College & Mitford Hospital",
+            bn: "স্যার সলিমুল্লাহ মেডিকেল কলেজ ও মিটফোর্ড হাসপাতাল",
+        },
         department: "dept_neurology",
         photo: null, // CONFIRM: no portrait on the old site (file deleted) — ask the client
         schedule: [
@@ -892,7 +954,10 @@ export const doctors = [
             en: "Brain, spine, stroke & nerve — neurosurgeon",
             bn: "মস্তিষ্ক, মেরুদণ্ড, স্ট্রোক ও স্নায়ু — নিউরোসার্জন",
         },
-        affiliation: { en: "National Institute of Neurosciences & Hospital", bn: "" },
+        affiliation: {
+            en: "National Institute of Neurosciences & Hospital",
+            bn: "ন্যাশনাল ইনস্টিটিউট অব নিউরোসায়েন্সেস ও হাসপাতাল",
+        },
         department: "dept_neurology",
         photo: "/uploads/doctors/dr-afanur-rahman-adnan.webp",
         schedule: [
@@ -936,7 +1001,7 @@ export const doctors = [
         designation: { en: "Professor & Head, ENT", bn: "অধ্যাপক ও বিভাগীয় প্রধান, নাক-কান-গলা" },
         degrees: "MBBS, MCPS, DLO (DU)",
         specialty: { en: "ENT and head-neck surgeon", bn: "নাক-কান-গলা ও হেড-নেক সার্জন" },
-        affiliation: { en: "Dhaka Shishu (Children's) Hospital", bn: "" },
+        affiliation: { en: "Dhaka Shishu (Children's) Hospital", bn: "ঢাকা শিশু হাসপাতাল" },
         department: "dept_ent",
         photo: "/uploads/doctors/dr-syed-hasan-imam-al-masoom.webp",
         schedule: [
@@ -954,7 +1019,10 @@ export const doctors = [
         designation: { en: "Assistant Professor, ENT", bn: "সহকারী অধ্যাপক, নাক-কান-গলা" },
         degrees: "MBBS (Dhaka), BCS (Health), FCPS (ENT)",
         specialty: { en: "ENT and head-neck surgeon", bn: "নাক-কান-গলা ও হেড-নেক সার্জন" },
-        affiliation: { en: "National Institute of ENT, Tejgaon, Dhaka", bn: "" },
+        affiliation: {
+            en: "National Institute of ENT, Tejgaon, Dhaka",
+            bn: "জাতীয় নাক কান গলা ইনস্টিটিউট, তেজগাঁও, ঢাকা",
+        },
         department: "dept_ent",
         photo: null, // CONFIRM: no portrait on the old site (file deleted) — ask the client
         schedule: [
@@ -973,7 +1041,7 @@ export const doctors = [
             en: "Bone & joint disorders, treatment and rehabilitation",
             bn: "হাড় ও জয়েন্টের রোগ, চিকিৎসা ও পুনর্বাসন",
         },
-        affiliation: { en: "NITOR (Pongu Hospital), Dhaka", bn: "" },
+        affiliation: { en: "NITOR (Pongu Hospital), Dhaka", bn: "নিটোর (পঙ্গু হাসপাতাল), ঢাকা" },
         department: "dept_orthopaedics",
         photo: "/uploads/doctors/dr-akm-ishaq.webp",
         schedule: [
@@ -995,7 +1063,10 @@ export const doctors = [
             en: "Trauma, joint replacement & spine disorders",
             bn: "ট্রমা, জয়েন্ট রিপ্লেসমেন্ট ও মেরুদণ্ডের সমস্যা",
         },
-        affiliation: { en: "Mugda Medical College & Hospital", bn: "" },
+        affiliation: {
+            en: "Mugda Medical College & Hospital",
+            bn: "মুগদা মেডিকেল কলেজ ও হাসপাতাল",
+        },
         department: "dept_orthopaedics",
         photo: "/uploads/doctors/dr-dulal-chandra-datta.webp",
         schedule: [
@@ -1017,7 +1088,7 @@ export const doctors = [
             en: "Orthopaedic, trauma & spine surgeon",
             bn: "অর্থোপেডিক, ট্রমা ও স্পাইন সার্জন",
         },
-        affiliation: { en: "NITOR (Pongu Hospital), Dhaka", bn: "" },
+        affiliation: { en: "NITOR (Pongu Hospital), Dhaka", bn: "নিটোর (পঙ্গু হাসপাতাল), ঢাকা" },
         department: "dept_orthopaedics",
         photo: "/uploads/doctors/dr-md-kamruzzaman-nayan.webp",
         schedule: [
@@ -1055,7 +1126,10 @@ export const doctors = [
         designation: { en: "Professor, Oncology", bn: "অধ্যাপক, অনকোলজি" },
         degrees: "MBBS, MPhil, MD",
         specialty: { en: "Cancer treatment and care", bn: "ক্যান্সারের চিকিৎসা ও সেবা" },
-        affiliation: { en: "National Institute of Cancer Research & Hospital", bn: "" },
+        affiliation: {
+            en: "National Institute of Cancer Research & Hospital",
+            bn: "জাতীয় ক্যান্সার গবেষণা ইনস্টিটিউট ও হাসপাতাল",
+        },
         department: "dept_oncology",
         photo: "/uploads/doctors/dr-swapan-bandyopadhyay.webp",
         schedule: [
@@ -1076,7 +1150,10 @@ export const doctors = [
         },
         degrees: "MBBS (SSMC), BCS (Health), MD (Oncology)",
         specialty: { en: "Radiation & medical oncology", bn: "রেডিয়েশন ও মেডিক্যাল অনকোলজি" },
-        affiliation: { en: "National Institute of Cancer Research & Hospital", bn: "" },
+        affiliation: {
+            en: "National Institute of Cancer Research & Hospital",
+            bn: "জাতীয় ক্যান্সার গবেষণা ইনস্টিটিউট ও হাসপাতাল",
+        },
         department: "dept_oncology",
         photo: "/uploads/doctors/dr-md-arif-hossain.webp",
         schedule: [
@@ -1096,7 +1173,10 @@ export const doctors = [
         designation: { en: "Consultant, Oncology", bn: "কনসালট্যান্ট, অনকোলজি" },
         degrees: "",
         specialty: { en: "Cancer treatment and care", bn: "ক্যান্সারের চিকিৎসা ও সেবা" },
-        affiliation: { en: "National Institute of Cancer Research & Hospital", bn: "" },
+        affiliation: {
+            en: "National Institute of Cancer Research & Hospital",
+            bn: "জাতীয় ক্যান্সার গবেষণা ইনস্টিটিউট ও হাসপাতাল",
+        },
         department: "dept_oncology",
         photo: "/uploads/doctors/dr-md-nahid-hossain.webp",
         schedule: [
@@ -1121,7 +1201,7 @@ export const doctors = [
             en: "Urology, andrology & endo-urology",
             bn: "ইউরোলজি, অ্যান্ড্রোলজি ও এন্ডো-ইউরোলজি",
         },
-        affiliation: { en: "Dhaka Medical College Hospital", bn: "" },
+        affiliation: { en: "Dhaka Medical College Hospital", bn: "ঢাকা মেডিকেল কলেজ হাসপাতাল" },
         department: "dept_urology",
         photo: "/uploads/doctors/dr-tanvir-ahmed-chowdhury.webp",
         schedule: [
@@ -1143,7 +1223,10 @@ export const doctors = [
             en: "Kidney, bladder & prostate — endo-urology and laparoscopic urology",
             bn: "কিডনি, মূত্রথলি ও প্রোস্টেট — এন্ডো-ইউরোলজি ও ল্যাপারোস্কোপিক ইউরোলজি",
         },
-        affiliation: { en: "Shaheed Suhrawardy Medical College Hospital", bn: "" },
+        affiliation: {
+            en: "Shaheed Suhrawardy Medical College Hospital",
+            bn: "শহীদ সোহরাওয়ার্দী মেডিকেল কলেজ হাসপাতাল",
+        },
         department: "dept_urology",
         photo: "/uploads/doctors/dr-md-faruk-hossain-sheikh.webp",
         schedule: [
@@ -1168,7 +1251,10 @@ export const doctors = [
         },
         degrees: "MBBS, BCS (Health), MS",
         specialty: { en: "Urology & uro-oncology", bn: "ইউরোলজি ও ইউরো-অনকোলজি" },
-        affiliation: { en: "National Institute of Cancer Research & Hospital", bn: "" },
+        affiliation: {
+            en: "National Institute of Cancer Research & Hospital",
+            bn: "জাতীয় ক্যান্সার গবেষণা ইনস্টিটিউট ও হাসপাতাল",
+        },
         department: "dept_urology",
         photo: "/uploads/doctors/dr-munshi-akid-mostofa.webp",
         schedule: [
@@ -1184,7 +1270,7 @@ export const doctors = [
         designation: { en: "Consultant, Haematology", bn: "কনসালট্যান্ট, রক্তরোগ" },
         degrees: "MBBS, BCS (Health), MD",
         specialty: { en: "Blood disorders and blood cancers", bn: "রক্তের রোগ ও রক্তের ক্যান্সার" },
-        affiliation: { en: "Dhaka Medical College Hospital", bn: "" },
+        affiliation: { en: "Dhaka Medical College Hospital", bn: "ঢাকা মেডিকেল কলেজ হাসপাতাল" },
         department: "dept_haematology",
         photo: "/uploads/doctors/dr-sadia-binte-momen.webp",
         schedule: [
@@ -1203,7 +1289,10 @@ export const doctors = [
             en: "Newborn & child health — former head of paediatrics and neonatology",
             bn: "নবজাতক ও শিশুস্বাস্থ্য — শিশু ও নবজাতক বিভাগের সাবেক প্রধান",
         },
-        affiliation: { en: "Sir Salimullah Medical College & Mitford Hospital", bn: "" },
+        affiliation: {
+            en: "Sir Salimullah Medical College & Mitford Hospital",
+            bn: "স্যার সলিমুল্লাহ মেডিকেল কলেজ ও মিটফোর্ড হাসপাতাল",
+        },
         department: "dept_paediatrics-neonatology",
         photo: "/uploads/doctors/dr-sk-banik.webp",
         schedule: [
@@ -1226,7 +1315,7 @@ export const doctors = [
             en: "Newborn & child care — former head of paediatrics",
             bn: "নবজাতক ও শিশু চিকিৎসা — শিশুরোগ বিভাগের সাবেক প্রধান",
         },
-        affiliation: { en: "Dhaka Medical College Hospital", bn: "" },
+        affiliation: { en: "Dhaka Medical College Hospital", bn: "ঢাকা মেডিকেল কলেজ হাসপাতাল" },
         department: "dept_paediatrics-neonatology",
         photo: "/uploads/doctors/dr-le-fatmi.webp",
         schedule: [
@@ -1248,7 +1337,7 @@ export const doctors = [
             en: "Child specialist — former head of paediatrics, DMCH",
             bn: "শিশু বিশেষজ্ঞ — ঢাকা মেডিকেলের সাবেক শিশুরোগ বিভাগীয় প্রধান",
         },
-        affiliation: { en: "Dhaka Medical College Hospital", bn: "" },
+        affiliation: { en: "Dhaka Medical College Hospital", bn: "ঢাকা মেডিকেল কলেজ হাসপাতাল" },
         department: "dept_paediatrics-neonatology",
         photo: "/uploads/doctors/dr-abid-hossain-mollah.webp",
         schedule: [],
@@ -1264,7 +1353,7 @@ export const doctors = [
         designation: { en: "Professor, Paediatric Nephrology", bn: "অধ্যাপক, শিশু কিডনি রোগ" },
         degrees: "MBBS, FCPS, MD, FRCP",
         specialty: { en: "Child & child-kidney specialist", bn: "শিশু ও শিশু কিডনি রোগ বিশেষজ্ঞ" },
-        affiliation: { en: "Bangladesh Medical University", bn: "" },
+        affiliation: { en: "Bangladesh Medical University", bn: "বাংলাদেশ মেডিকেল বিশ্ববিদ্যালয়" },
         department: "dept_paediatrics-neonatology",
         photo: "/uploads/doctors/dr-afroza-begum.webp",
         schedule: [
@@ -1286,7 +1375,7 @@ export const doctors = [
         },
         degrees: "FCPS, MD, MMEd",
         specialty: { en: "Child specialist", bn: "শিশু বিশেষজ্ঞ" },
-        affiliation: { en: "BIRDEM General Hospital", bn: "" },
+        affiliation: { en: "BIRDEM General Hospital", bn: "বারডেম জেনারেল হাসপাতাল" },
         department: "dept_paediatrics-neonatology",
         photo: "/uploads/doctors/dr-tahmina-begum.webp",
         schedule: [
@@ -1311,7 +1400,7 @@ export const doctors = [
             en: "Rehabilitation for arthritis, pain and paralysis",
             bn: "বাত, ব্যথা ও প্যারালাইসিসের রিহ্যাবিলিটেশন",
         },
-        affiliation: { en: "Bangladesh Medical University", bn: "" },
+        affiliation: { en: "Bangladesh Medical University", bn: "বাংলাদেশ মেডিকেল বিশ্ববিদ্যালয়" },
         department: "dept_physical-medicine",
         photo: "/uploads/doctors/dr-lillian-catherine-gomez.webp",
         schedule: [
@@ -1358,7 +1447,7 @@ export const doctors = [
             en: "Diet plans and nutrition guidance",
             bn: "ডায়েট প্ল্যান ও পুষ্টি পরামর্শ",
         },
-        affiliation: { en: "State University of Bangladesh", bn: "" },
+        affiliation: { en: "State University of Bangladesh", bn: "স্টেট ইউনিভার্সিটি অব বাংলাদেশ" },
         department: "dept_nutrition-diet",
         photo: "/uploads/doctors/dr-umme-salma-munni.webp",
         schedule: [
@@ -1431,7 +1520,10 @@ export const doctors = [
             en: "Dermatology, dermatosurgery & aesthetic medicine",
             bn: "চর্মরোগ, ডার্মাটোসার্জারি ও অ্যাসথেটিক মেডিসিন",
         },
-        affiliation: { en: "Shaheed Suhrawardy Medical College Hospital", bn: "" },
+        affiliation: {
+            en: "Shaheed Suhrawardy Medical College Hospital",
+            bn: "শহীদ সোহরাওয়ার্দী মেডিকেল কলেজ হাসপাতাল",
+        },
         department: "dept_dermatology-venereology",
         photo: "/uploads/doctors/dr-farzana-rahman-shathi.webp",
         schedule: [

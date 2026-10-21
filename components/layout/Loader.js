@@ -9,7 +9,7 @@ const KEY = "mh-loader-seen";
  * through the doorway → wordmark settles → the arch opens as a mask revealing the page.
  *
  * Pure CSS animation (zero animation JS shipped). The inline head script in the root
- * layout decides whether it shows (first visit per session, not /emergency, not
+ * layout decides whether it shows (homepage only, first view per session, not
  * ?ref=call, not reduced-motion) by setting html[data-loader] before first paint.
  * SSR content renders underneath, so SEO/LCP markup is never blocked. CSS hides it at
  * 3.5s and a failsafe at 4.2s even if this component never hydrates.

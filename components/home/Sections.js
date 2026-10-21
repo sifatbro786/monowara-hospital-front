@@ -211,10 +211,10 @@ export function Packages({ checkups, surgical, dict, lang }) {
                                 <ul className="mt-2 flex flex-wrap gap-1.5">
                                     {p.inclusions.map((x) => (
                                         <li
-                                            key={x}
+                                            key={x.en}
                                             className="rounded-pill bg-paper px-2.5 py-1 text-xs text-ink-2"
                                         >
-                                            {x}
+                                            {t(x, lang)}
                                         </li>
                                     ))}
                                 </ul>

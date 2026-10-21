@@ -56,8 +56,9 @@ export const viewport = {
 };
 
 // Runs before first paint: marks JS, and decides whether the intro loader shows
-// (first visit per session; never on /emergency, ?ref=call, or reduced motion).
-const bootScript = `(function(){var d=document.documentElement;d.classList.add('js');try{if(sessionStorage.getItem('mh-loader-seen'))return;if(/^\\/(bn\\/)?emergency/.test(location.pathname))return;if(/[?&]ref=call/.test(location.search))return;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;d.setAttribute('data-loader','');}catch(e){}})();`;
+// (homepage only — / and /bn — first view per session; never with ?ref=call or reduced motion).
+// Inner pages (where Google search traffic lands) never wait for it.
+const bootScript = `(function(){var d=document.documentElement;d.classList.add('js');try{if(sessionStorage.getItem('mh-loader-seen'))return;if(!/^\\/(bn\\/?)?$/.test(location.pathname))return;if(/[?&]ref=call/.test(location.search))return;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;d.setAttribute('data-loader','');}catch(e){}})();`;
 
 export default async function LangLayout({ children, params }) {
     const { lang } = await params;
