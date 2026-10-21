@@ -72,8 +72,7 @@ export function KeyNumbers({ items, dict, lang }) {
 }
 
 /* ───────── Centres of excellence — light hairline grid; the centre's photo fades in on hover ───────── */
-const CENTRE_FALLBACK = "/uploads/hero/hospital-building-card.webp";
-
+// No photo → hover shows the teal wash only (an unrelated fallback photo read as wrong).
 export function Centres({ items, dict, lang }) {
     const h = dict.home;
     return (
@@ -106,13 +105,15 @@ export function Centres({ items, dict, lang }) {
                                 className="group relative isolate flex h-full min-h-60 flex-col gap-3 overflow-hidden p-6 lg:min-h-72 lg:p-7"
                             >
                                 {/* photo layer — hover / keyboard focus only, so the grid stays calm at rest */}
-                                <Image
-                                    src={c.image || CENTRE_FALLBACK}
-                                    alt=""
-                                    fill
-                                    sizes="(min-width: 1024px) 20rem, 50vw"
-                                    className="-z-20 scale-[1.06] object-cover opacity-0 transition-[opacity,transform] duration-700 ease-out-expo group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100"
-                                />
+                                {c.image && (
+                                    <Image
+                                        src={c.image}
+                                        alt=""
+                                        fill
+                                        sizes="(min-width: 1024px) 20rem, 50vw"
+                                        className="-z-20 scale-[1.06] object-cover opacity-0 transition-[opacity,transform] duration-700 ease-out-expo group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100"
+                                    />
+                                )}
                                 <span
                                     aria-hidden
                                     className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgb(7_38_41/0.92)_0%,rgb(7_38_41/0.55)_50%,rgb(7_38_41/0.12)_100%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100"

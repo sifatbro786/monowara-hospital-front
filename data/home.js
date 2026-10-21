@@ -63,7 +63,7 @@ export const centres = [
             bn: "হৃদরোগ পরামর্শ, ইসিজি, ইকোকার্ডিওগ্রাফি ও ফলো-আপ।",
         },
         href: "/departments/cardiology",
-        image: null, // CONFIRM: no cardiology photo yet → hover falls back to the building
+        image: "/uploads/media/centre-cardiology.webp", // Unsplash placeholder (media slot centre.cardiology)
     },
     {
         _id: "ctr_derm",
@@ -103,7 +103,7 @@ export const centres = [
             bn: "রোগ নির্ণয় ও চিকিৎসায় এন্ডোস্কপি ও কোলোনোস্কপি।",
         },
         href: "/diagnostics/endoscopy-colonoscopy",
-        image: null, // CONFIRM: no endoscopy photo yet → hover falls back to the building
+        image: "/uploads/media/centre-endoscopy.webp", // Unsplash placeholder (media slot centre.endoscopy)
     },
     {
         _id: "ctr_imaging",
