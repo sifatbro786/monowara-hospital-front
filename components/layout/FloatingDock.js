@@ -20,7 +20,10 @@ export function FloatingDock({ settings, faqs, dict, lang }) {
 
     return (
         <>
-            <div className="pointer-events-none fixed bottom-4 right-4 z-30 flex flex-col items-end gap-2.5 sm:bottom-6 sm:right-6 print:hidden *:pointer-events-auto">
+            <div
+                data-track="dock"
+                className="pointer-events-none fixed bottom-4 right-4 z-30 flex flex-col items-end gap-2.5 sm:bottom-6 sm:right-6 print:hidden *:pointer-events-auto"
+            >
                 {faqs.length > 0 && (
                     <button
                         type="button"
@@ -57,7 +60,7 @@ export function FloatingDock({ settings, faqs, dict, lang }) {
                 labelledBy="dock-wa-title"
                 closeLabel={dict.nav.close}
             >
-                <div className="p-6">
+                <div data-track="dock" className="p-6">
                     <p className="flex items-center gap-2 text-sm font-medium text-wa">
                         <WhatsAppMark size={18} /> WhatsApp
                     </p>

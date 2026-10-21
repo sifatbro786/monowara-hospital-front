@@ -68,7 +68,7 @@ export function BookingForm({ doctors, departments, waNumber, labels, context = 
     }
 
     const field =
-        "h-12 w-full rounded-xl border border-line bg-paper/60 px-4 text-[0.95rem] text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-teal-600 focus:bg-card aria-invalid:border-emergency";
+        "h-12 w-full rounded-xl border border-line bg-paper/60 px-4 text-[0.95rem] text-ink outline-none transition-[border-color,background-color,box-shadow] placeholder:text-ink-3 focus:border-teal-600 focus:ring-3 focus:ring-teal-500/25 focus:bg-card aria-invalid:border-emergency";
 
     if (sent)
         return (

@@ -25,7 +25,7 @@ export function AppointmentPanel({
     const show = (n) => digits(formatPhone(n), lang);
 
     return (
-        <div className="p-6 pt-7 sm:p-8">
+        <div data-track="appointment" className="p-6 pt-7 sm:p-8">
             <p className="eyebrow">{dict.meta.siteName}</p>
             <Heading id={headingId} className="mt-2 pr-10 text-h3 sm:text-[1.8rem]">
                 {a.title}

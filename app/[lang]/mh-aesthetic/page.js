@@ -113,7 +113,7 @@ export default async function AestheticPage({ params }) {
                                 />
                             </div>
                         )}
-                        <aside className="rounded-3xl border border-line bg-card p-6 sm:p-8">
+                        <div className="rounded-3xl border border-line bg-card p-6 sm:p-8">
                             <h2 className="text-h3">{x.contact}</h2>
                             <dl className="mt-5 divide-y divide-line">
                                 {[
@@ -156,7 +156,7 @@ export default async function AestheticPage({ params }) {
                                     </div>
                                 ))}
                             </dl>
-                        </aside>
+                        </div>
                     </div>
                 </Container>
             </section>

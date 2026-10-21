@@ -10,8 +10,8 @@ fonts=f"""
 @font-face{{font-family:News;src:url(data:font/woff2;base64,{b64(F+'/newsreader-latin-wght-normal.woff2')}) format('woff2');font-weight:200 800}}
 @font-face{{font-family:NewsI;src:url(data:font/woff2;base64,{b64(F+'/newsreader-latin-wght-italic.woff2')}) format('woff2');font-weight:200 800}}
 @font-face{{font-family:Hanken;src:url(data:font/woff2;base64,{b64(F+'/hanken-grotesk-latin-wght-normal.woff2')}) format('woff2');font-weight:100 900}}
-@font-face{{font-family:Tiro;src:url(data:font/woff2;base64,{b64(F+'/tiro-bangla-bengali-400-normal.woff2')}) format('woff2')}}
-@font-face{{font-family:Hind;src:url(data:font/woff2;base64,{b64(F+'/hind-siliguri-bengali-500-normal.woff2')}) format('woff2');font-weight:500}}
+@font-face{{font-family:Tiro;src:url(data:font/woff2;base64,{b64(P+'/fonts/bn/tiro-bangla-400.v1.woff2')}) format('woff2')}}
+@font-face{{font-family:Hind;src:url(data:font/woff2;base64,{b64(P+'/fonts/bn/hind-siliguri-500.v1.woff2')}) format('woff2');font-weight:500}}
 """
 photo=b64(P+'/uploads/hero/hospital-building.webp'); logo=b64(P+'/logo.png')
 copy={

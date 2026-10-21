@@ -7,7 +7,9 @@ import { Container } from "@/components/ui/Layout";
  */
 export function PageSkeleton() {
     return (
-        <div aria-hidden className="animate-pulse">
+        // min-h-svh: the footer starts below the fold, so the streamed page replacing this
+        // skeleton never shifts visible content (CLS).
+        <div aria-hidden className="min-h-svh animate-pulse">
             <div className="border-b border-line bg-paper-2">
                 <Container className="py-14 lg:py-20">
                     <div className="h-3 w-28 rounded-full bg-ink/10" />

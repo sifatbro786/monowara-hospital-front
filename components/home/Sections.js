@@ -278,7 +278,7 @@ export function VisitUs({ settings, dict, lang }) {
                     {h.hotline}:{" "}
                     <a
                         href={telHref(settings.hotline)}
-                        className="tabular-nums text-ink hover:text-teal-700"
+                        className="font-medium tabular-nums text-ink underline decoration-teal-500/50 underline-offset-4 hover:text-teal-700"
                     >
                         {show(settings.hotline)}
                     </a>
@@ -287,7 +287,7 @@ export function VisitUs({ settings, dict, lang }) {
                     {h.emergencyAppointments}:{" "}
                     <a
                         href={telHref(settings.emergency)}
-                        className="tabular-nums text-ink hover:text-teal-700"
+                        className="font-medium tabular-nums text-ink underline decoration-teal-500/50 underline-offset-4 hover:text-teal-700"
                     >
                         {show(settings.emergency)}
                     </a>

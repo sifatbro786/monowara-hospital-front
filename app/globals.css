@@ -4,6 +4,55 @@
    Brand teal sampled from logo.png (#009EA6). Body text never uses brand
    teal directly (3.1:1 on paper) — use teal-700+ for text/links.
    Emergency red is reserved for emergency UI only. */
+/* ───────────────────────── Bangla fonts ─────────────────────────
+   Declared here (not next/font) so the URLs are stable: app/[lang]/layout.js preloads the
+   two above-the-fold faces on BN pages only. EN pages never request them (unicode-range).
+   Files are versioned (.v1) and served with an immutable cache header (next.config.mjs). */
+@font-face {
+    font-family: "MH Hind Siliguri";
+    src: url("/fonts/bn/hind-siliguri-400.v1.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    unicode-range:
+        U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8, U+1CE1, U+1CEA,
+        U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
+}
+@font-face {
+    font-family: "MH Hind Siliguri";
+    src: url("/fonts/bn/hind-siliguri-500.v1.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+    unicode-range:
+        U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8, U+1CE1, U+1CEA,
+        U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
+}
+@font-face {
+    font-family: "MH Hind Siliguri";
+    src: url("/fonts/bn/hind-siliguri-600.v1.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+    unicode-range:
+        U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8, U+1CE1, U+1CEA,
+        U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
+}
+@font-face {
+    font-family: "MH Tiro Bangla";
+    src: url("/fonts/bn/tiro-bangla-400.v1.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    unicode-range:
+        U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8, U+1CE1, U+1CEA,
+        U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
+}
+:root {
+    --font-hind: "MH Hind Siliguri";
+    --font-tiro: "MH Tiro Bangla";
+}
+
 @theme {
     --color-paper: #f6f3ec;
     --color-paper-2: #eee8dc;
@@ -15,7 +64,7 @@
 
     --color-ink: #0c2a2d;
     --color-ink-2: #3a5154;
-    --color-ink-3: #66797a;
+    --color-ink-3: #58696a; /* AA ≥4.5:1 on paper, paper-2, mint, card */
 
     --color-teal-50: #eaf6f6;
     --color-teal-100: #cfeced;
@@ -184,6 +233,28 @@ html.js [data-reveal="clip"] > span {
     transform: translateY(0.25em);
 }
 /* The end state is held by a fill-forwards Web Animation (Reveal.js) — no class toggling. */
+
+/* Above-the-fold entrance (home hero): pure CSS, starts with the first paint — no JS/hydration
+   wait, so the hero heading is the LCP at first paint. The title moves only (no opacity/clip):
+   an invisible element isn't an LCP candidate. Reduced motion: the global rule below zeroes it. */
+[data-enter] {
+    animation: mh-enter 0.9s var(--ease-out-expo) both;
+    animation-delay: var(--reveal-delay, 0ms);
+}
+[data-enter="title"] {
+    animation-name: mh-enter-title;
+}
+@keyframes mh-enter {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+}
+@keyframes mh-enter-title {
+    from {
+        transform: translateY(0.3em);
+    }
+}
 
 @keyframes mh-pop {
     from {

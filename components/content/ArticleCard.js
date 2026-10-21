@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 export function ArticleCard({ article, dict, lang, large = false, eager = false }) {
     const tp = dict.tips;
     const to = href(lang, `/health-tips/${article.slug}`);
+    const Heading = large ? "h2" : "h3"; // lead story sits directly under the page h1
     return (
         <article className={cn("group", large && "grid gap-6 lg:grid-cols-12 lg:items-center")}>
             <Link
@@ -41,11 +42,11 @@ export function ArticleCard({ article, dict, lang, large = false, eager = false 
                         {tp.read.replace("{n}", digits(article.readMinutes, lang))}
                     </span>
                 </p>
-                <h3 className={cn("mt-2 leading-snug", large ? "text-h2" : "text-[1.3rem]")}>
+                <Heading className={cn("mt-2 leading-snug", large ? "text-h2" : "text-[1.3rem]")}>
                     <Link href={to} className="hover:text-teal-800">
                         {t(article.title, lang)}
                     </Link>
-                </h3>
+                </Heading>
                 <p className={cn("mt-2 text-ink-2", large ? "text-lg" : "text-sm")}>
                     {t(article.excerpt, lang)}
                 </p>

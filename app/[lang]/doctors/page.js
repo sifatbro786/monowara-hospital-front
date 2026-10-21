@@ -59,8 +59,18 @@ export default async function DoctorsPage({ params, searchParams }) {
             />
             <Suspense
                 fallback={
-                    <Container className="py-16">
-                        <p className="text-ink-3">{d.loading}</p>
+                    // Card-shaped placeholder at least a screen tall: the footer starts below the
+                    // fold, so streaming in the results doesn't shift anything visible (CLS).
+                    <Container className="min-h-svh py-10" aria-busy="true">
+                        <p className="sr-only">{d.loading}</p>
+                        <div aria-hidden className="animate-pulse">
+                            <div className="h-28 rounded-3xl bg-ink/[0.05]" />
+                            <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                {Array.from({ length: 4 }, (_, i) => (
+                                    <li key={i} className="h-118 rounded-3xl bg-ink/[0.05]" />
+                                ))}
+                            </ul>
+                        </div>
                     </Container>
                 }
             >
@@ -105,7 +115,7 @@ async function Directory({ searchParams, departments, dict, lang }) {
     };
     const wa = settings.primaryWhatsapp;
     const field =
-        "h-12 w-full rounded-xl border border-line bg-card px-4 text-[0.95rem] text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-teal-600";
+        "h-12 w-full rounded-xl border border-line bg-card px-4 text-[0.95rem] text-ink outline-none transition-[border-color,background-color,box-shadow] placeholder:text-ink-3 focus:border-teal-600 focus:ring-3 focus:ring-teal-500/25";
 
     return (
         <section className="bg-paper py-10 lg:py-14">
@@ -160,11 +170,11 @@ async function Directory({ searchParams, departments, dict, lang }) {
                 </form>
 
                 <div className="mt-8 flex flex-wrap items-baseline justify-between gap-3 border-b border-line pb-4">
-                    <p className="font-display text-xl text-ink" aria-live="polite">
+                    <h2 className="font-display text-xl text-ink" aria-live="polite">
                         {total === 1
                             ? d.resultsOne
                             : d.results.replace("{count}", digits(total, lang))}
-                    </p>
+                    </h2>
                     {filtered && (
                         <Link
                             href={href(lang, "/doctors")}

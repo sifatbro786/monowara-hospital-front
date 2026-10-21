@@ -8,7 +8,8 @@
     "topbar": {
         "emergency": "Open 24/7 · Emergency always on",
         "whatsapp": "WhatsApp",
-        "language": "Language"
+        "language": "Language",
+        "label": "Emergency and contact"
     },
     "nav": {
         "findDoctor": "Find a Doctor",

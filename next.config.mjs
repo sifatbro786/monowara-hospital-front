@@ -21,7 +21,14 @@ const nextConfig = {
         remotePatterns: [{ protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" }],
     },
     async headers() {
-        return [{ source: "/:path*", headers: securityHeaders }];
+        return [
+            { source: "/:path*", headers: securityHeaders },
+            // Versioned self-hosted Bangla fonts (public/fonts/bn/*.v1.woff2) — bump the version to bust.
+            {
+                source: "/fonts/:path*",
+                headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+            },
+        ];
     },
     // Old WordPress URLs → new routes (308). Runs before proxy.js, so /bn is unaffected.
     async redirects() {

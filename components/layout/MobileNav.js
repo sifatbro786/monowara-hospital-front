@@ -35,7 +35,7 @@ export function MobileNav({ items, dict, settings, lang }) {
                 labelledBy="mobile-nav-title"
                 closeLabel={dict.nav.close}
             >
-                <div className="flex min-h-full flex-col">
+                <div data-track="mobile-menu" className="flex min-h-full flex-col">
                     <div className="flex items-center gap-4 border-b border-line-soft px-5 py-4 pr-16">
                         <h2
                             id="mobile-nav-title"

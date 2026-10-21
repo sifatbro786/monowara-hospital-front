@@ -17,6 +17,7 @@ export function DoctorCard({ doctor, dict, lang, waNumber, className }) {
 
     return (
         <article
+            data-track="doctor-card"
             className={cn(
                 "group flex h-full flex-col rounded-3xl border border-line bg-card p-4 pb-5",
                 className,

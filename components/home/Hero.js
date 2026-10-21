@@ -21,13 +21,16 @@ export function Hero({ slide, settings, dict, lang }) {
     const media = slide.cardMedia?.src ? slide.cardMedia : slide.media;
 
     return (
-        <section className="relative isolate overflow-hidden rounded-b-4xl bg-[linear-gradient(140deg,#0b6a6f_0%,#0a5a5e_45%,#084649_100%)] text-white lg:rounded-b-[3rem]">
+        <section
+            data-track="hero"
+            className="relative isolate overflow-hidden rounded-b-4xl bg-[linear-gradient(140deg,#0b6a6f_0%,#0a5a5e_45%,#084649_100%)] text-white lg:rounded-b-[3rem]"
+        >
             <ContourLines className="pointer-events-none absolute -left-40 bottom-0 -z-10 h-136 w-4xl text-white/[0.07]" />
 
             <Container className="grid items-center gap-12 pb-48 pt-12 sm:pb-52 lg:grid-cols-12 lg:gap-12 lg:pb-56 lg:pt-20">
                 <div className="lg:col-span-6">
                     <p
-                        data-reveal
+                        data-enter
                         className="inline-flex items-center gap-2 rounded-pill bg-white/10 py-1.5 pl-1.5 pr-3.5 text-[0.82rem] text-white/90 ring-1 ring-white/15"
                     >
                         <span className="grid size-6 place-items-center rounded-full bg-white/15">
@@ -37,8 +40,8 @@ export function Hero({ slide, settings, dict, lang }) {
                     </p>
 
                     <h1
-                        data-reveal="clip"
-                        style={{ "--reveal-delay": "80ms" }}
+                        data-enter="title"
+                        style={{ "--reveal-delay": "60ms" }}
                         className="mt-7 max-w-[14ch] text-display text-white [&:lang(bn)]:leading-[1.22] [&_em]:text-teal-200"
                     >
                         <span>
@@ -47,7 +50,7 @@ export function Hero({ slide, settings, dict, lang }) {
                     </h1>
 
                     <p
-                        data-reveal
+                        data-enter
                         style={{ "--reveal-delay": "180ms" }}
                         className="mt-6 max-w-xl text-lg leading-relaxed text-white/80"
                     >
@@ -55,7 +58,7 @@ export function Hero({ slide, settings, dict, lang }) {
                     </p>
 
                     <div
-                        data-reveal
+                        data-enter
                         style={{ "--reveal-delay": "260ms" }}
                         className="mt-9 flex flex-wrap items-center gap-3"
                     >
@@ -80,7 +83,7 @@ export function Hero({ slide, settings, dict, lang }) {
 
                     {wa && (
                         <a
-                            data-reveal
+                            data-enter
                             style={{ "--reveal-delay": "320ms" }}
                             href={whatsappLink(wa.number, dict.appointment.message)}
                             target="_blank"
@@ -98,7 +101,7 @@ export function Hero({ slide, settings, dict, lang }) {
 
                 {media?.src && (
                     <figure
-                        data-reveal
+                        data-enter
                         style={{ "--reveal-delay": "160ms" }}
                         className="relative lg:col-span-6"
                     >

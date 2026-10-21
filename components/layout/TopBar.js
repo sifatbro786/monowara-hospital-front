@@ -7,7 +7,7 @@ import { telHref, whatsappLink, formatPhone } from "@/lib/utils";
 export function TopBar({ settings, dict, lang }) {
     const wa = settings.primaryWhatsapp;
     return (
-        <div className="bg-ink text-paper">
+        <section aria-label={dict.topbar.label} data-track="topbar" className="bg-ink text-paper">
             <Container className="flex h-10 items-center justify-between gap-4 text-[0.8rem]">
                 <a
                     href={telHref(settings.emergency)}
@@ -44,6 +44,6 @@ export function TopBar({ settings, dict, lang }) {
                     <LangSwitch label={dict.topbar.language} />
                 </div>
             </Container>
-        </div>
+        </section>
     );
 }

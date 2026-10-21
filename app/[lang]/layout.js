@@ -13,11 +13,14 @@ import { FloatingDock } from "@/components/layout/FloatingDock";
 import { Loader } from "@/components/layout/Loader";
 import { AppointmentProvider } from "@/components/booking/AppointmentProvider";
 import { RevealObserver } from "@/components/motion/Reveal";
+import { TapTracker } from "@/components/analytics/TapTracker";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL, defaultOgImage } from "@/lib/seo/metadata";
 import { hospitalSchema } from "@/lib/seo/schema";
 // Only the real production deploy is indexable; Vercel demo / previews are noindex.
 const INDEXABLE = process.env.NEXT_PUBLIC_SITE_ENV === "production";
+
+const BN_PRELOAD = ["/fonts/bn/tiro-bangla-400.v1.woff2", "/fonts/bn/hind-siliguri-400.v1.woff2"];
 
 export async function generateStaticParams() {
     return locales.map((lang) => ({ lang }));
@@ -70,6 +73,19 @@ export default async function LangLayout({ children, params }) {
         <html lang={lang} className={fontVariables} suppressHydrationWarning>
             <head>
                 <BootScript code={bootScript} />
+                {lang === "bn" &&
+                    // Above-the-fold Bangla faces fetched with the HTML (not after CSS parse), so
+                    // headings don't swap late and shift the page. EN pages skip both (~150 KB).
+                    BN_PRELOAD.map((f) => (
+                        <link
+                            key={f}
+                            rel="preload"
+                            href={f}
+                            as="font"
+                            type="font/woff2"
+                            crossOrigin="anonymous"
+                        />
+                    ))}
             </head>
             <body className="flex min-h-dvh flex-col antialiased" suppressHydrationWarning>
                 <a
@@ -93,6 +109,7 @@ export default async function LangLayout({ children, params }) {
                     <FloatingDock settings={settings} faqs={faqs} dict={dict} lang={lang} />
                 </AppointmentProvider>
                 <RevealObserver />
+                <TapTracker lang={lang} />
                 <JsonLd data={hospitalSchema(settings, lang)} />
             </body>
         </html>

@@ -19,6 +19,13 @@ export function LangSwitch({ label = "Language", className, tone = "dark" }) {
                 lang={lang}
                 aria-current={active ? "true" : undefined}
                 prefetch={false}
+                // On EN pages "বাংলা" is the only Bangla text above the fold: render it in the
+                // device's Bangla font so EN visits don't download Hind Siliguri (~70 KB) for one word.
+                style={
+                    lang === "bn" && current !== "bn"
+                        ? { fontFamily: "system-ui, sans-serif" }
+                        : undefined
+                }
                 className={cn(
                     "rounded-pill px-2.5 py-1 transition-colors",
                     active
