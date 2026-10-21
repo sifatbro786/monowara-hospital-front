@@ -131,6 +131,20 @@ const rows = [
         },
         overlay: 0.9,
     },
+    {
+        // Homepage maternity panel (~540×560 CSS px → needs ≥1200 px source). The old site's
+        // facilities/nicu-care.webp is only 600×494 and looked soft. Replace with the hospital's
+        // own labour-room/NICU photo (≥1400 px wide) via Admin → Media management.
+        key: "home.maternity",
+        page: "/",
+        src: "/uploads/media/home-maternity.webp",
+        alt: L("A parent holding a newborn's hand", "নবজাতকের হাত ধরে আছেন অভিভাবক"),
+        source: {
+            type: "unsplash",
+            url: "https://unsplash.com/photos/adult-hand-holding-tiny-baby-hand-EytWx3BOrwI",
+            download: U("photo-1582486225644-aeacf6aa0b1b"),
+        },
+    },
     // ── the hospital's own photos ──
     {
         key: "header.gallery",

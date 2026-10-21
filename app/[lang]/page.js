@@ -4,6 +4,7 @@ import { getHero, getHomeContent } from "@/lib/api/content";
 import { getDepartments } from "@/lib/api/departments";
 import { getPackages } from "@/lib/api/packages";
 import { getFeaturedDoctors } from "@/lib/api/doctors";
+import { getMedia } from "@/lib/api/media";
 import { Hero } from "@/components/home/Hero";
 import { QuickPanel } from "@/components/home/QuickPanel";
 import {
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }) {
 // Homepage — section order follows the client's chosen concept (MH_Website_Concept.pdf).
 export default async function Home({ params }) {
     const { lang } = await params;
-    const [dict, settings, slides, home, departments, packages, doctors] = await Promise.all([
+    const [dict, settings, slides, home, departments, packages, doctors, media] = await Promise.all([
         getDictionary(lang),
         getSettings(),
         getHero(),
@@ -41,6 +42,7 @@ export default async function Home({ params }) {
         getDepartments(),
         getPackages({ featured: true }),
         getFeaturedDoctors(9),
+        getMedia(),
     ]);
 
     const by = (c) => packages.filter((p) => p.category === c);
@@ -51,7 +53,12 @@ export default async function Home({ params }) {
             <QuickPanel departments={departments} settings={settings} dict={dict} lang={lang} />
             <KeyNumbers items={home.keyNumbers} dict={dict} lang={lang} />
             <Centres items={home.centres} dict={dict} lang={lang} />
-            <Maternity packages={by("maternity")} dict={dict} lang={lang} />
+            <Maternity
+                packages={by("maternity")}
+                photo={media["home.maternity"]}
+                dict={dict}
+                lang={lang}
+            />
             <Packages checkups={by("checkup")} surgical={by("surgical")} dict={dict} lang={lang} />
             <Doctors doctors={doctors} settings={settings} dict={dict} lang={lang} />
             <Talks

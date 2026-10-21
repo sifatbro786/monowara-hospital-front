@@ -146,7 +146,7 @@ export function Centres({ items, dict, lang }) {
 }
 
 /* ───────── Maternity — the hospital's strongest service ───────── */
-export function Maternity({ packages, dict, lang }) {
+export function Maternity({ packages, photo, dict, lang }) {
     const h = dict.home;
     return (
         <Container as="section" aria-labelledby="maternity-title" className="py-6 lg:py-10">
@@ -154,11 +154,12 @@ export function Maternity({ packages, dict, lang }) {
                 <div className="relative min-h-72 lg:min-h-full">
                     <PhotoReveal className="absolute inset-0 overflow-hidden">
                         <Image
-                            src="/uploads/facilities/nicu-care.webp"
+                            src={photo?.src ?? "/uploads/facilities/nicu-care.webp"}
                             alt=""
                             fill
                             sizes="(min-width: 1024px) 42rem, 100vw"
                             className="object-cover"
+                            style={{ objectPosition: photo?.position ?? "center" }}
                         />
                     </PhotoReveal>
                     <FadeUp
