@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { PageSkeleton } from "@/components/ui/PageSkeleton";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Container } from "@/components/ui/Layout";
 import { Icon, WhatsAppMark } from "@/components/ui/Icon";
 import { buttonClass } from "@/components/ui/Button";
@@ -10,19 +10,17 @@ import { DoctorCard } from "@/components/doctor/DoctorCard";
 import { DoctorStatus } from "@/components/doctor/DoctorStatus";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getSettings } from "@/lib/api/settings";
-import { getDoctors, getDoctorBySlug } from "@/lib/api/doctors";
+import { getDoctors, getDoctorBySlug, getAllDoctors } from "@/lib/api/doctors";
 import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
 import { WEEK, formatTime } from "@/lib/utils/schedule";
 import { whatsappLink, cn } from "@/lib/utils";
-import { pageMeta } from "@/lib/seo/metadata";
+import { pageMeta, absUrl, SITE_URL } from "@/lib/seo/metadata";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema, HOSPITAL_ID } from "@/lib/seo/schema";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://monowarahospital.com";
-
 export async function generateStaticParams() {
-    const { items } = await getDoctors({ limit: 500 });
+    const items = await getAllDoctors();
     return items.map((d) => ({ slug: d.slug }));
 }
 
@@ -36,7 +34,7 @@ export async function generateMetadata({ params }) {
             .replace("{designation}", t(doc.designation, lang));
     return pageMeta({
         lang,
-        path: `/doctors/${slug}`,
+        path: `/doctors/${doc.slug}`, // canonical = current slug (old slugs redirect)
         title: fill(dict.doctor.metaTitle),
         description: fill(dict.doctor.metaDescription),
         image: doc.photo,
@@ -51,6 +49,8 @@ async function DoctorPageContent({ params }) {
         getSettings(),
     ]);
     if (!doc) notFound();
+    // Admin renamed the slug: the API resolves the old one (previousSlugs) → 308 to the new URL.
+    if (doc.slug !== slug) permanentRedirect(href(lang, `/doctors/${doc.slug}`));
 
     const p = dict.doctor;
     const name = t(doc.name, lang);
@@ -74,7 +74,7 @@ async function DoctorPageContent({ params }) {
         "@type": "Physician",
         name: doc.name.en,
         url: `${SITE_URL}${href("en", `/doctors/${doc.slug}`)}`,
-        ...(doc.photo && { image: `${SITE_URL}${doc.photo}` }),
+        ...(doc.photo && { image: absUrl(doc.photo) }),
         ...(doc.department && { medicalSpecialty: doc.department.name.en }),
         description: doc.specialty?.en || undefined,
         hospitalAffiliation: {

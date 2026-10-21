@@ -44,6 +44,28 @@ Each step is written to the repo + ticked before the next starts. On resume: con
 
 ---
 
+## Pre-backend audit (2026-10-21) — fixed before B1
+Checked the code against the proposal (§3, §5.1–5.5, §7, §8) and **ran the whole site in API mode** against a mock Express/Mongo API (ISO dates, `limit` ≤ 100, populated departments, a renamed slug, `/uploads` served like Nginx): `next build` ✅, 288 URLs × EN/BN crawled — 0 errors. The contract this produced is **`docs/API_CONTRACT.md`** (read it before writing mh-api).
+
+| # | Problem (would break in B1–B4) | Fix |
+|---|---|---|
+| 1 | **Admin uploads would 404 in `next/image`.** Next reads the `public/` file list once at server start; uploads land in `/var/www/mh/uploads` later. | `MEDIA_ORIGIN` env: `apiGet` makes every `/uploads/…` path absolute and `next.config.mjs` allows it in `remotePatterns` → images are fetched through Nginx. Static demo unchanged. Verified (optimizer 200). |
+| 2 | **Date crash.** Article date and doctor leave assumed `"YYYY-MM-DD"`; Mongo returns ISO → `RangeError: Invalid time value` (article page + every doctor card). | `lib/utils/dates.js` (`toDhakaDay`, `formatDhakaDate`) accepts both; used in DoctorStatus, article page, JSON-LD. |
+| 3 | `getDoctors({ limit: 500 })` in sitemap, static params, appointment form, departments, BHRPC, MH Aesthetic — a validating API (limit ≤ 100) → 400 → **build fails**. | `getAllDoctors()` pages through (`DOCTORS_PAGE_MAX = 100`). |
+| 4 | Doctors carry a populated department name, but were cached only under `doctors` → renaming a department in the admin left stale names. | `departments` tag added to doctors / aesthetic / BHRPC services. |
+| 5 | No timeout on API calls — a hung API would hang SSR. | `AbortSignal.timeout(API_TIMEOUT_MS ?? 8000)`. |
+| 6 | Slug rename in the admin → old Google/WhatsApp links 404. | API resolves `previousSlugs`; doctor/department/package/article pages 308 to the new slug, canonical uses the current slug. |
+| 7 | Proposal §5.4 "Google title and description for every page" — only departments supported it. | `seo` collection (keyed by path) + `getSeoOverrides()`; `pageMeta()` is now async and applies it (same language only). No page changes needed. |
+| 8 | `settings.noticeBar` (proposal §5.4 Content) was never rendered. | `components/layout/NoticeBar.js` above the top bar; plain text, optional internal/external link. |
+| 9 | Patient stories (proposal §3) were never rendered. | Shown under Expert talks, **only with `consent.confirmed`**. Shape documented in `data/home.js`. |
+| 10 | Visit Us lacked landline + ambulance (proposal §3). | Shown when set and different from emergency; Dhaka landlines format as `02-…`. |
+| 11 | Blank optional settings (map, hours, socials, address, invalid `bookingMode`) would crash pages. | `normaliseSettings()` fills defaults (map links fall back to a name+address search). |
+| 12 | `t()` returned "" when only Bangla was filled; talk titles read `.bn` directly. | `t()` falls back to any filled language; talk titles use it. |
+
+Not changed (decisions): only the **first** active hero slide is used (single-hero design — the admin should edit one hero, not a slider); key numbers stay hidden (Sifat's revision 3); old-WordPress redirects stay in `data/redirects.mjs` (build-time) — admin slug renames use `previousSlugs` instead.
+
+---
+
 ## Post-Phase-4: photo headers + media slots (2026-10-21)
 - `components/ui/PageHeader.js` — inner-page header; with a media slot it is a photo band (image + deep-teal wash strongest behind the copy, bottom fade; falls back to a plain teal band if the file is missing), without one the paper band. Used by doctors, departments, diagnostics, packages, health-tips, gallery, expert-talks, careers, contact, patients-visitors, management, BHRPC; emergency + MH Aesthetic keep their own headers with the same slot images.
 - `data/media.js` + `lib/api/media.js` `getMedia()` → `{ [key]: { src, alt, position, overlay } }`. This is the contract for the admin **Media management** page (one row per slot: upload → `/uploads/media/…`, `revalidateTag("media")`).

@@ -1,11 +1,11 @@
-import { getDoctors } from "@/lib/api/doctors";
+import { getAllDoctors } from "@/lib/api/doctors";
 import { getDepartments } from "@/lib/api/departments";
 import { getFacilities, getDiagnostics } from "@/lib/api/services";
 import { getPackages } from "@/lib/api/packages";
 import { getArticles } from "@/lib/api/content";
 import { getJobs, getLegalSlugs, getLegalPage } from "@/lib/api/pages";
 import { locales, href } from "@/lib/i18n/config";
-import { SITE_URL } from "@/lib/seo/metadata";
+import { SITE_URL, absUrl } from "@/lib/seo/metadata";
 
 // Every public route in EN + BN, each with hreflang alternates. Built from the same services the
 // pages use, so a doctor/package added in the admin appears here after its cache tag revalidates.
@@ -41,30 +41,22 @@ function entries(path, { priority = 0.5, changeFrequency = "monthly", lastModifi
         changeFrequency,
         priority,
         alternates: { languages },
-        ...(image && { images: [`${SITE_URL}${image}`] }),
+        ...(image && { images: [absUrl(image)] }),
     }));
 }
 
 export default async function sitemap() {
-    const [
-        { items: doctors },
-        departments,
-        facilities,
-        diagnostics,
-        packages,
-        articles,
-        jobs,
-        legalSlugs,
-    ] = await Promise.all([
-        getDoctors({ limit: 500 }),
-        getDepartments(),
-        getFacilities(),
-        getDiagnostics(),
-        getPackages(),
-        getArticles(),
-        getJobs(),
-        getLegalSlugs(),
-    ]);
+    const [doctors, departments, facilities, diagnostics, packages, articles, jobs, legalSlugs] =
+        await Promise.all([
+            getAllDoctors(),
+            getDepartments(),
+            getFacilities(),
+            getDiagnostics(),
+            getPackages(),
+            getArticles(),
+            getJobs(),
+            getLegalSlugs(),
+        ]);
     const legal = (await Promise.all(legalSlugs.map((s) => getLegalPage(s)))).filter(Boolean);
 
     const doc =

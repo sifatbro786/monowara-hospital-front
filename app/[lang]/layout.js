@@ -7,6 +7,7 @@ import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getSettings } from "@/lib/api/settings";
 import { getFaqs } from "@/lib/api/content";
 import { TopBar } from "@/components/layout/TopBar";
+import { NoticeBar } from "@/components/layout/NoticeBar";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { FloatingDock } from "@/components/layout/FloatingDock";
@@ -101,6 +102,7 @@ export default async function LangLayout({ children, params }) {
                     wordEn="Monowara Hospital"
                 />
                 <AppointmentProvider lang={lang}>
+                    <NoticeBar notice={settings.noticeBar} label={dict.topbar.notice} lang={lang} />
                     <TopBar settings={settings} dict={dict} lang={lang} />
                     <Header settings={settings} dict={dict} lang={lang} />
                     <main id="main" className="flex-1">

@@ -45,7 +45,13 @@ export default async function Home({ params }) {
             <Maternity packages={by("maternity")} dict={dict} lang={lang} />
             <Packages checkups={by("checkup")} surgical={by("surgical")} dict={dict} lang={lang} />
             <Doctors doctors={doctors} settings={settings} dict={dict} lang={lang} />
-            <Talks talks={home.talks} settings={settings} dict={dict} lang={lang} />
+            <Talks
+                talks={home.talks}
+                stories={home.stories}
+                settings={settings}
+                dict={dict}
+                lang={lang}
+            />
             <VisitUs settings={settings} dict={dict} lang={lang} />
             <CtaBand settings={settings} dict={dict} lang={lang} />
         </>

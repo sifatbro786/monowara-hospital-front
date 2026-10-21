@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Container } from "@/components/ui/Layout";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
@@ -13,12 +13,10 @@ import { getArticles, getArticleBySlug } from "@/lib/api/content";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { formatPhone } from "@/lib/utils";
-import { pageMeta } from "@/lib/seo/metadata";
+import { pageMeta, absUrl, SITE_URL } from "@/lib/seo/metadata";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema, HOSPITAL_ID } from "@/lib/seo/schema";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://monowarahospital.com";
-const DATE = { en: "en-GB", bn: "bn-BD" };
+import { formatDhakaDate, toDhakaDay } from "@/lib/utils/dates";
 
 export async function generateStaticParams() {
     return (await getArticles()).map((a) => ({ slug: a.slug }));
@@ -30,7 +28,7 @@ export async function generateMetadata({ params }) {
     if (!a) return {};
     return pageMeta({
         lang,
-        path: `/health-tips/${slug}`,
+        path: `/health-tips/${a.slug}`, // canonical = current slug (old slugs redirect)
         title: t(a.title, lang),
         description: t(a.excerpt, lang),
         image: a.image,
@@ -49,24 +47,22 @@ async function ArticlePageContent({ params }) {
         getArticles(),
     ]);
     if (!a) notFound();
+    // Admin renamed the slug: the API resolves the old one (previousSlugs) → 308 to the new URL.
+    if (a.slug !== slug) permanentRedirect(href(lang, `/health-tips/${a.slug}`));
     const tp = dict.tips;
     const related = all.filter((x) => x.slug !== a.slug && x.category === a.category).slice(0, 3);
-    const date = new Intl.DateTimeFormat(DATE[lang], {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        timeZone: "Asia/Dhaka",
-    }).format(new Date(`${a.publishedAt}T12:00:00+06:00`));
+    // publishedAt may be "YYYY-MM-DD" (static) or an ISO date (API) — both handled.
+    const date = formatDhakaDate(a.publishedAt, lang);
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "MedicalWebPage",
         headline: t(a.title, lang),
         description: t(a.excerpt, lang),
         inLanguage: lang === "bn" ? "bn-BD" : "en",
-        datePublished: a.publishedAt,
-        dateModified: a.updatedAt?.slice(0, 10),
+        datePublished: toDhakaDay(a.publishedAt) || undefined,
+        dateModified: toDhakaDay(a.updatedAt) || undefined,
         url: `${SITE_URL}${href(lang, `/health-tips/${a.slug}`)}`,
-        ...(a.image && { image: `${SITE_URL}${a.image}` }),
+        ...(a.image && { image: absUrl(a.image) }),
         publisher: { "@type": "Hospital", "@id": HOSPITAL_ID, name: settings.legalName.en },
     };
 

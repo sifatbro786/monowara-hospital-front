@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Container } from "@/components/ui/Layout";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getMedia } from "@/lib/api/media";
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }) {
     if (!pkg) return {};
     return pageMeta({
         lang,
-        path: `/packages/${slug}`,
+        path: `/packages/${pkg.slug}`, // canonical = current slug (old slugs redirect)
         title: t(pkg.name, lang),
         description: t(pkg.summary, lang),
     });
@@ -56,6 +56,8 @@ async function PackagePageContent({ params }) {
         getMedia(),
     ]);
     if (!pkg) notFound();
+    // Admin renamed the slug: the API resolves the old one (previousSlugs) → 308 to the new URL.
+    if (pkg.slug !== slug) permanentRedirect(href(lang, `/packages/${pkg.slug}`));
 
     const p = dict.packages;
     const name = t(pkg.name, lang);

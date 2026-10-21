@@ -59,8 +59,11 @@ export default async function TalksPage({ params }) {
                                     title={t(v.title, lang)}
                                     playLabel={dict.home.play}
                                 />
-                                <p lang="bn" className="mt-4 font-display text-xl leading-snug">
-                                    {v.title.bn}
+                                <p
+                                    lang={v.title?.bn ? "bn" : "en"}
+                                    className="mt-4 font-display text-xl leading-snug"
+                                >
+                                    {t(v.title, "bn")}
                                 </p>
                                 {lang !== "bn" && v.title.en && (
                                     <p className="mt-1 text-sm text-ink-2">{v.title.en}</p>

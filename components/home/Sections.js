@@ -268,6 +268,24 @@ export function Packages({ checkups, surgical, dict, lang }) {
 export function VisitUs({ settings, dict, lang }) {
     const h = dict.home;
     const show = (n) => digits(formatPhone(n), lang);
+    const phoneLine = (label, number) => (
+        <>
+            {label}:{" "}
+            <a
+                href={telHref(number)}
+                className="font-medium tabular-nums text-ink underline decoration-teal-500/50 underline-offset-4 hover:text-teal-700"
+            >
+                {show(number)}
+            </a>
+        </>
+    );
+    // Landline / ambulance appear once the admin sets them (and only if they differ from emergency).
+    const extraPhones = [
+        settings.ambulance && settings.ambulance !== settings.emergency
+            ? phoneLine(h.ambulance, settings.ambulance)
+            : null,
+        settings.landline ? phoneLine(h.landline, settings.landline) : null,
+    ].filter(Boolean);
     const rows = [
         { icon: "pin", title: h.address, body: [t(settings.address, lang)] },
         {
@@ -292,6 +310,7 @@ export function VisitUs({ settings, dict, lang }) {
                         {show(settings.emergency)}
                     </a>
                 </>,
+                ...extraPhones,
             ],
         },
         {

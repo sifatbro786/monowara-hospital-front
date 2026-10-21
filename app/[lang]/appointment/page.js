@@ -6,7 +6,7 @@ import { AppointmentPanel } from "@/components/booking/AppointmentPanel";
 import { AppointmentFromQuery } from "@/components/booking/AppointmentFromQuery";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getSettings } from "@/lib/api/settings";
-import { getDoctors } from "@/lib/api/doctors";
+import { getAllDoctors } from "@/lib/api/doctors";
 import { getDepartments } from "@/lib/api/departments";
 import { BookingForm, BookingFormFromQuery } from "@/components/booking/BookingForm";
 import { t, digits } from "@/lib/i18n/t";
@@ -122,10 +122,7 @@ export default async function AppointmentPage({ params }) {
 }
 
 async function formData({ lang, labels, wa }) {
-    const [{ items }, departments] = await Promise.all([
-        getDoctors({ limit: 500 }),
-        getDepartments(),
-    ]);
+    const [items, departments] = await Promise.all([getAllDoctors(), getDepartments()]);
     return {
         labels,
         waNumber: wa?.number,

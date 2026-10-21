@@ -9,7 +9,8 @@
         "emergency": "Open 24/7 · Emergency always on",
         "whatsapp": "WhatsApp",
         "language": "Language",
-        "label": "Emergency and contact"
+        "label": "Emergency and contact",
+        "notice": "Notice"
     },
     "nav": {
         "findDoctor": "Find a Doctor",
@@ -181,7 +182,10 @@
         "ctaLead": "Message us on WhatsApp or call — our front desk confirms your slot within minutes during working hours.",
         "ctaBook": "Book online",
         "desksTitle": "WhatsApp a desk directly",
-        "desksPrimary": "Main desk"
+        "desksPrimary": "Main desk",
+        "storiesTitle": "Patient stories",
+        "ambulance": "Ambulance",
+        "landline": "Landline"
     },
     "legal": {
         "updated": "Last updated",

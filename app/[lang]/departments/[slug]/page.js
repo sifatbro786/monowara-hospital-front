@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { PageSkeleton } from "@/components/ui/PageSkeleton";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Container } from "@/components/ui/Layout";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }) {
     if (!dept) return {};
     return pageMeta({
         lang,
-        path: `/departments/${slug}`,
+        path: `/departments/${dept.slug}`, // canonical = current slug (old slugs redirect)
         title: t(dept.seo?.title, lang) || t(dept.name, lang),
         description: t(dept.seo?.description, lang) || t(dept.summary, lang),
         image: dept.image,
@@ -46,6 +46,8 @@ async function DepartmentPageContent({ params }) {
         getDepartments(),
     ]);
     if (!dept) notFound();
+    // Admin renamed the slug: the API resolves the old one (previousSlugs) → 308 to the new URL.
+    if (dept.slug !== slug) permanentRedirect(href(lang, `/departments/${dept.slug}`));
 
     const [{ items: doctors, total }, packages] = await Promise.all([
         getDoctors({ department: dept.slug, limit: 100 }),

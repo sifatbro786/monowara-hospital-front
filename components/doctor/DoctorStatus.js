@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatTime } from "@/lib/utils/schedule";
 import { cn } from "@/lib/utils";
+import { toDhakaDay, toDhakaDate } from "@/lib/utils/dates";
 
 const TZ = "Asia/Dhaka";
 const dayKey = (d) =>
@@ -13,7 +14,7 @@ const isoDay = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(
  * "On leave until …" / "Today · 5–8pm" badge. Pages are static, so "today" is only known in
  * the browser: renders nothing on the server and on first client render (no hydration
  * mismatch), then fills in after mount using Dhaka time.
- * leave = { from: "YYYY-MM-DD", until: "YYYY-MM-DD", note? } (admin-managed later).
+ * leave = { from, until, note? } — "YYYY-MM-DD" (static) or ISO dates (API); normalised to Dhaka days.
  */
 export function DoctorStatus({ schedule = [], leave, labels, lang, className }) {
     const [status, setStatus] = useState(null);
@@ -22,12 +23,14 @@ export function DoctorStatus({ schedule = [], leave, labels, lang, className }) 
         const now = new Date();
         const today = isoDay(now);
         let next = null;
-        if (leave?.until && (!leave.from || leave.from <= today) && today <= leave.until) {
+        const from = toDhakaDay(leave?.from);
+        const until = toDhakaDay(leave?.until);
+        if (until && (!from || from <= today) && today <= until) {
             const date = new Intl.DateTimeFormat(lang === "bn" ? "bn-BD" : "en-GB", {
                 day: "numeric",
                 month: "short",
                 timeZone: TZ,
-            }).format(new Date(`${leave.until}T12:00:00+06:00`));
+            }).format(toDhakaDate(until));
             next = { tone: "leave", text: labels.onLeave.replace("{date}", date) };
         } else {
             const slots = schedule.filter((s) => s.day === dayKey(now));

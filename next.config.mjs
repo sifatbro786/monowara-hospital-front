@@ -8,6 +8,8 @@ const securityHeaders = [
     { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
 ];
 
+const mediaOrigin = process.env.MEDIA_ORIGIN ? new URL(process.env.MEDIA_ORIGIN) : null;
+
 const nextConfig = {
     // experimental.agentFeedback removed (master plan §1: not for production)
     cacheComponents: true,
@@ -18,7 +20,20 @@ const nextConfig = {
         formats: ["image/avif", "image/webp"],
         qualities: [60, 75, 85],
         // Expert-talk thumbnails (click-to-load YouTube)
-        remotePatterns: [{ protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" }],
+        remotePatterns: [
+            { protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" },
+            // API mode: admin uploads are served by Nginx at MEDIA_ORIGIN/uploads (see lib/api/client.js)
+            ...(mediaOrigin
+                ? [
+                      {
+                          protocol: mediaOrigin.protocol.replace(":", ""),
+                          hostname: mediaOrigin.hostname,
+                          ...(mediaOrigin.port && { port: mediaOrigin.port }),
+                          pathname: "/uploads/**",
+                      },
+                  ]
+                : []),
+        ],
     },
     async headers() {
         return [

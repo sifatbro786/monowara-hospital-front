@@ -146,4 +146,6 @@ export const talks = [
 ].map((v, i) => ({ ...v, order: i + 1, isActive: true, createdAt: stamp, updatedAt: stamp }));
 
 // Patient stories need written consent (proposal §3) — empty until the client supplies them.
+// Shape: { _id, quote{en,bn}, name{en,bn}, context{en,bn}?, consent: { confirmed: true, date, recordedBy },
+//          isActive, order, createdAt, updatedAt }. Rendered only when consent.confirmed is true.
 export const stories = [];

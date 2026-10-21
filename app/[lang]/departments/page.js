@@ -7,7 +7,7 @@ import { Emphasis } from "@/components/ui/Emphasis";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getDepartments } from "@/lib/api/departments";
 import { getFacilities, getDiagnostics } from "@/lib/api/services";
-import { getDoctors } from "@/lib/api/doctors";
+import { getAllDoctors } from "@/lib/api/doctors";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { pageMeta } from "@/lib/seo/metadata";
@@ -27,12 +27,12 @@ export async function generateMetadata({ params }) {
 export default async function DepartmentsPage({ params }) {
     const { lang } = await params;
     const media = await getMedia();
-    const [dict, departments, facilities, diagnostics, { items: doctors }] = await Promise.all([
+    const [dict, departments, facilities, diagnostics, doctors] = await Promise.all([
         getDictionary(lang),
         getDepartments(),
         getFacilities(),
         getDiagnostics(),
-        getDoctors({ limit: 500 }),
+        getAllDoctors(),
     ]);
     const d = dict.departments;
     const count = new Map();
