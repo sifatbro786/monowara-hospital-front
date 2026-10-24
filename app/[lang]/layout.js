@@ -21,7 +21,7 @@ import { hospitalSchema } from "@/lib/seo/schema";
 // Only the real production deploy is indexable; Vercel demo / previews are noindex.
 const INDEXABLE = process.env.NEXT_PUBLIC_SITE_ENV === "production";
 
-const BN_PRELOAD = ["/fonts/bn/tiro-bangla-400.v1.woff2", "/fonts/bn/hind-siliguri-400.v1.woff2"];
+const BN_PRELOAD = ["/fonts/bn/google-sans-bengali-wght.v1.woff2"];
 
 export async function generateStaticParams() {
     return locales.map((lang) => ({ lang }));
@@ -76,8 +76,8 @@ export default async function LangLayout({ children, params }) {
             <head>
                 <BootScript code={bootScript} />
                 {lang === "bn" &&
-                    // Above-the-fold Bangla faces fetched with the HTML (not after CSS parse), so
-                    // headings don't swap late and shift the page. EN pages skip both (~150 KB).
+                    // Above-the-fold Bangla face fetched with the HTML (not after CSS parse), so
+                    // headings don't swap late and shift the page. EN pages skip it (~75 KB).
                     BN_PRELOAD.map((f) => (
                         <link
                             key={f}

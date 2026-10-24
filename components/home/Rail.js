@@ -3,7 +3,11 @@
 import { useRef } from "react";
 import { Icon } from "@/components/ui/Icon";
 
-/** Horizontal scroll-snap rail with prev/next buttons. Content stays server-rendered. */
+/**
+ * Horizontal scroll-snap rail with prev/next buttons. Content stays server-rendered.
+ * overflow-y-hidden: `overflow-x: auto` silently turns overflow-y into `auto`, so a few px of
+ * overflow (card rise animation) made the rail scroll vertically with a hidden scrollbar.
+ */
 export function Rail({ children, prevLabel = "Previous", nextLabel = "Next", label }) {
     const ref = useRef(null);
     const step = (dir) => {
@@ -24,7 +28,7 @@ export function Rail({ children, prevLabel = "Previous", nextLabel = "Next", lab
             <ul
                 ref={ref}
                 aria-label={label}
-                className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-4 px-4 pb-2 scrollbar-none sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:scroll-px-0 lg:px-0 [&::-webkit-scrollbar]:hidden"
+                className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden scroll-px-4 px-4 pb-2 scrollbar-none sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:scroll-px-0 lg:px-0 [&::-webkit-scrollbar]:hidden"
             >
                 {children}
             </ul>

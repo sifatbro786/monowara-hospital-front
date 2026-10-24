@@ -3,7 +3,6 @@ import { Container } from "@/components/ui/Layout";
 import { Button } from "@/components/ui/Button";
 import { Icon, WhatsAppMark } from "@/components/ui/Icon";
 import { Emphasis } from "@/components/ui/Emphasis";
-import { ContourLines } from "@/components/ui/Ornaments";
 import { Drift } from "@/components/motion/Motion";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
@@ -14,7 +13,7 @@ import { telHref, whatsappLink, formatPhone } from "@/lib/utils";
  * rounded bottom, copy left, the hospital's own building in a rounded photo card on
  * the right, and the search card (QuickPanel) overlapping the bottom edge.
  * Refinements: offset hairline frame behind the photo, floating 24/7 badge,
- * location tag, fine contour lines from the old slider artwork.
+ * location tag. (Background contour lines removed — Sifat, 2026-10-24.)
  */
 export function Hero({ slide, settings, dict, lang }) {
     const h = dict.home;
@@ -26,15 +25,6 @@ export function Hero({ slide, settings, dict, lang }) {
             data-track="hero"
             className="relative isolate overflow-hidden rounded-b-4xl bg-[linear-gradient(140deg,#0b6a6f_0%,#0a5a5e_45%,#084649_100%)] text-white lg:rounded-b-[3rem]"
         >
-            {/* background lines drift slower than the page → quiet depth */}
-            <Drift
-                range={[0, 90]}
-                offset={["start start", "end start"]}
-                className="pointer-events-none absolute -left-40 bottom-0 -z-10"
-            >
-                <ContourLines className="h-136 w-4xl text-white/[0.07]" />
-            </Drift>
-
             <Container className="grid items-center gap-12 pb-48 pt-12 sm:pb-52 lg:grid-cols-12 lg:gap-12 lg:pb-56 lg:pt-20">
                 <div className="lg:col-span-6">
                     <p

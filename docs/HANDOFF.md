@@ -14,6 +14,17 @@
 
 ---
 
+## Fonts + doctors rail (2026-10-24)
+- **Latin font → Google Sans** (Sifat: Newsreader + Hanken Grotesk read as "AI template"). Self-hosted from `@fontsource-variable/google-sans@5.3.2` (OFL) → `app/fonts/google-sans-latin-wght-{normal,italic}.woff2` (variable 400–700, ~36 KB each, italic only fetched if used). `lib/fonts.js` exports `googleSans` (`--font-gsans`); `--font-sans` and `--font-display` both use it. Headings 500 / −0.02em.
+- **Accent phrase (`*word*`) is colour-only now** — no italic serif (`Emphasis.js`); loader EN word no longer italic.
+- **Bangla font → Google Sans Bengali** (Sifat: Hind Siliguri's ১ read like a letter). One variable file `public/fonts/bn/google-sans-bengali-wght.v1.woff2` (75 KB, 400–700) replaces Hind 400/500/600 + Tiro (~300 KB); used for BN body **and** headings (no more serif BN headings). `--font-bn` in globals.css; `--font-hind`/`--font-tiro` kept as aliases. BN preload = this one file.
+- `scripts/og-card.py` now uses Google Sans (Latin + Bengali), accent = teal colour (no italic); `public/og/default-{en,bn}.jpg` re-rendered.
+- Old font files deleted (nothing references them): `app/fonts/newsreader-*`, `app/fonts/hanken-*`, `public/fonts/bn/hind-*`, `public/fonts/bn/tiro-*`.
+- **Hero:** background contour lines (ContourLines + Drift) removed from `Hero.js` (Sifat). `ContourLines` stays in `ui/Ornaments.js` (unused on home now).
+- **Doctors rail:** the cards scrolled vertically (hidden scrollbar) — `overflow-x: auto` makes overflow-y `auto` too. Added `overflow-y-hidden` to `Rail.js`. Horizontal scrolling unchanged.
+
+---
+
 ## Post-Phase-5: homepage motion + doctor card photo (2026-10-21)
 - **Why no animation package until now:** deliberate — the site used one IntersectionObserver + Web Animations API (`components/motion/Reveal.js`, 0 KB dependency) to protect LCP on slow phones. Sifat asked for a premium, light homepage motion layer → added **`motion@13.5.1`** (framer-motion, `motion/react`), pinned exact (14.x was a 3-week-old major).
 - `components/motion/Motion.js` — `MotionRoot` (LazyMotion `strict` + async `features.js` chunk, `MotionConfig reducedMotion="user"`), `FadeUp`, `Stagger`/`StaggerItem`, `DrawRule`, `PhotoReveal`, `Drift` (scroll parallax, off with reduced motion). Calm only: expo ease, 0.85–1.3 s, no springs/loops/count-ups.

@@ -4,44 +4,16 @@
    Brand teal sampled from logo.png (#009EA6). Body text never uses brand
    teal directly (3.1:1 on paper) — use teal-700+ for text/links.
    Emergency red is reserved for emergency UI only. */
-/* ───────────────────────── Bangla fonts ─────────────────────────
-   Declared here (not next/font) so the URLs are stable: app/[lang]/layout.js preloads the
-   two above-the-fold faces on BN pages only. EN pages never request them (unicode-range).
-   Files are versioned (.v1) and served with an immutable cache header (next.config.mjs). */
+/* ───────────────────────── Bangla font ─────────────────────────
+   Google Sans (Bengali subset, variable 400–700, OFL) — same family as the Latin face, and its
+   digits read clearly (Hind Siliguri's ১ looked like a letter). One file for body + headings.
+   Declared here (not next/font) so the URL is stable: app/[lang]/layout.js preloads it on BN
+   pages only. EN pages never request it (unicode-range). Versioned (.v1), immutable cache
+   (next.config.mjs). */
 @font-face {
-    font-family: "MH Hind Siliguri";
-    src: url("/fonts/bn/hind-siliguri-400.v1.woff2") format("woff2");
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-    unicode-range:
-        U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8, U+1CE1, U+1CEA,
-        U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
-}
-@font-face {
-    font-family: "MH Hind Siliguri";
-    src: url("/fonts/bn/hind-siliguri-500.v1.woff2") format("woff2");
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-    unicode-range:
-        U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8, U+1CE1, U+1CEA,
-        U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
-}
-@font-face {
-    font-family: "MH Hind Siliguri";
-    src: url("/fonts/bn/hind-siliguri-600.v1.woff2") format("woff2");
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
-    unicode-range:
-        U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8, U+1CE1, U+1CEA,
-        U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
-}
-@font-face {
-    font-family: "MH Tiro Bangla";
-    src: url("/fonts/bn/tiro-bangla-400.v1.woff2") format("woff2");
-    font-weight: 400;
+    font-family: "MH Google Sans Bengali";
+    src: url("/fonts/bn/google-sans-bengali-wght.v1.woff2") format("woff2-variations");
+    font-weight: 400 700;
     font-style: normal;
     font-display: swap;
     unicode-range:
@@ -49,8 +21,10 @@
         U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
 }
 :root {
-    --font-hind: "MH Hind Siliguri";
-    --font-tiro: "MH Tiro Bangla";
+    --font-bn: "MH Google Sans Bengali";
+    /* legacy aliases — anything still pointing at the old Bangla vars gets Google Sans */
+    --font-hind: var(--font-bn);
+    --font-tiro: var(--font-bn);
 }
 
 @theme {
@@ -85,11 +59,9 @@
 
     /* Bangla faces first: their unicode-range limits them to Bangla glyphs, so Latin
        falls through to the Latin face (and not to a system font that has Bangla). */
-    --font-sans: var(--font-hind), var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-    --font-display: var(--font-tiro), var(--font-newsreader), ui-serif, Georgia, serif;
-    /* Newsreader (not a system serif) supplies spaces/digits: its vertical metrics
-       match Tiro's, so mixed-script lines don't grow taller. */
-    --font-bn-display: var(--font-tiro), var(--font-newsreader), serif;
+    --font-sans: var(--font-bn), var(--font-gsans), ui-sans-serif, system-ui, sans-serif;
+    --font-display: var(--font-bn), var(--font-gsans), ui-sans-serif, system-ui, sans-serif;
+    --font-bn-display: var(--font-bn), var(--font-gsans), sans-serif;
 
     --text-display: clamp(2.5rem, 1.6rem + 4vw, 4.75rem);
     --text-display--line-height: 1.02;
@@ -139,10 +111,9 @@
     h3,
     h4 {
         font-family: var(--font-display);
-        font-weight: 450;
-        letter-spacing: -0.015em;
+        font-weight: 500;
+        letter-spacing: -0.02em;
         text-wrap: balance;
-        font-optical-sizing: auto;
     }
     :lang(bn) h1,
     :lang(bn) h2,
@@ -359,7 +330,6 @@ html[data-loader] #mh-loader.is-skipping {
 }
 .mh-loader-en {
     font-family: var(--font-display);
-    font-style: italic;
     font-size: 0.95rem;
     color: var(--color-ink-2);
     letter-spacing: 0.02em;
