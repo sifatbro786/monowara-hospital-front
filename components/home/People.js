@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Section } from "@/components/ui/Layout";
+import { FaYoutube } from "react-icons/fa6";
 import { Icon } from "@/components/ui/Icon";
 import { Emphasis } from "@/components/ui/Emphasis";
 import { DoctorCard } from "@/components/doctor/DoctorCard";
@@ -55,7 +56,10 @@ export function Talks({ talks, stories = [], settings, dict, lang }) {
     // Patient stories are published only with written consent (proposal §3, §13).
     const quotes = stories.filter((st) => st.consent?.confirmed && t(st.quote, lang));
     if (!talks.length && !quotes.length) return null;
-    const [first, ...rest] = talks;
+    // Homepage shows 1 large + up to 3 side videos; the rest live on /expert-talks.
+    const [first, ...more] = talks;
+    const rest = more.slice(0, 3);
+    const channel = settings.socials?.youtube;
     return (
         <Section
             animate
@@ -94,37 +98,70 @@ export function Talks({ talks, stories = [], settings, dict, lang }) {
                             <p className="mt-1 text-sm text-ink-3">{t(first.speaker, lang)}</p>
                         </figcaption>
                     </FadeUp>
-                    <Stagger
-                        as="ul"
-                        delay={0.15}
-                        gap={0.1}
-                        className="grid gap-6 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1"
-                    >
-                        {rest.map((v) => (
-                            <StaggerItem
-                                as="li"
-                                key={v._id}
-                                className="grid gap-4 lg:grid-cols-[13rem_1fr] lg:items-start"
-                            >
-                                <LiteYouTube
-                                    id={v.youtubeId}
-                                    title={t(v.title, lang)}
-                                    playLabel={h.play}
-                                    size="sm"
-                                    className="rounded-2xl"
-                                />
-                                <div>
-                                    <p
-                                        lang={v.title?.bn ? "bn" : "en"}
-                                        className="font-display text-lg leading-snug"
-                                    >
-                                        {t(v.title, "bn")}
-                                    </p>
-                                    <p className="mt-1 text-sm text-ink-3">{t(v.speaker, lang)}</p>
-                                </div>
-                            </StaggerItem>
-                        ))}
-                    </Stagger>
+                    {/* side column: the list packs to the top (the old grid stretched its rows to the
+                        large video's height → the gap in the middle); the channel card follows it */}
+                    <div className="flex flex-col gap-6 lg:col-span-5">
+                        <Stagger
+                            as="ul"
+                            delay={0.15}
+                            gap={0.1}
+                            className="grid content-start gap-6 sm:grid-cols-2 lg:grid-cols-1"
+                        >
+                            {rest.map((v) => (
+                                <StaggerItem
+                                    as="li"
+                                    key={v._id}
+                                    className="grid gap-4 lg:grid-cols-[13rem_1fr] lg:items-center xl:grid-cols-[17rem_1fr]"
+                                >
+                                    <LiteYouTube
+                                        id={v.youtubeId}
+                                        title={t(v.title, lang)}
+                                        playLabel={h.play}
+                                        size="sm"
+                                        className="rounded-2xl"
+                                    />
+                                    <div>
+                                        <p
+                                            lang={v.title?.bn ? "bn" : "en"}
+                                            className="font-display text-lg leading-snug"
+                                        >
+                                            {t(v.title, "bn")}
+                                        </p>
+                                        <p className="mt-1 text-sm text-ink-3">
+                                            {t(v.speaker, lang)}
+                                        </p>
+                                    </div>
+                                </StaggerItem>
+                            ))}
+                        </Stagger>
+                        {channel && (
+                            <FadeUp delay={0.3}>
+                                <a
+                                    href={channel}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="group flex items-center gap-4 rounded-2xl border border-line bg-card p-4 transition-colors hover:border-teal-700/40"
+                                >
+                                    <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[#ff0033]/10 text-[#e00030]">
+                                        <FaYoutube size={22} aria-hidden />
+                                    </span>
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block font-medium text-ink">
+                                            {h.talksMoreTitle}
+                                        </span>
+                                        <span className="block text-sm text-ink-3">
+                                            {h.talksMoreLead}
+                                        </span>
+                                    </span>
+                                    <Icon
+                                        name="arrowUpRight"
+                                        size={18}
+                                        className="shrink-0 text-ink-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-teal-700"
+                                    />
+                                </a>
+                            </FadeUp>
+                        )}
+                    </div>
                 </div>
             )}
             {quotes.length > 0 && (

@@ -71,8 +71,9 @@ export function KeyNumbers({ items, dict, lang }) {
     );
 }
 
-/* ───────── Centres of excellence — light hairline grid; the centre's photo fades in on hover ───────── */
-// No photo → hover shows the teal wash only (an unrelated fallback photo read as wrong).
+/* ───────── Centres of excellence — light hairline grid, each cell leads with its photo
+   (client 2026-10-25: photos visible by default, not only on hover). Hover / keyboard focus:
+   slow zoom, teal tint, title + arrow chip turn teal. No photo → quiet teal panel, no stock filler. ───────── */
 export function Centres({ items, dict, lang }) {
     const h = dict.home;
     return (
@@ -91,8 +92,10 @@ export function Centres({ items, dict, lang }) {
                 </Link>
             }
         >
+            {/* tall list on mobile (8 photo cells) → trigger on a sliver, not the default 15% */}
             <Stagger
                 as="ul"
+                viewport={{ once: true, amount: 0.03 }}
                 className="grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4"
             >
                 {items.map((c, i) => (
@@ -102,41 +105,55 @@ export function Centres({ items, dict, lang }) {
                         <StaggerItem className="h-full">
                             <Link
                                 href={href(lang, c.href)}
-                                className="group relative isolate flex h-full min-h-60 flex-col gap-3 overflow-hidden p-6 lg:min-h-72 lg:p-7"
+                                className="group flex h-full flex-col p-3 outline-offset-[-4px] transition-colors duration-500 hover:bg-paper/60 lg:p-3.5"
                             >
-                                {/* photo layer — hover / keyboard focus only, so the grid stays calm at rest */}
-                                {c.image && (
-                                    <Image
-                                        src={c.image}
-                                        alt=""
-                                        fill
-                                        sizes="(min-width: 1024px) 20rem, 50vw"
-                                        className="-z-20 scale-[1.06] object-cover opacity-0 transition-[opacity,transform] duration-700 ease-out-expo group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100"
-                                    />
-                                )}
-                                <span
-                                    aria-hidden
-                                    className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgb(7_38_41/0.92)_0%,rgb(7_38_41/0.55)_50%,rgb(7_38_41/0.12)_100%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100"
-                                />
-
-                                <span className="font-display text-sm text-teal-700/80 tabular-nums transition-colors duration-500 group-hover:text-teal-200">
-                                    {digits(String(i + 1).padStart(2, "0"), lang)}
-                                </span>
-                                <h3 className="text-h3 text-ink transition-colors duration-500 group-hover:text-white">
-                                    {t(c.title, lang)}
-                                </h3>
-                                <p className="text-[0.95rem] text-ink-2 transition-colors duration-500 group-hover:text-white/85">
-                                    {t(c.summary, lang)}
-                                </p>
-                                <span className="mt-auto pt-3">
-                                    <span className="inline-grid size-9 place-items-center rounded-full border border-line text-ink-3 transition-colors duration-500 group-hover:border-white group-hover:bg-white group-hover:text-teal-800">
-                                        <Icon
-                                            name="arrow"
-                                            size={16}
-                                            className="transition-transform duration-500 group-hover:translate-x-0.5"
+                                <span className="relative isolate block aspect-16/10 overflow-hidden rounded-2xl bg-teal-50">
+                                    {c.image ? (
+                                        <Image
+                                            src={c.image}
+                                            alt=""
+                                            fill
+                                            sizes="(min-width: 1024px) 18rem, (min-width: 640px) 50vw, 100vw"
+                                            className="object-cover transition-transform duration-1000 ease-out-expo group-hover:scale-[1.06] group-focus-visible:scale-[1.06]"
                                         />
+                                    ) : (
+                                        <Icon
+                                            name="pulse"
+                                            size={40}
+                                            className="absolute inset-0 m-auto text-teal-300"
+                                        />
+                                    )}
+                                    {/* resting: faint bottom shade for the number; hover: teal tint */}
+                                    <span
+                                        aria-hidden
+                                        className="absolute inset-0 bg-linear-to-t from-[rgb(7_38_41/0.45)] via-transparent to-transparent"
+                                    />
+                                    <span
+                                        aria-hidden
+                                        className="absolute inset-0 bg-teal-700/25 opacity-0 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100"
+                                    />
+                                    <span className="absolute bottom-3 left-3 rounded-pill bg-white/90 px-2.5 py-1 font-display text-xs font-medium tabular-nums text-teal-800">
+                                        {digits(String(i + 1).padStart(2, "0"), lang)}
                                     </span>
                                 </span>
+
+                                <div className="flex flex-1 flex-col gap-2 px-2.5 pb-2 pt-5 lg:px-3">
+                                    <h3 className="text-h3 text-ink transition-colors duration-500 group-hover:text-teal-700">
+                                        {t(c.title, lang)}
+                                    </h3>
+                                    <span className="text-[0.95rem] text-ink-2">
+                                        {t(c.summary, lang)}
+                                    </span>
+                                    <span className="mt-auto pt-4">
+                                        <span className="inline-grid size-9 place-items-center rounded-full border border-line text-ink-3 transition-colors duration-500 group-hover:border-teal-700 group-hover:bg-teal-700 group-hover:text-white">
+                                            <Icon
+                                                name="arrow"
+                                                size={16}
+                                                className="transition-transform duration-500 group-hover:translate-x-0.5"
+                                            />
+                                        </span>
+                                    </span>
+                                </div>
                             </Link>
                         </StaggerItem>
                     </li>

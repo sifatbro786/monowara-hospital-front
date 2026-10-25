@@ -1,0 +1,1250 @@
+diff --git a/app/[lang]/page.js b/app/[lang]/page.js
+index ff2870f..39a752f 100644
+--- a/app/[lang]/page.js
++++ b/app/[lang]/page.js
+@@ -49,7 +49,7 @@ export default async function Home({ params }) {
+ 
+     return (
+         <MotionRoot>
+-            {slides[0] && <Hero slide={slides[0]} settings={settings} dict={dict} lang={lang} />}
++            <Hero slides={slides} settings={settings} dict={dict} lang={lang} />
+             <QuickPanel departments={departments} settings={settings} dict={dict} lang={lang} />
+             <KeyNumbers items={home.keyNumbers} dict={dict} lang={lang} />
+             <Centres items={home.centres} dict={dict} lang={lang} />
+diff --git a/app/globals.css b/app/globals.css
+index da40abb..5b38ccd 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -238,6 +238,46 @@ html.js [data-reveal="clip"] > span {
+         transform: translateX(100%);
+     }
+ }
++/* ───────── Home hero slider (HeroCarousel, Swiper) ───────── */
++/* equal-height slides (= the tallest), so the hero never jumps between slides */
++.mh-hero .swiper-slide {
++    height: auto;
++}
++/* Ken Burns on the active photo only */
++.mh-hero .swiper-slide-active .mh-hero-bg {
++    animation: mh-kenburns 5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
++}
++@keyframes mh-kenburns {
++    from {
++        transform: scale(1.08);
++    }
++    to {
++        transform: scale(1.01);
++    }
++}
++/* copy: visible before init (SSR / LCP); after init non-active copy is hidden and the active
++   slide's copy rises in, staggered */
++.mh-hero-copy > * {
++    transition:
++        opacity 0.7s var(--ease-out-expo),
++        translate 0.8s var(--ease-out-expo);
++}
++.mh-hero .swiper-initialized .swiper-slide:not(.swiper-slide-active) .mh-hero-copy > * {
++    opacity: 0;
++    translate: 0 1.25rem;
++    transition-duration: 0.25s;
++    transition-delay: 0s;
++}
++.mh-hero .swiper-slide-active .mh-hero-copy > :nth-child(1) {
++    transition-delay: 0.12s;
++}
++.mh-hero .swiper-slide-active .mh-hero-copy > :nth-child(2) {
++    transition-delay: 0.18s;
++}
++.mh-hero .swiper-slide-active .mh-hero-copy > :nth-child(3) {
++    transition-delay: 0.26s;
++}
++
+ @keyframes mh-rise {
+     from {
+         opacity: 0;
+diff --git a/components/home/Hero.js b/components/home/Hero.js
+index a62cc9a..6ab2919 100644
+--- a/components/home/Hero.js
++++ b/components/home/Hero.js
+@@ -1,140 +1,83 @@
+-import Image from "next/image";
+-import { Container } from "@/components/ui/Layout";
+ import { Button } from "@/components/ui/Button";
+ import { Icon, WhatsAppMark } from "@/components/ui/Icon";
+-import { Emphasis } from "@/components/ui/Emphasis";
+-import { Drift } from "@/components/motion/Motion";
++import { HeroCarousel } from "./HeroCarousel";
+ import { href } from "@/lib/i18n/config";
+ import { t, digits } from "@/lib/i18n/t";
+ import { telHref, whatsappLink, formatPhone } from "@/lib/utils";
+ 
+ /**
+- * Hero in the client's concept layout (MH_Website_Concept.pdf): teal band with a
+- * rounded bottom, copy left, the hospital's own building in a rounded photo card on
+- * the right, and the search card (QuickPanel) overlapping the bottom edge.
+- * Refinements: offset hairline frame behind the photo, floating 24/7 badge,
+- * location tag. (Background contour lines removed — Sifat, 2026-10-24.)
++ * Hero in the client's concept layout (MH_Website_Concept.pdf): teal band with a rounded bottom,
++ * the search card (QuickPanel) overlapping the bottom edge.
++ * 2026-10-25 (client): full-bleed background-photo slider (Swiper) over `heroSlides`
++ * (Admin → Hero slider). Only copy + photo change per slide; the actions below are common and
++ * rendered here on the server.
+  */
+-export function Hero({ slide, settings, dict, lang }) {
++export function Hero({ slides, settings, dict, lang }) {
+     const h = dict.home;
+     const wa = settings.primaryWhatsapp;
+-    const media = slide.cardMedia?.src ? slide.cardMedia : slide.media;
++    const items = slides
++        .filter((s) => s.image?.src)
++        .map((s) => ({
++            id: s._id,
++            eyebrow: t(s.eyebrow, lang),
++            title: t(s.title, lang),
++            subtitle: t(s.subtitle, lang),
++            label: t(s.label, lang) || t(s.eyebrow, lang),
++            image: { src: s.image.src, alt: t(s.image.alt, lang), position: s.image.position },
++        }));
++    if (!items.length) return null;
++
++    const actions = (
++        <>
++            <div className="flex flex-wrap items-center gap-3">
++                <Button href={href(lang, "/appointment")} size="lg" variant="onTeal">
++                    {dict.cta.book}
++                    <Icon name="arrow" size={18} />
++                </Button>
++                <a
++                    href={telHref(settings.emergency)}
++                    className="inline-flex min-h-13 items-center gap-2.5 rounded-pill border border-white/30 px-5 text-[0.95rem] font-medium text-white transition-colors hover:border-white/70 hover:bg-white/5"
++                >
++                    <span className="relative flex size-2.5" aria-hidden>
++                        <span className="absolute inline-flex size-full animate-ping rounded-full bg-[#ff2d20]/70 motion-reduce:hidden" />
++                        <span className="relative inline-flex size-2.5 rounded-full bg-[#ff2d20]" />
++                    </span>
++                    {dict.cta.emergency}:
++                    <span className="tabular-nums">
++                        {digits(formatPhone(settings.emergency), lang)}
++                    </span>
++                </a>
++            </div>
++
++            {wa && (
++                <a
++                    href={whatsappLink(wa.number, dict.appointment.message)}
++                    target="_blank"
++                    rel="noopener noreferrer"
++                    className="mt-6 inline-flex items-center gap-2 text-sm text-white/75 hover:text-white"
++                >
++                    <WhatsAppMark size={17} className="text-[#6ce39a]" />
++                    {h.orWhatsapp}
++                    <span className="tabular-nums text-white underline decoration-white/35 underline-offset-4">
++                        {digits(formatPhone(wa.number), lang)}
++                    </span>
++                </a>
++            )}
++        </>
++    );
+ 
+     return (
+         <section
+             data-track="hero"
+-            className="relative isolate overflow-hidden rounded-b-4xl bg-[linear-gradient(140deg,#0b6a6f_0%,#0a5a5e_45%,#084649_100%)] text-white lg:rounded-b-[3rem]"
++            className="relative isolate overflow-hidden rounded-b-4xl bg-teal-950 text-white lg:rounded-b-[3rem]"
+         >
+-            <Container className="grid items-center gap-12 pb-48 pt-12 sm:pb-52 lg:grid-cols-12 lg:gap-12 lg:pb-56 lg:pt-20">
+-                <div className="lg:col-span-6">
+-                    <p
+-                        data-enter
+-                        className="inline-flex items-center gap-2 rounded-pill bg-white/10 py-1.5 pl-1.5 pr-3.5 text-[0.82rem] text-white/90 ring-1 ring-white/15"
+-                    >
+-                        <span className="grid size-6 place-items-center rounded-full bg-white/15">
+-                            <Icon name="pin" size={13} />
+-                        </span>
+-                        {t(slide.eyebrow, lang)}
+-                    </p>
+-
+-                    <h1
+-                        data-enter="title"
+-                        style={{ "--reveal-delay": "60ms" }}
+-                        className="mt-7 max-w-[14ch] text-display text-white [&:lang(bn)]:leading-[1.22] [&_em]:text-teal-200"
+-                    >
+-                        <span>
+-                            <Emphasis text={t(slide.title, lang)} />
+-                        </span>
+-                    </h1>
+-
+-                    <p
+-                        data-enter
+-                        style={{ "--reveal-delay": "180ms" }}
+-                        className="mt-6 max-w-xl text-lg leading-relaxed text-white/80"
+-                    >
+-                        {t(slide.subtitle, lang)}
+-                    </p>
+-
+-                    <div
+-                        data-enter
+-                        style={{ "--reveal-delay": "260ms" }}
+-                        className="mt-9 flex flex-wrap items-center gap-3"
+-                    >
+-                        <Button href={href(lang, "/appointment")} size="lg" variant="onTeal">
+-                            {dict.cta.book}
+-                            <Icon name="arrow" size={18} />
+-                        </Button>
+-                        <a
+-                            href={telHref(settings.emergency)}
+-                            className="inline-flex min-h-13 items-center gap-2.5 rounded-pill border border-white/30 px-5 text-[0.95rem] font-medium text-white transition-colors hover:border-white/70 hover:bg-white/5"
+-                        >
+-                            <span className="relative flex size-2.5" aria-hidden>
+-                                <span className="absolute inline-flex size-full animate-ping rounded-full bg-[#ff2d20]/70 motion-reduce:hidden" />
+-                                <span className="relative inline-flex size-2.5 rounded-full bg-[#ff2d20]" />
+-                            </span>
+-                            {dict.cta.emergency}:
+-                            <span className="tabular-nums">
+-                                {digits(formatPhone(settings.emergency), lang)}
+-                            </span>
+-                        </a>
+-                    </div>
+-
+-                    {wa && (
+-                        <a
+-                            data-enter
+-                            style={{ "--reveal-delay": "320ms" }}
+-                            href={whatsappLink(wa.number, dict.appointment.message)}
+-                            target="_blank"
+-                            rel="noopener noreferrer"
+-                            className="mt-6 inline-flex items-center gap-2 text-sm text-white/75 hover:text-white"
+-                        >
+-                            <WhatsAppMark size={17} className="text-[#6ce39a]" />
+-                            {h.orWhatsapp}
+-                            <span className="tabular-nums text-white underline decoration-white/35 underline-offset-4">
+-                                {digits(formatPhone(wa.number), lang)}
+-                            </span>
+-                        </a>
+-                    )}
+-                </div>
+-
+-                {media?.src && (
+-                    <figure
+-                        data-enter
+-                        style={{ "--reveal-delay": "160ms" }}
+-                        className="relative lg:col-span-6"
+-                    >
+-                        {/* offset hairline frame */}
+-                        <div
+-                            aria-hidden
+-                            className="absolute inset-0 translate-x-2 translate-y-2 rounded-[1.75rem] border border-white/25 sm:translate-x-4 sm:translate-y-4"
+-                        />
+-
+-                        <div className="relative aspect-5/4 overflow-hidden rounded-[1.75rem] bg-teal-900 shadow-[0_40px_80px_-40px_rgb(0_0_0/0.55)]">
+-                            {/* taller than the frame so the scroll drift never shows an edge */}
+-                            <Drift
+-                                range={[0, 48]}
+-                                offset={["start start", "end start"]}
+-                                className="absolute inset-x-0 -top-[8%] -bottom-[8%]"
+-                            >
+-                                <Image
+-                                    src={media.src}
+-                                    alt={t(media.alt, lang)}
+-                                    fill
+-                                    loading="eager"
+-                                    fetchPriority="high"
+-                                    quality={85}
+-                                    sizes="(min-width: 1024px) 38rem, 100vw"
+-                                    className="object-cover"
+-                                />
+-                            </Drift>
+-                            <p className="absolute right-4 top-4 hidden items-center gap-1.5 rounded-pill bg-white/90 sm:inline-flex px-3 py-1.5 text-xs font-medium text-teal-900">
+-                                <Icon name="pin" size={13} />
+-                                {h.heroOwnBuilding}
+-                            </p>
+-                        </div>
+-                    </figure>
+-                )}
+-            </Container>
++                <HeroCarousel
++                    slides={items}
++                    actions={actions}
++                    lang={lang}
++                    intervalMs={settings.heroSlider.intervalSec * 1000}
++                    labels={{ region: h.heroLabel }}
++                />
+         </section>
+     );
+ }
+diff --git a/components/home/HeroCarousel.js b/components/home/HeroCarousel.js
+new file mode 100644
+index 0000000..f6d3c17
+--- /dev/null
++++ b/components/home/HeroCarousel.js
+@@ -0,0 +1,178 @@
++"use client";
++
++import Image from "next/image";
++import { useEffect, useRef } from "react";
++import Swiper from "swiper";
++import { A11y, Autoplay, EffectFade, Keyboard } from "swiper/modules";
++import { useReducedMotion } from "motion/react";
++import { Emphasis } from "@/components/ui/Emphasis";
++import { digits } from "@/lib/i18n/t";
++import { cn } from "@/lib/utils";
++import "swiper/css";
++import "swiper/css/effect-fade";
++
++const SPEED = 1000; // crossfade
++const WRAP = "mx-auto w-full max-w-336 px-4 sm:px-6 lg:px-10"; // = <Container>
++
++/**
++ * Full-bleed homepage hero slider (Swiper 14 — client ask 2026-10-25, rev. 3: clean, no nav).
++ * - Each slide: background photo (Ken Burns while active) under an ink-teal wash, copy anchored
++ *   bottom-left. Crossfade (EffectFade) + rewind (no loop clones → exactly one <h1>).
++ * - No visible controls (client): autoplay every `intervalMs` (settings.heroSlider.intervalSec,
++ *   admin-editable, default 5 s), swipe on touch, ←/→ keys. Pauses on hover, hidden tab, off-screen.
++ * - `actions` (Book / Emergency / WhatsApp) are common: one server-rendered overlay pinned above
++ *   the QuickPanel overlap. Its measured height is reserved under every slide's copy
++ *   (--hero-actions), so copy never collides with the buttons whatever the slide length.
++ * - Copy is visible before Swiper initialises (SSR / LCP); CSS hides non-active copy only after
++ *   init (`.mh-hero` rules in globals.css). Reduced motion: no autoplay, no Ken Burns.
++ */
++export function HeroCarousel({ slides, actions, labels, lang, intervalMs = 5000 }) {
++    const count = slides.length;
++    const reduce = useReducedMotion();
++    const rootRef = useRef(null);
++    const actionsRef = useRef(null);
++    const swiperElRef = useRef(null);
++    const swiperRef = useRef(null);
++    const autoplay = count > 1 && !reduce;
++    // intervalMs = time from one slide to the next (settings.heroSlider, admin-editable);
++    // Swiper's `delay` starts after each fade, so subtract the fade.
++    const delay = Math.max(1000, intervalMs - SPEED);
++
++    // Swiper core on our own SSR markup (swiper/react builds the instance during render, which
++    // calls `new Date()` → not allowed in a Cache Components prerender).
++    useEffect(() => {
++        const swiper = new Swiper(swiperElRef.current, {
++            modules: [A11y, Autoplay, EffectFade, Keyboard],
++            effect: "fade",
++            fadeEffect: { crossFade: true },
++            speed: SPEED,
++            rewind: true,
++            autoplay: { delay, disableOnInteraction: false, pauseOnMouseEnter: true },
++            keyboard: { enabled: true, onlyInViewport: true },
++            a11y: {
++                containerRoleDescriptionMessage: "carousel",
++                containerMessage: labels.region,
++                itemRoleDescriptionMessage: "slide",
++                slideLabelMessage: "{{index}} / {{slidesLength}}",
++            },
++        });
++        swiperRef.current = swiper;
++        return () => {
++            swiper.destroy(true, true);
++            swiperRef.current = null;
++        };
++    }, [labels.region, delay]);
++
++    // reserve the actions overlay height under the copy
++    useEffect(() => {
++        const root = rootRef.current;
++        const el = actionsRef.current;
++        if (!root || !el) return;
++        const ro = new ResizeObserver(([e]) =>
++            root.style.setProperty(
++                "--hero-actions",
++                `${Math.ceil(e.borderBoxSize?.[0]?.blockSize ?? el.offsetHeight)}px`,
++            ),
++        );
++        ro.observe(el);
++        return () => ro.disconnect();
++    }, []);
++
++    // reduced motion stops autoplay; off-screen pauses it
++    useEffect(() => {
++        const s = swiperRef.current;
++        if (!s?.autoplay) return;
++        if (!autoplay) {
++            s.autoplay.stop();
++            return;
++        }
++        // Swiper's start()/resume() re-arm the timer even when already running → guard both
++        if (!s.autoplay.running) s.autoplay.start();
++        const io = new IntersectionObserver(([e]) => {
++            if (!e.isIntersecting) s.autoplay.pause();
++            else if (s.autoplay.paused) s.autoplay.resume();
++        });
++        io.observe(rootRef.current);
++        return () => io.disconnect();
++    }, [autoplay]);
++
++    const pad = (n) => digits(String(n).padStart(2, "0"), lang);
++
++    return (
++        <div
++            ref={rootRef}
++            className="mh-hero relative [--hero-actions:10rem] [--hero-qp:12rem] sm:[--hero-actions:8rem] sm:[--hero-qp:13rem] lg:[--hero-qp:14rem]"
++        >
++            <div ref={swiperElRef} className="swiper">
++                <div className="swiper-wrapper">
++                    {slides.map((s, i) => {
++                        const Title = i === 0 ? "h1" : "p";
++                        return (
++                            <div
++                                key={s.id}
++                                className="swiper-slide relative isolate overflow-hidden bg-teal-950"
++                            >
++                                {/* background photo */}
++                                <div className="mh-hero-bg absolute inset-0 -z-20">
++                                    <Image
++                                        src={s.image.src}
++                                        alt={s.image.alt}
++                                        fill
++                                        loading={i === 0 ? "eager" : "lazy"}
++                                        fetchPriority={i === 0 ? "high" : "low"}
++                                        quality={80}
++                                        sizes="100vw"
++                                        className="object-cover"
++                                        style={{ objectPosition: s.image.position || "center" }}
++                                    />
++                                </div>
++                                {/* ink-teal wash: dense behind the copy (bottom / left), clear on the right */}
++                                <span
++                                    aria-hidden
++                                    className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgb(4_30_33/0.97)_0%,rgb(4_30_33/0.8)_40%,rgb(4_30_33/0.3)_75%,rgb(4_30_33/0.45)_100%)] lg:bg-[linear-gradient(100deg,rgb(4_30_33/0.92)_0%,rgb(5_40_43/0.78)_36%,rgb(6_60_64/0.3)_64%,rgb(6_60_64/0.06)_100%)]"
++                                />
++                                <span
++                                    aria-hidden
++                                    className="absolute inset-x-0 bottom-0 -z-10 h-3/5 bg-linear-to-t from-[rgb(4_30_33/0.92)] via-[rgb(4_30_33/0.55)] to-transparent"
++                                />
++
++                                <div
++                                    className={cn(
++                                        WRAP,
++                                        "flex min-h-[max(42rem,calc(100svh-7.5rem))] flex-col justify-end pt-24 pb-[calc(var(--hero-actions)+var(--hero-qp)+1.75rem)] lg:min-h-[max(46rem,calc(100svh-7.5rem))]",
++                                    )}
++                                >
++                                    <div className="mh-hero-copy max-w-3xl text-white">
++                                        <p className="flex items-center gap-3 text-[0.78rem] font-medium uppercase tracking-[0.16em] text-teal-100/90 [&:lang(bn)]:text-sm [&:lang(bn)]:normal-case [&:lang(bn)]:tracking-normal">
++                                            <span className="tabular-nums text-white">
++                                                {pad(i + 1)}
++                                            </span>
++                                            <span
++                                                aria-hidden
++                                                className="h-px w-10 bg-teal-200/60"
++                                            />
++                                            {s.eyebrow}
++                                        </p>
++                                        <Title className="mt-6 max-w-[16ch] text-display text-white [&:lang(bn)]:leading-[1.22] [&_em]:text-teal-200">
++                                            <Emphasis text={s.title} />
++                                        </Title>
++                                        <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/80">
++                                            {s.subtitle}
++                                        </p>
++                                    </div>
++                                </div>
++                            </div>
++                        );
++                    })}
++                </div>
++            </div>
++
++            {/* common actions, pinned above the QuickPanel overlap */}
++            <div className="pointer-events-none absolute inset-x-0 bottom-(--hero-qp) z-10">
++                <div ref={actionsRef} className={WRAP}>
++                    <div className="pointer-events-auto">{actions}</div>
++                </div>
++            </div>
++        </div>
++    );
++}
+diff --git a/components/home/People.js b/components/home/People.js
+index c3b9a64..a424031 100644
+--- a/components/home/People.js
++++ b/components/home/People.js
+@@ -1,5 +1,6 @@
+ import Link from "next/link";
+ import { Section } from "@/components/ui/Layout";
++import { FaYoutube } from "react-icons/fa6";
+ import { Icon } from "@/components/ui/Icon";
+ import { Emphasis } from "@/components/ui/Emphasis";
+ import { DoctorCard } from "@/components/doctor/DoctorCard";
+@@ -55,7 +56,10 @@ export function Talks({ talks, stories = [], settings, dict, lang }) {
+     // Patient stories are published only with written consent (proposal §3, §13).
+     const quotes = stories.filter((st) => st.consent?.confirmed && t(st.quote, lang));
+     if (!talks.length && !quotes.length) return null;
+-    const [first, ...rest] = talks;
++    // Homepage shows 1 large + up to 3 side videos; the rest live on /expert-talks.
++    const [first, ...more] = talks;
++    const rest = more.slice(0, 3);
++    const channel = settings.socials?.youtube;
+     return (
+         <Section
+             animate
+@@ -94,37 +98,70 @@ export function Talks({ talks, stories = [], settings, dict, lang }) {
+                             <p className="mt-1 text-sm text-ink-3">{t(first.speaker, lang)}</p>
+                         </figcaption>
+                     </FadeUp>
+-                    <Stagger
+-                        as="ul"
+-                        delay={0.15}
+-                        gap={0.1}
+-                        className="grid gap-6 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1"
+-                    >
+-                        {rest.map((v) => (
+-                            <StaggerItem
+-                                as="li"
+-                                key={v._id}
+-                                className="grid gap-4 lg:grid-cols-[13rem_1fr] lg:items-start"
+-                            >
+-                                <LiteYouTube
+-                                    id={v.youtubeId}
+-                                    title={t(v.title, lang)}
+-                                    playLabel={h.play}
+-                                    size="sm"
+-                                    className="rounded-2xl"
+-                                />
+-                                <div>
+-                                    <p
+-                                        lang={v.title?.bn ? "bn" : "en"}
+-                                        className="font-display text-lg leading-snug"
+-                                    >
+-                                        {t(v.title, "bn")}
+-                                    </p>
+-                                    <p className="mt-1 text-sm text-ink-3">{t(v.speaker, lang)}</p>
+-                                </div>
+-                            </StaggerItem>
+-                        ))}
+-                    </Stagger>
++                    {/* side column: the list packs to the top (the old grid stretched its rows to the
++                        large video's height → the gap in the middle); the channel card follows it */}
++                    <div className="flex flex-col gap-6 lg:col-span-5">
++                        <Stagger
++                            as="ul"
++                            delay={0.15}
++                            gap={0.1}
++                            className="grid content-start gap-6 sm:grid-cols-2 lg:grid-cols-1"
++                        >
++                            {rest.map((v) => (
++                                <StaggerItem
++                                    as="li"
++                                    key={v._id}
++                                    className="grid gap-4 lg:grid-cols-[13rem_1fr] lg:items-center xl:grid-cols-[17rem_1fr]"
++                                >
++                                    <LiteYouTube
++                                        id={v.youtubeId}
++                                        title={t(v.title, lang)}
++                                        playLabel={h.play}
++                                        size="sm"
++                                        className="rounded-2xl"
++                                    />
++                                    <div>
++                                        <p
++                                            lang={v.title?.bn ? "bn" : "en"}
++                                            className="font-display text-lg leading-snug"
++                                        >
++                                            {t(v.title, "bn")}
++                                        </p>
++                                        <p className="mt-1 text-sm text-ink-3">
++                                            {t(v.speaker, lang)}
++                                        </p>
++                                    </div>
++                                </StaggerItem>
++                            ))}
++                        </Stagger>
++                        {channel && (
++                            <FadeUp delay={0.3}>
++                                <a
++                                    href={channel}
++                                    target="_blank"
++                                    rel="noopener noreferrer"
++                                    className="group flex items-center gap-4 rounded-2xl border border-line bg-card p-4 transition-colors hover:border-teal-700/40"
++                                >
++                                    <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[#ff0033]/10 text-[#e00030]">
++                                        <FaYoutube size={22} aria-hidden />
++                                    </span>
++                                    <span className="min-w-0 flex-1">
++                                        <span className="block font-medium text-ink">
++                                            {h.talksMoreTitle}
++                                        </span>
++                                        <span className="block text-sm text-ink-3">
++                                            {h.talksMoreLead}
++                                        </span>
++                                    </span>
++                                    <Icon
++                                        name="arrowUpRight"
++                                        size={18}
++                                        className="shrink-0 text-ink-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-teal-700"
++                                    />
++                                </a>
++                            </FadeUp>
++                        )}
++                    </div>
+                 </div>
+             )}
+             {quotes.length > 0 && (
+diff --git a/components/home/Sections.js b/components/home/Sections.js
+index e776048..f9b05f7 100644
+--- a/components/home/Sections.js
++++ b/components/home/Sections.js
+@@ -71,8 +71,9 @@ export function KeyNumbers({ items, dict, lang }) {
+     );
+ }
+ 
+-/* ───────── Centres of excellence — light hairline grid; the centre's photo fades in on hover ───────── */
+-// No photo → hover shows the teal wash only (an unrelated fallback photo read as wrong).
++/* ───────── Centres of excellence — light hairline grid, each cell leads with its photo
++   (client 2026-10-25: photos visible by default, not only on hover). Hover / keyboard focus:
++   slow zoom, teal tint, title + arrow chip turn teal. No photo → quiet teal panel, no stock filler. ───────── */
+ export function Centres({ items, dict, lang }) {
+     const h = dict.home;
+     return (
+@@ -91,8 +92,10 @@ export function Centres({ items, dict, lang }) {
+                 </Link>
+             }
+         >
++            {/* tall list on mobile (8 photo cells) → trigger on a sliver, not the default 15% */}
+             <Stagger
+                 as="ul"
++                viewport={{ once: true, amount: 0.03 }}
+                 className="grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4"
+             >
+                 {items.map((c, i) => (
+@@ -102,41 +105,55 @@ export function Centres({ items, dict, lang }) {
+                         <StaggerItem className="h-full">
+                             <Link
+                                 href={href(lang, c.href)}
+-                                className="group relative isolate flex h-full min-h-60 flex-col gap-3 overflow-hidden p-6 lg:min-h-72 lg:p-7"
++                                className="group flex h-full flex-col p-3 outline-offset-[-4px] transition-colors duration-500 hover:bg-paper/60 lg:p-3.5"
+                             >
+-                                {/* photo layer — hover / keyboard focus only, so the grid stays calm at rest */}
+-                                {c.image && (
+-                                    <Image
+-                                        src={c.image}
+-                                        alt=""
+-                                        fill
+-                                        sizes="(min-width: 1024px) 20rem, 50vw"
+-                                        className="-z-20 scale-[1.06] object-cover opacity-0 transition-[opacity,transform] duration-700 ease-out-expo group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100"
+-                                    />
+-                                )}
+-                                <span
+-                                    aria-hidden
+-                                    className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgb(7_38_41/0.92)_0%,rgb(7_38_41/0.55)_50%,rgb(7_38_41/0.12)_100%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100"
+-                                />
+-
+-                                <span className="font-display text-sm text-teal-700/80 tabular-nums transition-colors duration-500 group-hover:text-teal-200">
+-                                    {digits(String(i + 1).padStart(2, "0"), lang)}
+-                                </span>
+-                                <h3 className="text-h3 text-ink transition-colors duration-500 group-hover:text-white">
+-                                    {t(c.title, lang)}
+-                                </h3>
+-                                <p className="text-[0.95rem] text-ink-2 transition-colors duration-500 group-hover:text-white/85">
+-                                    {t(c.summary, lang)}
+-                                </p>
+-                                <span className="mt-auto pt-3">
+-                                    <span className="inline-grid size-9 place-items-center rounded-full border border-line text-ink-3 transition-colors duration-500 group-hover:border-white group-hover:bg-white group-hover:text-teal-800">
++                                <span className="relative isolate block aspect-16/10 overflow-hidden rounded-2xl bg-teal-50">
++                                    {c.image ? (
++                                        <Image
++                                            src={c.image}
++                                            alt=""
++                                            fill
++                                            sizes="(min-width: 1024px) 18rem, (min-width: 640px) 50vw, 100vw"
++                                            className="object-cover transition-transform duration-1000 ease-out-expo group-hover:scale-[1.06] group-focus-visible:scale-[1.06]"
++                                        />
++                                    ) : (
+                                         <Icon
+-                                            name="arrow"
+-                                            size={16}
+-                                            className="transition-transform duration-500 group-hover:translate-x-0.5"
++                                            name="pulse"
++                                            size={40}
++                                            className="absolute inset-0 m-auto text-teal-300"
+                                         />
++                                    )}
++                                    {/* resting: faint bottom shade for the number; hover: teal tint */}
++                                    <span
++                                        aria-hidden
++                                        className="absolute inset-0 bg-linear-to-t from-[rgb(7_38_41/0.45)] via-transparent to-transparent"
++                                    />
++                                    <span
++                                        aria-hidden
++                                        className="absolute inset-0 bg-teal-700/25 opacity-0 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100"
++                                    />
++                                    <span className="absolute bottom-3 left-3 rounded-pill bg-white/90 px-2.5 py-1 font-display text-xs font-medium tabular-nums text-teal-800">
++                                        {digits(String(i + 1).padStart(2, "0"), lang)}
+                                     </span>
+                                 </span>
++
++                                <div className="flex flex-1 flex-col gap-2 px-2.5 pb-2 pt-5 lg:px-3">
++                                    <h3 className="text-h3 text-ink transition-colors duration-500 group-hover:text-teal-700">
++                                        {t(c.title, lang)}
++                                    </h3>
++                                    <span className="text-[0.95rem] text-ink-2">
++                                        {t(c.summary, lang)}
++                                    </span>
++                                    <span className="mt-auto pt-4">
++                                        <span className="inline-grid size-9 place-items-center rounded-full border border-line text-ink-3 transition-colors duration-500 group-hover:border-teal-700 group-hover:bg-teal-700 group-hover:text-white">
++                                            <Icon
++                                                name="arrow"
++                                                size={16}
++                                                className="transition-transform duration-500 group-hover:translate-x-0.5"
++                                            />
++                                        </span>
++                                    </span>
++                                </div>
+                             </Link>
+                         </StaggerItem>
+                     </li>
+diff --git a/components/layout/Footer.js b/components/layout/Footer.js
+index 6498d28..3a66284 100644
+--- a/components/layout/Footer.js
++++ b/components/layout/Footer.js
+@@ -1,18 +1,11 @@
+ import Link from "next/link";
+-import { FaFacebookF, FaInstagram, FaYoutube, FaLinkedinIn } from "react-icons/fa6";
+ import { Container } from "@/components/ui/Layout";
+ import { Icon } from "@/components/ui/Icon";
++import { SOCIALS, activeSocials } from "@/components/ui/Socials";
+ import { href } from "@/lib/i18n/config";
+ import { t, digits } from "@/lib/i18n/t";
+ import { telHref, formatPhone } from "@/lib/utils";
+ 
+-const SOCIALS = {
+-    facebook: { label: "Facebook", Icon: FaFacebookF },
+-    instagram: { label: "Instagram", Icon: FaInstagram },
+-    youtube: { label: "YouTube", Icon: FaYoutube },
+-    linkedin: { label: "LinkedIn", Icon: FaLinkedinIn },
+-};
+-
+ const AGENCY = { name: "STR Solutions LTD.", url: "https://strsltd.com/" };
+ 
+ export function Footer({ settings, dict, lang }) {
+@@ -47,7 +40,7 @@ export function Footer({ settings, dict, lang }) {
+         },
+     ];
+ 
+-    const socials = Object.entries(settings.socials || {}).filter(([k, url]) => url && SOCIALS[k]);
++    const socials = activeSocials(settings.socials);
+     const colTitle =
+         "text-xs font-semibold uppercase tracking-[0.14em] text-teal-300 [&:lang(bn)]:normal-case [&:lang(bn)]:tracking-normal [&:lang(bn)]:text-[0.85rem]";
+ 
+diff --git a/components/layout/TopBar.js b/components/layout/TopBar.js
+index ba64a0c..68f5f3e 100644
+--- a/components/layout/TopBar.js
++++ b/components/layout/TopBar.js
+@@ -1,11 +1,13 @@
+ import { Container } from "@/components/ui/Layout";
+ import { Icon, WhatsAppMark } from "@/components/ui/Icon";
++import { SOCIALS, activeSocials } from "@/components/ui/Socials";
+ import { LangSwitch } from "./LangSwitch";
+ import { t, digits } from "@/lib/i18n/t";
+ import { telHref, whatsappLink, formatPhone } from "@/lib/utils";
+ 
+ export function TopBar({ settings, dict, lang }) {
+     const wa = settings.primaryWhatsapp;
++    const socials = activeSocials(settings.socials);
+     return (
+         <section aria-label={dict.topbar.label} data-track="topbar" className="bg-ink text-paper">
+             <Container className="flex h-10 items-center justify-between gap-4 text-[0.8rem]">
+@@ -41,6 +43,30 @@ export function TopBar({ settings, dict, lang }) {
+                             </span>
+                         </a>
+                     )}
++                    {socials.length > 0 && (
++                        <ul
++                            aria-label={dict.footer.follow}
++                            className="hidden items-center gap-0.5 border-l border-paper/15 pl-3 sm:flex"
++                        >
++                            {socials.map(([key, url]) => {
++                                const { label, Icon: SocialIcon } = SOCIALS[key];
++                                return (
++                                    <li key={key}>
++                                        <a
++                                            href={url}
++                                            target="_blank"
++                                            rel="noopener noreferrer"
++                                            aria-label={label}
++                                            title={label}
++                                            className="grid size-7 place-items-center rounded-full text-paper/70 transition-colors hover:bg-paper/10 hover:text-teal-200"
++                                        >
++                                            <SocialIcon size={13} aria-hidden />
++                                        </a>
++                                    </li>
++                                );
++                            })}
++                        </ul>
++                    )}
+                     <LangSwitch label={dict.topbar.language} />
+                 </div>
+             </Container>
+diff --git a/components/ui/Socials.js b/components/ui/Socials.js
+new file mode 100644
+index 0000000..29ad8f0
+--- /dev/null
++++ b/components/ui/Socials.js
+@@ -0,0 +1,15 @@
++import { FaFacebookF, FaInstagram, FaYoutube, FaLinkedinIn } from "react-icons/fa6";
++
++/** One source for social icons (Footer + TopBar). URLs come from settings.socials; empty = hidden. */
++export const SOCIALS = {
++    facebook: { label: "Facebook", Icon: FaFacebookF },
++    instagram: { label: "Instagram", Icon: FaInstagram },
++    youtube: { label: "YouTube", Icon: FaYoutube },
++    linkedin: { label: "LinkedIn", Icon: FaLinkedinIn },
++};
++
++/** [[key, url], …] for the socials that have a URL and a known icon, in SOCIALS order. */
++export const activeSocials = (socials = {}) =>
++    Object.keys(SOCIALS)
++        .filter((k) => socials?.[k])
++        .map((k) => [k, socials[k]]);
+diff --git a/data/hero.js b/data/hero.js
+index 82cf3a7..22a27c5 100644
+--- a/data/hero.js
++++ b/data/hero.js
+@@ -1,156 +1,145 @@
+-// Mock `heroSlides` collection — editable from admin later (client requirement §4.2).
+-// Slide themes follow the current site's 4-slide hero. Media are placeholders until
+-// the client's own photography arrives (see data/_placeholders.md).
+-// cardMedia = homepage hero photo card (5:4); wideMedia = wide banner; media = portrait/fallback.
+-// `*text*` in a title marks the one italic-serif accent phrase (rendered by <Emphasis>).
++// Mock `heroSlides` collection — Admin → Hero slider (client requirement §4.2, revised 2026-10-25).
++// Per slide only the copy + photo change; the buttons (Book / Emergency / WhatsApp) are common to
++// every slide and come from settings, so they are NOT stored here.
++// `*text*` in a title marks the one accent phrase (rendered by <Emphasis>).
++// `label` = short name in the slider nav. image = full-bleed background (landscape, ≥ 2000px wide);
++// image.position = CSS object-position (focal point — keep the subject right of centre on desktop).
++// image.source.type "unsplash" = placeholder (free licence) — downloaded locally by
++// `node --no-warnings scripts/fetch-stock-images.mjs`; replace with the hospital's own photos.
++const stamp = "2026-10-25T00:00:00.000Z";
++const L = (en, bn) => ({ en, bn });
++const U = (id) => `https://images.unsplash.com/${id}?fm=jpg&q=80&w=2400&fit=crop&auto=format`;
++
+ export const heroSlides = [
+     {
+         _id: "hero_general",
+         slug: "general",
+-        eyebrow: {
+-            en: "A multi-specialty hospital in Siddeshwari, Dhaka",
+-            bn: "সিদ্ধেশ্বরী, ঢাকার একটি বহুমুখী বিশেষায়িত হাসপাতাল",
+-        },
+-        title: {
+-            en: "Trusted care for Dhaka families for over *33 years*.",
+-            bn: "৩৩ বছরেরও বেশি সময় ধরে ঢাকার পরিবারের *আস্থার* চিকিৎসা।",
+-        },
+-        subtitle: {
+-            en: "Experienced specialists, 24/7 emergency care and modern operation theatres — from your first consultation to recovery, under one roof.",
+-            bn: "অভিজ্ঞ বিশেষজ্ঞ, ২৪/৭ জরুরি সেবা ও আধুনিক অপারেশন থিয়েটার — প্রথম পরামর্শ থেকে সুস্থ হয়ে ওঠা পর্যন্ত, এক ছাদের নিচে।",
+-        },
+-        primaryCta: {
+-            kind: "appointment",
+-            label: { en: "Book an appointment", bn: "অ্যাপয়েন্টমেন্ট নিন" },
+-        },
+-        secondaryCta: { kind: "whatsapp", label: { en: "WhatsApp us", bn: "হোয়াটসঅ্যাপ করুন" } },
+-        cardMedia: {
+-            type: "image",
+-            src: "/uploads/hero/hospital-building-card.webp",
+-            alt: {
+-                en: "Monowara Hospital's own building on Siddeshwari Road, Dhaka",
+-                bn: "সিদ্ধেশ্বরী রোডে মনোয়ারা হসপিটালের নিজস্ব ভবন",
+-            },
+-        },
+-        wideMedia: {
+-            type: "image",
++        label: L("General care", "সাধারণ চিকিৎসা"),
++        eyebrow: L(
++            "A multi-specialty hospital in Siddeshwari, Dhaka",
++            "সিদ্ধেশ্বরী, ঢাকার একটি বহুমুখী বিশেষায়িত হাসপাতাল",
++        ),
++        title: L(
++            "Trusted care for Dhaka families for over *33 years*.",
++            "৩৩ বছরেরও বেশি সময় ধরে ঢাকার পরিবারের *আস্থার* চিকিৎসা।",
++        ),
++        subtitle: L(
++            "Experienced specialists, 24/7 emergency care and modern operation theatres — from your first consultation to recovery, under one roof.",
++            "অভিজ্ঞ বিশেষজ্ঞ, ২৪/৭ জরুরি সেবা ও আধুনিক অপারেশন থিয়েটার — প্রথম পরামর্শ থেকে সুস্থ হয়ে ওঠা পর্যন্ত, এক ছাদের নিচে।",
++        ),
++        image: {
+             src: "/uploads/hero/hospital-building-wide.webp",
+-            alt: {
+-                en: "Monowara Hospital's own building on Siddeshwari Road, Dhaka",
+-                bn: "সিদ্ধেশ্বরী রোডে মনোয়ারা হসপিটালের নিজস্ব ভবন",
+-            },
++            alt: L(
++                "Monowara Hospital's own building on Siddeshwari Road, Dhaka",
++                "সিদ্ধেশ্বরী রোডে মনোয়ারা হসপিটালের নিজস্ব ভবন",
++            ),
++            position: "72% center",
++            source: { type: "own" },
+         },
+-        media: {
+-            type: "image",
+-            src: "/uploads/hero/hospital-building.webp",
+-            alt: {
+-                en: "Monowara Hospital's own building on Siddeshwari Road, Dhaka",
+-                bn: "সিদ্ধেশ্বরী রোডে মনোয়ারা হসপিটালের নিজস্ব ভবন",
+-            },
+-        },
+-        order: 1,
+-        isActive: true,
+-        createdAt: "2026-10-20T00:00:00.000Z",
+-        updatedAt: "2026-10-20T00:00:00.000Z",
+     },
+     {
+         _id: "hero_bhrpc",
+         slug: "bhrpc",
+-        eyebrow: { en: "BHRPC · Pregnancy care", bn: "বিএইচআরপিসি · গর্ভকালীন সেবা" },
+-        title: {
+-            en: "Safe pregnancy, from the first visit to the first cry.",
+-            bn: "প্রথম চেকআপ থেকে প্রথম কান্না — নিরাপদ মাতৃত্ব।",
+-        },
+-        subtitle: {
+-            en: "Antenatal care, normal and caesarean delivery, and NICU support.",
+-            bn: "গর্ভকালীন চেকআপ, স্বাভাবিক ও সিজারিয়ান ডেলিভারি এবং এনআইসিইউ সাপোর্ট।",
+-        },
+-        primaryCta: {
+-            kind: "link",
+-            href: "/bhrpc",
+-            label: { en: "Pregnancy care", bn: "গর্ভকালীন সেবা" },
+-        },
+-        secondaryCta: {
+-            kind: "appointment",
+-            label: { en: "Book an appointment", bn: "অ্যাপয়েন্টমেন্ট নিন" },
+-        },
+-        media: {
+-            type: "image",
+-            src: "/uploads/hero/bhrpc.webp",
+-            alt: { en: "The BHRPC pregnancy care team", bn: "বিএইচআরপিসি গর্ভকালীন সেবা টিম" },
++        label: L("Pregnancy care", "গর্ভকালীন সেবা"),
++        eyebrow: L("BHRPC · Pregnancy care", "বিএইচআরপিসি · গর্ভকালীন সেবা"),
++        title: L(
++            "Safe pregnancy, from the first visit to the *first cry*.",
++            "প্রথম চেকআপ থেকে *প্রথম কান্না* — নিরাপদ মাতৃত্ব।",
++        ),
++        subtitle: L(
++            "Antenatal check-ups, normal and caesarean delivery, and NICU support — one obstetric team with you at every step.",
++            "গর্ভকালীন চেকআপ, স্বাভাবিক ও সিজারিয়ান ডেলিভারি এবং এনআইসিইউ সাপোর্ট — প্রতিটি ধাপে একই প্রসূতি টিম।",
++        ),
++        image: {
++            src: "/uploads/hero/slide-bhrpc.webp",
++            alt: L(
++                "A doctor talking with a pregnant patient",
++                "গর্ভবতী রোগীর সঙ্গে কথা বলছেন একজন ডাক্তার",
++            ),
++            position: "center",
++            source: {
++                type: "unsplash",
++                url: "https://unsplash.com/photos/a-doctor-talking-to-a-pregnant-woman-in-a-waiting-room-c8fnD1rKGCk",
++                download: U("photo-1632053652571-a6a45052bbbd"),
++            },
+         },
+-        order: 2,
+-        isActive: true,
+-        createdAt: "2026-10-20T00:00:00.000Z",
+-        updatedAt: "2026-10-20T00:00:00.000Z",
+     },
+     {
+-        _id: "hero_aesthetic",
+-        slug: "mh-aesthetic",
+-        eyebrow: {
+-            en: "MH Aesthetic & Wellness Clinic",
+-            bn: "এমএইচ অ্যাসথেটিক অ্যান্ড ওয়েলনেস ক্লিনিক",
+-        },
+-        title: {
+-            en: "Skin, hair and aesthetic care, led by specialists.",
+-            bn: "বিশেষজ্ঞদের তত্ত্বাবধানে ত্বক, চুল ও অ্যাসথেটিক সেবা।",
+-        },
+-        subtitle: {
+-            en: "Skin analysis, HydraFacial, laser, PRP and more — Saturday to Friday, 10am–7pm.",
+-            bn: "স্কিন অ্যানালাইসিস, হাইড্রাফেসিয়াল, লেজার, পিআরপি ও আরও অনেক — শনি থেকে শুক্র, সকাল ১০টা–সন্ধ্যা ৭টা।",
+-        },
+-        primaryCta: {
+-            kind: "link",
+-            href: "/mh-aesthetic",
+-            label: { en: "Explore MH Aesthetic", bn: "এমএইচ অ্যাসথেটিক দেখুন" },
+-        },
+-        secondaryCta: {
+-            kind: "whatsapp",
+-            number: "01329672807",
+-            label: { en: "WhatsApp the clinic", bn: "ক্লিনিকে হোয়াটসঅ্যাপ করুন" },
+-        },
+-        media: {
+-            type: "image",
+-            src: "/uploads/hero/mh-aesthetic.webp",
+-            alt: {
+-                en: "Treatment room at MH Aesthetic & Wellness Clinic",
+-                bn: "এমএইচ অ্যাসথেটিক ক্লিনিকের ট্রিটমেন্ট রুম",
++        _id: "hero_emergency",
++        slug: "emergency",
++        label: L("Emergency 24/7", "জরুরি সেবা ২৪/৭"),
++        eyebrow: L("Emergency & critical care · 24/7", "জরুরি ও ক্রিটিক্যাল কেয়ার · ২৪/৭"),
++        title: L(
++            "When minutes matter, *we are ready*.",
++            "প্রতিটি মিনিট যখন জরুরি, *আমরা প্রস্তুত*।",
++        ),
++        subtitle: L(
++            "Round-the-clock emergency doctors, ICU, observation beds and admission — call on the way and we will be waiting.",
++            "২৪ ঘণ্টা জরুরি চিকিৎসক, আইসিইউ, অবজারভেশন বেড ও ভর্তি — আসার পথে কল করুন, আমরা প্রস্তুত থাকব।",
++        ),
++        image: {
++            src: "/uploads/hero/slide-emergency.webp",
++            alt: L(
++                "Medical staff moving a patient along a hospital corridor",
++                "হাসপাতালের করিডোরে রোগী নিয়ে যাচ্ছেন মেডিকেল স্টাফ",
++            ),
++            position: "center",
++            source: {
++                type: "unsplash",
++                url: "https://unsplash.com/photos/medical-staff-transport-patient-down-hospital-hallway-OLO28JXWv98",
++                download: U("photo-1758653500534-a47f6cd8abb0"),
+             },
+         },
+-        order: 3,
+-        isActive: true,
+-        createdAt: "2026-10-20T00:00:00.000Z",
+-        updatedAt: "2026-10-20T00:00:00.000Z",
+     },
+     {
+-        _id: "hero_ct",
+-        slug: "ct-scan",
+-        eyebrow: { en: "Diagnostics & imaging", bn: "ডায়াগনস্টিকস ও ইমেজিং" },
+-        title: {
+-            en: "CT scan, X-ray and lab — under the same roof as your doctor.",
+-            bn: "সিটি স্ক্যান, এক্স-রে ও ল্যাব — আপনার ডাক্তারের একই ছাদের নিচে।",
+-        },
+-        subtitle: {
+-            en: "Tests ordered in the chamber are done in-house, with reports reviewed by our specialists.",
+-            bn: "চেম্বারে দেওয়া পরীক্ষাগুলো হাসপাতালেই করা হয়, রিপোর্ট দেখেন আমাদের বিশেষজ্ঞরা।",
+-        },
+-        primaryCta: {
+-            kind: "link",
+-            href: "/diagnostics",
+-            label: { en: "See diagnostics", bn: "ডায়াগনস্টিকস দেখুন" },
+-        },
+-        secondaryCta: {
+-            kind: "appointment",
+-            label: { en: "Call for a test serial", bn: "পরীক্ষার সিরিয়ালের জন্য কল করুন" },
++        _id: "hero_diagnostics",
++        slug: "diagnostics",
++        label: L("Diagnostics", "ডায়াগনস্টিকস"),
++        eyebrow: L("Diagnostics & imaging", "ডায়াগনস্টিকস ও ইমেজিং"),
++        title: L(
++            "CT scan, X-ray and lab, *under one roof*.",
++            "সিটি স্ক্যান, এক্স-রে ও ল্যাব — *এক ছাদের নিচে*।",
++        ),
++        subtitle: L(
++            "Tests ordered in the chamber are done in-house, with reports reviewed by our specialists.",
++            "চেম্বারে দেওয়া পরীক্ষাগুলো হাসপাতালেই করা হয়, রিপোর্ট দেখেন আমাদের বিশেষজ্ঞরা।",
++        ),
++        image: {
++            src: "/uploads/hero/slide-diagnostics.webp",
++            alt: L("Imaging machine in a clinic", "ক্লিনিকের ইমেজিং মেশিন"),
++            position: "center",
++            source: {
++                type: "unsplash",
++                url: "https://unsplash.com/photos/medical-radiation-therapy-machine-in-clinic-QTP8UKW_PgI",
++                download: U("photo-1666214280352-db292c05fd80"),
++            },
+         },
+-        media: {
+-            type: "image",
+-            src: "/uploads/hero/ct-scan.webp",
+-            alt: { en: "CT scan room", bn: "সিটি স্ক্যান রুম" },
++    },
++    {
++        _id: "hero_aesthetic",
++        slug: "mh-aesthetic",
++        label: L("MH Aesthetic", "এমএইচ অ্যাসথেটিক"),
++        eyebrow: L("MH Aesthetic & Wellness Clinic", "এমএইচ অ্যাসথেটিক অ্যান্ড ওয়েলনেস ক্লিনিক"),
++        title: L(
++            "Skin, hair and aesthetic care, *led by specialists*.",
++            "*বিশেষজ্ঞদের তত্ত্বাবধানে* ত্বক, চুল ও অ্যাসথেটিক সেবা।",
++        ),
++        subtitle: L(
++            "Skin analysis, HydraFacial, laser, PRP and more — Saturday to Friday, 10am–7pm.",
++            "স্কিন অ্যানালাইসিস, হাইড্রাফেসিয়াল, লেজার, পিআরপি ও আরও অনেক — শনি থেকে শুক্র, সকাল ১০টা–সন্ধ্যা ৭টা।",
++        ),
++        image: {
++            src: "/uploads/hero/slide-aesthetic.webp",
++            alt: L(
++                "A specialist giving a facial treatment",
++                "ফেসিয়াল ট্রিটমেন্ট দিচ্ছেন একজন বিশেষজ্ঞ",
++            ),
++            position: "center",
++            source: {
++                type: "unsplash",
++                url: "https://unsplash.com/photos/a-woman-getting-a-facial-peel-from-a-doctor-HtXyytr9304",
++                download: U("photo-1713085085470-fba013d67e65"),
++            },
+         },
+-        order: 4,
+-        isActive: true,
+-        createdAt: "2026-10-20T00:00:00.000Z",
+-        updatedAt: "2026-10-20T00:00:00.000Z",
+     },
+-];
++].map((s, i) => ({ ...s, order: i + 1, isActive: true, createdAt: stamp, updatedAt: stamp }));
+diff --git a/data/settings.js b/data/settings.js
+index b7363c5..8186acc 100644
+--- a/data/settings.js
++++ b/data/settings.js
+@@ -54,6 +54,9 @@ export const settings = {
+ 
+     bookingMode: "numbers", // "numbers" | "form" | "both"
+ 
++    // Homepage hero slider — Admin → Settings → Hero slider (seconds per slide, 2–15).
++    heroSlider: { intervalSec: 5 },
++
+     email: "info@monowarahospital.com", // CONFIRM .com vs .com.bd
+     address: {
+         en: "54, Siddeshwari Road, Ramna, Dhaka-1217",
+diff --git a/docs/API_CONTRACT.md b/docs/API_CONTRACT.md
+index c30b5bb..5e19932 100644
+--- a/docs/API_CONTRACT.md
++++ b/docs/API_CONTRACT.md
+@@ -29,7 +29,7 @@
+ | Endpoint | Query | Returns | Cache tags |
+ |---|---|---|---|
+ | `/settings` | — | singleton (see below) | `settings` |
+-| `/hero` | — | slides `[]` — **the first active slide is the homepage hero** | `hero` |
++| `/hero` | — | active slides `[]` by `order` — homepage hero slider. Slide: `{ _id, slug, label{en,bn} (nav), eyebrow{en,bn}, title{en,bn} (`*accent*`), subtitle{en,bn}, image{ src (landscape ≥ 2000px), alt{en,bn}, position } }`. Buttons are global (settings), not per slide. Slide interval lives in settings: `heroSlider.intervalSec` (number, 2–15, default 5) | `hero` |
+ | `/faqs` | `category?` | `[]` | `faqs` |
+ | `/home` | — | `{ keyNumbers[], centres[], talks[], stories[] }` | `home` |
+ | `/departments` | `featured?=true` | `[]` (full docs incl. description/services/conditions/seo) | `departments` |
+diff --git a/docs/HANDOFF.md b/docs/HANDOFF.md
+index 230f938..bad1d9b 100644
+--- a/docs/HANDOFF.md
++++ b/docs/HANDOFF.md
+@@ -14,6 +14,21 @@
+ 
+ ---
+ 
++## Client feedback round — hero slider, topbar socials, centres photos, talks gap (2026-10-25)
++**Done**
++1. **Hero = full-bleed background-photo slider on Swiper 14.3.0** (rev. 2 — Sifat found the card-style v1 "not cool"). `components/home/HeroCarousel.js` (client) + `Hero.js` (server wrapper). Swiper **core** is initialised in `useEffect` on our own SSR'd `.swiper > .swiper-wrapper > .swiper-slide` markup — `swiper/react` builds the instance during render and its modules call `new Date()`, which a Cache Components prerender rejects. Modules: EffectFade, Autoplay (pause on hover, Swiper's own hidden-tab handling + our IntersectionObserver), Keyboard, A11y; `rewind` instead of `loop` (no cloned slides → one `<h1>`). Each slide: bg photo with Ken Burns while active, ink-teal wash (left on desktop, bottom on mobile), copy anchored bottom-left with staggered rise (`.mh-hero` rules in globals.css; copy is visible before init → SSR/LCP fine). **Buttons are common**: one overlay pinned above the QuickPanel overlap; its height is measured (ResizeObserver → `--hero-actions`) and reserved under every slide's copy. **Rev. 3 (Sifat, 2026-10-26): no visible nav at all** (chapter labels / segments / pause / arrows removed — "clean"); a new slide every **5 s** — **admin-controlled** via `settings.heroSlider.intervalSec` (default 5, clamped 2–15 in `lib/api/settings.js`; `Hero` → `HeroCarousel intervalMs`; Swiper `delay = interval − 1 s fade`). Crossfade 1 s, Ken Burns 5 s. B2 admin: Settings → "Hero slider" → seconds-per-slide field; swipe + ←/→ keys still work; dictionary keys `heroPrev/Next/GoTo/Pause/Play` removed. Reduced motion: no autoplay / Ken Burns. Gotcha: Swiper `autoplay.start()/resume()` re-arm the timer even when running → guarded.
++2. **Hero data** `data/hero.js` → `{ _id, slug, label (nav name), eyebrow, title, subtitle, image{src, alt, position, source}, order, isActive }` (CTA + `cardMedia/wideMedia/media` fields removed — buttons are common). 5 slides: General (`hospital-building-wide.webp`, focal `72% center`) · BHRPC · Emergency · Diagnostics · MH Aesthetic. Slides 2–5 = **Unsplash placeholders** (`public/uploads/hero/slide-*.webp`), downloaded by `scripts/fetch-stock-images.mjs` (now also reads `heroSlides[].image.source`). Dep added: `swiper@14.3.0` → `npm install`.
++3. **TopBar socials** — same icons/URLs as the footer (`settings.socials`), ≥ sm, after the WhatsApp number. Map extracted to `components/ui/Socials.js` (`SOCIALS`, `activeSocials()`), Footer imports it.
++4. **Centres** — photo shown by default (16:10, rounded, number chip) above the title; hover/focus = slow zoom + teal tint + teal title + filled arrow chip. No image → quiet teal panel. Stagger trigger lowered (`viewport.amount 0.03`) because the 8 photo cells make a tall list on mobile.
++5. **Expert talks** — the side list used a stretched grid (rows filled the large video's height → gap in the middle). Now `content-start` in a flex column, side thumbs 13rem → 17rem at xl, homepage capped at 1 + 3 videos, and a "Watch more health talks" YouTube card follows the list (from `settings.socials.youtube`).
++6. Dictionaries: `home.heroLabel/heroPrev/heroNext/heroGoTo/heroPause/heroPlay`, `home.talksMoreTitle/talksMoreLead` (EN + BN).
++
++**Verified**: `next build` ✅ · `eslint .` ✅ · Playwright 1440 / 390, EN + BN: no horizontal overflow, autoplay advances every ~6.5 s + 1.4 s fade, keyboard ←/→, reduced-motion = static, one `<h1>`.
++
++**Pending / for Sifat**: run `node --no-warnings scripts/fetch-stock-images.mjs` once (downloads the 4 hero placeholders; and run `npm install` (Swiper); until the images exist slides 2–5 show the dark teal background). Real photos per slide from the client. Admin B2: "Hero slider" module = CRUD on these fields + order + active toggle (no CTA fields).
++
++---
++
+ ## Fonts + doctors rail (2026-10-24)
+ - **Latin font → Google Sans** (Sifat: Newsreader + Hanken Grotesk read as "AI template"). Self-hosted from `@fontsource-variable/google-sans@5.3.2` (OFL) → `app/fonts/google-sans-latin-wght-{normal,italic}.woff2` (variable 400–700, ~36 KB each, italic only fetched if used). `lib/fonts.js` exports `googleSans` (`--font-gsans`); `--font-sans` and `--font-display` both use it. Headings 500 / −0.02em.
+ - **Accent phrase (`*word*`) is colour-only now** — no italic serif (`Emphasis.js`); loader EN word no longer italic.
+diff --git a/lib/api/settings.js b/lib/api/settings.js
+index 4f553a7..e7f3902 100644
+--- a/lib/api/settings.js
++++ b/lib/api/settings.js
+@@ -41,12 +41,19 @@ function normaliseSettings(raw) {
+         noticeBar: s.noticeBar
+             ? { ...s.noticeBar, text: L(s.noticeBar.text) }
+             : { isActive: false, text: L(), href: null },
++        heroSlider: { intervalSec: clampInterval(s.heroSlider?.intervalSec) },
+         bookingMode: ["numbers", "form", "both"].includes(s.bookingMode)
+             ? s.bookingMode
+             : "numbers",
+     });
+ }
+ 
++/** Seconds per hero slide; bad / missing admin input → 5, kept within 2–15. */
++function clampInterval(v) {
++    const n = Number(v);
++    return Number.isFinite(n) && n > 0 ? Math.min(15, Math.max(2, n)) : 5;
++}
++
+ function withLists(s) {
+     const whatsappNumbers = (s.whatsappNumbers || [])
+         .filter((n) => n.isActive !== false)
+diff --git a/lib/i18n/dictionaries/bn.json b/lib/i18n/dictionaries/bn.json
+index 675cf76..01040c9 100644
+--- a/lib/i18n/dictionaries/bn.json
++++ b/lib/i18n/dictionaries/bn.json
+@@ -142,6 +142,7 @@
+         "heroBadge": "জরুরি সেবা ও ভর্তি",
+         "heroBadgeSub": "২৪ ঘণ্টা, সপ্তাহে ৭ দিন খোলা",
+         "heroOwnBuilding": "নিজস্ব ভবন · সিদ্ধেশ্বরী",
++        "heroLabel": "হাসপাতালের হাইলাইটস",
+         "orWhatsapp": "অথবা হোয়াটসঅ্যাপ",
+         "numbersLabel": "এক নজরে মনোয়ারা হসপিটাল",
+         "servicesEyebrow": "আমাদের সেবা",
+@@ -168,6 +169,8 @@
+         "talksEyebrow": "বিশেষজ্ঞের কথা",
+         "talksTitle": "আমাদের *ডাক্তারদের* স্বাস্থ্য পরামর্শ",
+         "talksChannel": "আমাদের ইউটিউব চ্যানেলে আরও দেখুন",
++        "talksMoreTitle": "আরও স্বাস্থ্য পরামর্শ দেখুন",
++        "talksMoreLead": "ইউটিউবে আমাদের ডাক্তারদের নতুন ভিডিও",
+         "play": "ভিডিও চালান",
+         "visitEyebrow": "আমাদের ঠিকানা",
+         "visitTitle": "*সিদ্ধেশ্বরীর* প্রাণকেন্দ্রে",
+diff --git a/lib/i18n/dictionaries/en.json b/lib/i18n/dictionaries/en.json
+index 5f1a7df..548390e 100644
+--- a/lib/i18n/dictionaries/en.json
++++ b/lib/i18n/dictionaries/en.json
+@@ -142,6 +142,7 @@
+         "heroBadge": "Emergency & admission",
+         "heroBadgeSub": "Open 24 hours, 7 days",
+         "heroOwnBuilding": "Our own building · Siddeshwari",
++        "heroLabel": "Hospital highlights",
+         "orWhatsapp": "or WhatsApp",
+         "numbersLabel": "Monowara Hospital at a glance",
+         "servicesEyebrow": "Our services",
+@@ -168,6 +169,8 @@
+         "talksEyebrow": "Expert talks",
+         "talksTitle": "Health advice from our *doctors*",
+         "talksChannel": "More on our YouTube channel",
++        "talksMoreTitle": "Watch more health talks",
++        "talksMoreLead": "New videos from our doctors on YouTube",
+         "play": "Play video",
+         "visitEyebrow": "Visit us",
+         "visitTitle": "In the heart of *Siddeshwari*",
+diff --git a/package.json b/package.json
+index 9dcba5b..822cba5 100644
+--- a/package.json
++++ b/package.json
+@@ -16,7 +16,8 @@
+         "next": "16.4.2",
+         "react": "19.3.0",
+         "react-dom": "19.3.0",
+-        "react-icons": "^5.7.0"
++        "react-icons": "^5.7.0",
++        "swiper": "14.3.0"
+     },
+     "devDependencies": {
+         "@tailwindcss/turbopack": "^4",
+diff --git a/scripts/fetch-stock-images.mjs b/scripts/fetch-stock-images.mjs
+index 89b9643..efed1c4 100644
+--- a/scripts/fetch-stock-images.mjs
++++ b/scripts/fetch-stock-images.mjs
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env node
+-// Download the placeholder stock photos listed in data/media.js (source.type "unsplash")
++// Download the placeholder stock photos listed in data/media.js and data/hero.js (source.type "unsplash")
+ // into public/uploads/media/ — run locally (the build sandbox can't reach Unsplash):
+ //   node --no-warnings scripts/fetch-stock-images.mjs           # skip files that exist
+ //   node --no-warnings scripts/fetch-stock-images.mjs --force   # re-download all
+@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
+ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+ const FORCE = process.argv.includes("--force");
+ const { media } = await import(new URL("../data/media.js", import.meta.url));
++const { heroSlides } = await import(new URL("../data/hero.js", import.meta.url));
+ 
+ let sharp = null;
+ try {
+@@ -26,7 +27,11 @@ const exists = (p) =>
+         () => false,
+     );
+ 
+-const jobs = media.filter((m) => m.source?.type === "unsplash" && m.source.download);
++// media slots + hero slider photos (data/hero.js `image.source`)
++const heroImages = heroSlides.map((s) => ({ key: `hero.${s.slug}`, ...s.image }));
++const jobs = [...media, ...heroImages].filter(
++    (m) => m.source?.type === "unsplash" && m.source.download,
++);
+ let ok = 0,
+     skip = 0;
+ const failed = [];

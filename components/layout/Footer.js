@@ -1,17 +1,10 @@
 import Link from "next/link";
-import { FaFacebookF, FaInstagram, FaYoutube, FaLinkedinIn } from "react-icons/fa6";
 import { Container } from "@/components/ui/Layout";
 import { Icon } from "@/components/ui/Icon";
+import { SOCIALS, activeSocials } from "@/components/ui/Socials";
 import { href } from "@/lib/i18n/config";
 import { t, digits } from "@/lib/i18n/t";
 import { telHref, formatPhone } from "@/lib/utils";
-
-const SOCIALS = {
-    facebook: { label: "Facebook", Icon: FaFacebookF },
-    instagram: { label: "Instagram", Icon: FaInstagram },
-    youtube: { label: "YouTube", Icon: FaYoutube },
-    linkedin: { label: "LinkedIn", Icon: FaLinkedinIn },
-};
 
 const AGENCY = { name: "STR Solutions LTD.", url: "https://strsltd.com/" };
 
@@ -47,7 +40,7 @@ export function Footer({ settings, dict, lang }) {
         },
     ];
 
-    const socials = Object.entries(settings.socials || {}).filter(([k, url]) => url && SOCIALS[k]);
+    const socials = activeSocials(settings.socials);
     const colTitle =
         "text-xs font-semibold uppercase tracking-[0.14em] text-teal-300 [&:lang(bn)]:normal-case [&:lang(bn)]:tracking-normal [&:lang(bn)]:text-[0.85rem]";
 

@@ -238,6 +238,46 @@ html.js [data-reveal="clip"] > span {
         transform: translateX(100%);
     }
 }
+/* ───────── Home hero slider (HeroCarousel, Swiper) ───────── */
+/* equal-height slides (= the tallest), so the hero never jumps between slides */
+.mh-hero .swiper-slide {
+    height: auto;
+}
+/* Ken Burns on the active photo only */
+.mh-hero .swiper-slide-active .mh-hero-bg {
+    animation: mh-kenburns 5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+@keyframes mh-kenburns {
+    from {
+        transform: scale(1.08);
+    }
+    to {
+        transform: scale(1.01);
+    }
+}
+/* copy: visible before init (SSR / LCP); after init non-active copy is hidden and the active
+   slide's copy rises in, staggered */
+.mh-hero-copy > * {
+    transition:
+        opacity 0.7s var(--ease-out-expo),
+        translate 0.8s var(--ease-out-expo);
+}
+.mh-hero .swiper-initialized .swiper-slide:not(.swiper-slide-active) .mh-hero-copy > * {
+    opacity: 0;
+    translate: 0 1.25rem;
+    transition-duration: 0.25s;
+    transition-delay: 0s;
+}
+.mh-hero .swiper-slide-active .mh-hero-copy > :nth-child(1) {
+    transition-delay: 0.12s;
+}
+.mh-hero .swiper-slide-active .mh-hero-copy > :nth-child(2) {
+    transition-delay: 0.18s;
+}
+.mh-hero .swiper-slide-active .mh-hero-copy > :nth-child(3) {
+    transition-delay: 0.26s;
+}
+
 @keyframes mh-rise {
     from {
         opacity: 0;

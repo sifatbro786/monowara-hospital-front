@@ -29,7 +29,7 @@
 | Endpoint | Query | Returns | Cache tags |
 |---|---|---|---|
 | `/settings` | — | singleton (see below) | `settings` |
-| `/hero` | — | slides `[]` — **the first active slide is the homepage hero** | `hero` |
+| `/hero` | — | active slides `[]` by `order` — homepage hero slider. Slide: `{ _id, slug, label{en,bn} (nav), eyebrow{en,bn}, title{en,bn} (`*accent*`), subtitle{en,bn}, image{ src (landscape ≥ 2000px), alt{en,bn}, position } }`. Buttons are global (settings), not per slide. Slide interval lives in settings: `heroSlider.intervalSec` (number, 2–15, default 5) | `hero` |
 | `/faqs` | `category?` | `[]` | `faqs` |
 | `/home` | — | `{ keyNumbers[], centres[], talks[], stories[] }` | `home` |
 | `/departments` | `featured?=true` | `[]` (full docs incl. description/services/conditions/seo) | `departments` |

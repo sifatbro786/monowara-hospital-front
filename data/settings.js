@@ -54,6 +54,9 @@ export const settings = {
 
     bookingMode: "numbers", // "numbers" | "form" | "both"
 
+    // Homepage hero slider — Admin → Settings → Hero slider (seconds per slide, 2–15).
+    heroSlider: { intervalSec: 5 },
+
     email: "info@monowarahospital.com", // CONFIRM .com vs .com.bd
     address: {
         en: "54, Siddeshwari Road, Ramna, Dhaka-1217",

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Download the placeholder stock photos listed in data/media.js (source.type "unsplash")
+// Download the placeholder stock photos listed in data/media.js and data/hero.js (source.type "unsplash")
 // into public/uploads/media/ — run locally (the build sandbox can't reach Unsplash):
 //   node --no-warnings scripts/fetch-stock-images.mjs           # skip files that exist
 //   node --no-warnings scripts/fetch-stock-images.mjs --force   # re-download all
@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const FORCE = process.argv.includes("--force");
 const { media } = await import(new URL("../data/media.js", import.meta.url));
+const { heroSlides } = await import(new URL("../data/hero.js", import.meta.url));
 
 let sharp = null;
 try {
@@ -26,7 +27,11 @@ const exists = (p) =>
         () => false,
     );
 
-const jobs = media.filter((m) => m.source?.type === "unsplash" && m.source.download);
+// media slots + hero slider photos (data/hero.js `image.source`)
+const heroImages = heroSlides.map((s) => ({ key: `hero.${s.slug}`, ...s.image }));
+const jobs = [...media, ...heroImages].filter(
+    (m) => m.source?.type === "unsplash" && m.source.download,
+);
 let ok = 0,
     skip = 0;
 const failed = [];

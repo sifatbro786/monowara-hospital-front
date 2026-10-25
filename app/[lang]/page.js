@@ -49,7 +49,7 @@ export default async function Home({ params }) {
 
     return (
         <MotionRoot>
-            {slides[0] && <Hero slide={slides[0]} settings={settings} dict={dict} lang={lang} />}
+            <Hero slides={slides} settings={settings} dict={dict} lang={lang} />
             <QuickPanel departments={departments} settings={settings} dict={dict} lang={lang} />
             <KeyNumbers items={home.keyNumbers} dict={dict} lang={lang} />
             <Centres items={home.centres} dict={dict} lang={lang} />

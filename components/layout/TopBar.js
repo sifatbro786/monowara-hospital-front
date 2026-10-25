@@ -1,11 +1,13 @@
 import { Container } from "@/components/ui/Layout";
 import { Icon, WhatsAppMark } from "@/components/ui/Icon";
+import { SOCIALS, activeSocials } from "@/components/ui/Socials";
 import { LangSwitch } from "./LangSwitch";
 import { t, digits } from "@/lib/i18n/t";
 import { telHref, whatsappLink, formatPhone } from "@/lib/utils";
 
 export function TopBar({ settings, dict, lang }) {
     const wa = settings.primaryWhatsapp;
+    const socials = activeSocials(settings.socials);
     return (
         <section aria-label={dict.topbar.label} data-track="topbar" className="bg-ink text-paper">
             <Container className="flex h-10 items-center justify-between gap-4 text-[0.8rem]">
@@ -40,6 +42,30 @@ export function TopBar({ settings, dict, lang }) {
                                 {digits(formatPhone(wa.number), lang)}
                             </span>
                         </a>
+                    )}
+                    {socials.length > 0 && (
+                        <ul
+                            aria-label={dict.footer.follow}
+                            className="hidden items-center gap-0.5 border-l border-paper/15 pl-3 sm:flex"
+                        >
+                            {socials.map(([key, url]) => {
+                                const { label, Icon: SocialIcon } = SOCIALS[key];
+                                return (
+                                    <li key={key}>
+                                        <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label={label}
+                                            title={label}
+                                            className="grid size-7 place-items-center rounded-full text-paper/70 transition-colors hover:bg-paper/10 hover:text-teal-200"
+                                        >
+                                            <SocialIcon size={13} aria-hidden />
+                                        </a>
+                                    </li>
+                                );
+                            })}
+                        </ul>
                     )}
                     <LangSwitch label={dict.topbar.language} />
                 </div>
