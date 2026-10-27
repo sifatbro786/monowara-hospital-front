@@ -303,3 +303,80 @@ export function Facts({ rows }) {
         </dl>
     );
 }
+
+/**
+ * Bilingual text: English + বাংলা side by side (stacked on phones). value = { en, bn }.
+ * `errors` uses the API's dotted paths: { "name.en": "…" } → pass prefix "name".
+ */
+export function LText({ id, label, hint, value, onChange, required, multiline, rows = 3, maxLength, errors = {}, prefix }) {
+    const v = value ?? { en: "", bn: "" };
+    const Tag = multiline ? "textarea" : "input";
+    const errEn = prefix ? errors[`${prefix}.en`] ?? errors[prefix] : null;
+    const errBn = prefix ? errors[`${prefix}.bn`] : null;
+    return (
+        <fieldset className="space-y-1.5">
+            <legend className="mb-1.5 text-[0.8rem] font-semibold text-ink-2">
+                {label}
+                {required ? <span className="text-emergency-ink"> *</span> : null}
+            </legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+                {["en", "bn"].map((l) => (
+                    <div key={l} className="relative">
+                        <span className="pointer-events-none absolute top-2 right-2.5 text-[0.68rem] font-semibold tracking-wider text-ink-3/80 uppercase">
+                            {l === "en" ? "EN" : "বাং"}
+                        </span>
+                        <Tag
+                            id={l === "en" ? id : `${id}-bn`}
+                            lang={l}
+                            rows={multiline ? rows : undefined}
+                            maxLength={maxLength}
+                            value={v[l] ?? ""}
+                            onChange={(e) => onChange({ ...v, [l]: e.target.value })}
+                            aria-label={`${label} (${l === "en" ? "English" : "Bangla"})`}
+                            aria-invalid={(l === "en" ? errEn : errBn) ? true : undefined}
+                            className={cn(inputCls, "pr-10")}
+                        />
+                    </div>
+                ))}
+            </div>
+            {errEn || errBn ? (
+                <p className="text-[0.8rem] text-emergency-ink" role="alert">
+                    {errEn || errBn}
+                </p>
+            ) : hint ? (
+                <p className="text-[0.78rem] text-ink-3">{hint}</p>
+            ) : null}
+        </fieldset>
+    );
+}
+
+/** Numbered editorial section for long forms. */
+export function FormSection({ n, title, sub, children, aside }) {
+    return (
+        <section className="grid gap-x-10 gap-y-4 border-t border-line pt-7 lg:grid-cols-[14rem_minmax(0,1fr)]">
+            <header>
+                <p className="text-[0.75rem] font-semibold text-teal-700 tabular-nums">{String(n).padStart(2, "0")}</p>
+                <h2 className="mt-0.5 text-[1.1rem] font-medium">{title}</h2>
+                {sub ? <p className="mt-1 text-[0.84rem] text-ink-3">{sub}</p> : null}
+                {aside}
+            </header>
+            <div className="min-w-0 space-y-5">{children}</div>
+        </section>
+    );
+}
+
+export function Toggle({ id, checked, onChange, label, sub, disabled }) {
+    return (
+        <label htmlFor={id} className={cn("flex cursor-pointer items-start gap-3", disabled && "cursor-not-allowed opacity-60")}>
+            <span className="relative mt-0.5 inline-flex shrink-0">
+                <input id={id} type="checkbox" role="switch" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" />
+                <span className="h-6 w-10 rounded-full bg-line transition-colors peer-checked:bg-teal-700 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-teal-600" />
+                <span className="absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+            </span>
+            <span>
+                <span className="block text-[0.92rem] font-medium">{label}</span>
+                {sub ? <span className="block text-[0.8rem] text-ink-3">{sub}</span> : null}
+            </span>
+        </label>
+    );
+}

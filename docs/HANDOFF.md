@@ -17,18 +17,44 @@
 | **B1.4 — roles update, uploads, mail, forms, inboxes, export** | ✅ Done (2026-10-27) — see below |
 | **B2.1 — admin shell, login, forced password, fetch wrapper, role menu** | ✅ Done (2026-10-27) — see below |
 | **B2.2 — inboxes (bookings/messages/applications), staff accounts, activity log** | ✅ Done (2026-10-27) — see below |
-| B2.3+ — content CRUD modules | ⏭ Next |
+| **B2.3 — doctors module + overview charts + dev fixes** | ✅ Done (2026-10-27) — see below |
+| B2.4+ — departments/facilities/diagnostics, packages, settings… | ⏭ Next |
 
 ---
 
-## ▶ START HERE (next chat = B2.3 — first content CRUD module: doctors)
+## ▶ START HERE (next chat = B2.4 — departments, facilities, diagnostics)
 **Repos:** `E:\Works\monowara-hospital\mh-front` (Next.js 16, JS) · `E:\Works\monowara-hospital\mh-back` (Express 5 + Mongoose 9, ESM).
 **Local:** API `http://localhost:5036/api` · dashboard `http://localhost:3000/admin` (front `.env`: `NEXT_PUBLIC_ADMIN_API_URL=http://localhost:5036/api`). Public host later: `https://api.monowarahospital.com/api/<resource>` (no `/v1`).
-**Contract:** `docs/API_CONTRACT.md` — public GETs, admin auth (cookies, `X-Requested-With`, refresh/retry), forms, uploads, inboxes.
-**Roles:** `super_admin` · `opd_incharge` · `graphics_design` · `marketer` — map only in `mh-back/src/lib/permissions.js`; the UI menu reads `permissions[]` from `/auth/me`.
-**Tests:** mh-back `npm test` (parity 163, auth 47, forms/uploads/inbox 55) + `npm run check`; mh-front `npm run build` + `npx eslint .`.
-**Admin UI building blocks (reuse, don't re-invent):** `lib/admin/api.js` (`adminFetch`, `adminDownload`), `lib/admin/config.js` (`NAV` — flip `ready: true` when a module's screen lands; `ROLE_LABELS`, `INBOXES`, activity labels), `lib/admin/format.js` (Dhaka dates, phone, temp password, password rule), `components/admin/ui.js` (buttons, fields, chips, Pager, Facts…), `components/admin/hooks.js` (`useUrlState`, `useAdminGet`), `session.js` (`useSession`, `RequirePermission`), `AdminShell` (`useBadges`). Pages using `useSearchParams` wrap the screen in `<Suspense>`.
-**B2.3+ plan (one module per step, backend + screen together):** backend `GET/POST/PATCH/DELETE /api/admin/<module>` (zod mirroring the Mongoose model, `.strict()`, `logActivity` with before/after `changes`, slug rename → push old slug to `previousSlugs`, image fields only `/uploads/...` from `POST /api/admin/uploads/:folder`) + screen. Order: **doctors** (profile, BMDC, schedule editor HH:MM per day, leave dates, photo upload, featured/order) → departments/facilities/diagnostics → packages → settings (WhatsApp desks, booking mode, hero interval; notice bar = graphics_design) → hero → media slots → FAQs → articles → gallery → stories (consent) → pages/legal → jobs → SEO → home blocks. B3 hook after each save: Next `revalidateTag` via a secured route in mh-front.
+**Contract:** `docs/API_CONTRACT.md` — public GETs, admin auth, forms, uploads, inboxes, **admin doctors + stats**.
+**Roles:** `super_admin` · `opd_incharge` · `graphics_design` · `marketer` — map only in `mh-back/src/lib/permissions.js`.
+**Tests:** mh-back `npm test` (parity 163, auth, forms/uploads/inbox, **doctors-admin 43**) + `npm run check`; mh-front `npm run build` + `npx eslint .`.
+**Pattern to copy for every module (doctors is the reference):**
+- Backend `src/modules/<m>/admin.routes.js` mounted in `src/routes.js` under `admin`: `GET /options` (select data) · `GET /` (all incl. hidden, filters, paged) · `GET /:id` · `POST /` · `PATCH /:id` (partial, `.strict()`) · `DELETE /:id` (409 `IN_USE` when referenced → "hide instead"). Shared helpers `src/lib/admin.js`: `zL/zLRequired/zLOptional`, `zSlug`, `zId`, `zImage(folder)`, `applyPatch` (→ activity `changes`), `setSlug` (old slug → `previousSlugs`), `slugify`, `onLeaveToday`. Log `<m>.create|update|delete`. Leave a `// B3: revalidateTag(...)` line where the save happens. Add a `test/<m>-admin.test.mjs` to `npm test`.
+- Frontend `app/admin/<m>/page.js` (list) + `app/admin/<m>/[id]/page.js` (`new` = create), each with `export const instant = false` + `<Suspense>`. Components in `components/admin/<m>/` — list (URL filters via `useUrlState`, `useAdminGet`), editor (`FormSection`, `LText` EN/বাংলা, `Toggle`, sticky save bar sending only changed keys, beforeunload guard, delete dialog), pure `<m>Form.js` (doc ⇄ form). Flip `ready: true` in `lib/admin/config.js` `NAV`, add activity labels.
+**Order after B2.4:** packages → settings (WhatsApp desks, booking mode, hero interval; notice bar = graphics_design) → hero → media slots → FAQs → Aesthetic/BHRPC teams → articles → gallery → stories (consent) → pages/legal/management → jobs → SEO → home blocks. Then B3 (`DATA_SOURCE=api`, revalidateTag on save, forms wired).
+
+---
+
+## B2.3 — Doctors module, overview charts, dev fixes (2026-10-27)
+**Fixes (from Sifat's dev run)**
+1. *Hydration warning `cz-shortcut-listen`* — a browser extension (ColorZilla) writes that attribute on `<body>` before React hydrates. Not our bug; `suppressHydrationWarning` on `<html>`/`<body>` in `app/admin/layout.js` (same as the public layout).
+2. *"Could not validate that a segment in your UI has instant navigation" (/admin)* — Next 16 dev-only instant-navigation validation: admin pages render only after the client session check, so the prerender has no page UI to inspect. `export const instant = false` in `app/admin/layout.js` **and every admin `page.js`** (the flag is per segment). Public site keeps validation. Verified in `next dev`: no error, no hydration warning (extension attribute simulated).
+3. `next/image` `priority` → `loading="eager"` on the admin logos (Next 16 LCP warning).
+
+**Doctors (opd_incharge + super_admin)**
+- mh-back `src/modules/doctors/admin.routes.js` + `src/lib/admin.js`. Validation mirrors the model: chamber times HH:MM, end after start, **same-day overlaps rejected**, stored in week order; leave `{from?, until, note?}` as Dhaka days → Dhaka-midnight Dates ("on leave" counts the whole last day); photo only `/uploads/doctors/...`; BMDC/phone charset; department must exist; `legacyUrl`/unknown fields rejected. Create: slug from the English name **without the academic title** (`Prof. Dr. X` → `dr-x`, same as migrated slugs), `-2` on clash, appended to the end of the order. Rename: old slug → `previousSlugs` (public API + doctor page already 308 to the new URL). Delete: blocked (409) while the doctor is on the Aesthetic/BHRPC team or an article byline; UI recommends hiding instead (typed "delete" confirmation).
+- mh-front `/admin/doctors`: search, department, shown/hidden, quick filters (Homepage, On leave today, No photo, No BMDC, No chamber time), chamber-day strip per row. `/admin/doctors/new` + `/admin/doctors/<id>`: 5 numbered sections — Profile (EN/বাংলা side by side, web address with redirect note), Photo (upload → WebP), Chamber times (weekly editor, add/remove, "same times Sat–Thu", inline overlap errors, note-instead-of-times), Leave, On the website (show/hide, homepage, order). Sticky save bar ("3 unsaved changes"), sends only changed fields, Discard, unsaved-changes guard.
+
+**Overview charts** — `GET /api/admin/stats/overview?days=30` (blocks per permission; plain finds, no aggregation): booking requests per day (bar chart, hover tooltip, hidden data table), by status, most requested doctors, messages per day, applications by status, and a **doctor directory** strip (shown / hidden / on leave today / no photo / no BMDC / no chamber time — red = to-do, each tile opens the filtered list). Dependency-free SVG (`components/admin/charts.js`), single teal series, no legend.
+
+**Verified**: mh-back `npm run check` (80 files) ✅ · `npm test` all 4 suites ✅ (new `doctors-admin.test.mjs` 43 checks: list/filters/roles, create + slug rules, validation (overlap, end<start, external photo, strict, legacyUrl), rename + previousSlugs + public resolve, leave dates + on-leave-today, delete 409/200, activity, stats windows/roles) · mh-front build ✅, `eslint .` clean · Playwright prod build: B2.1/B2.2 suite 25/25 again + doctors/overview 17/17 (filters in URL, overlap blocks save, leave, BMDC, slug rename → old slug resolves, photo upload → WebP path, create → redirect, delete, delete-in-use message, chart tooltip, directory tiles, 390 px no overflow, no page errors).
+
+**Pending / for Sifat**
+1. Restart both dev servers; open `/admin/doctors`. Fill BMDC numbers (overview shows how many are missing).
+2. Commit both repos.
+3. Website changes from admin appear on the public pages after B3 (cache revalidation); until then restart `next dev` / rebuild to see them.
+
+**Next — B2.4:** departments + facilities + diagnostics (one editor shape, `legacySlugs` read-only, services/conditions lists, image upload, SEO fields, delete blocked while doctors/packages point at it).
 
 ---
 

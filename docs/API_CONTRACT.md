@@ -179,3 +179,23 @@ Inboxes — same shape for `/api/admin/messages` (messages.manage), `/api/admin/
 
 Statuses — messages `new|read|replied|archived` · bookings `new|confirmed|completed|cancelled|no_show` ·
 applications `new|reviewed|shortlisted|rejected|hired`.
+
+## Admin: doctors (B2.3) — `doctors.manage`
+
+| Endpoint | Notes |
+|---|---|
+| `GET /api/admin/doctors/options` | `{ departments: [{ _id, name, slug, isActive }], days }` for the form |
+| `GET /api/admin/doctors` | `?q&department&status=active\|hidden&featured=true&onLeave=true&missing=photo\|bmdc\|schedule&page&limit≤100` → `{ items, total, page, limit }`; hidden doctors included; `department` populated |
+| `GET /api/admin/doctors/:id` | raw doc (department as id) |
+| `POST /api/admin/doctors` | `name.en` required; slug optional (auto from the English name minus academic title, `-2` on clash); `order` defaults to last → 201 |
+| `PATCH /api/admin/doctors/:id` | any subset of: `name, slug, designation, degrees, specialty, affiliation, department, bmdc, phone, photo, schedule, scheduleNote, leave, isFeatured, isActive, order` (strict). Slug rename → old slug added to `previousSlugs` |
+| `DELETE /api/admin/doctors/:id` | `409 IN_USE` while on the Aesthetic/BHRPC team or an article byline |
+
+Shapes: translatable `{ en, bn }` (empty optional ones → `null`); `schedule: [{ day: sat…fri, from: "HH:MM", to: "HH:MM" }]` (end after start, no same-day overlap; stored in week order); `leave: null | { from: "YYYY-MM-DD" | null, until: "YYYY-MM-DD", note }` → stored as Dhaka-midnight Dates; `photo: "/uploads/doctors/…" | null` (from `POST /api/admin/uploads/doctors`). Errors: `400 VALIDATION` (`details[].path` like `schedule.2.to`), `400 UNKNOWN_DEPARTMENT`, `409 DUPLICATE_SLUG`.
+
+## Admin: overview stats (B2.3) — any signed-in staff
+
+`GET /api/admin/stats/overview?days=30` (7–90) → only the blocks the role may see:
+`bookings { total, daily[{day,count}], byStatus, topDoctors[{doctor,name,count}] }` (bookings.manage) ·
+`messages { total, daily }` (messages.manage) · `applications { total, byStatus }` (careers.manage) ·
+`doctors { active, hidden, onLeave, noPhoto, noBmdc, noSchedule }` (doctors.manage). Days are Dhaka calendar days, oldest first, ending today.

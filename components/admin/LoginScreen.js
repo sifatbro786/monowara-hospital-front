@@ -70,7 +70,7 @@ export function LoginScreen({ reason }) {
 
             <main className="flex items-center justify-center bg-paper px-5 py-12">
                 <form onSubmit={submit} className="w-full max-w-sm" noValidate>
-                    <Image src="/logo.png" alt="Monowara Hospital" width={300} height={64} className="h-10 w-auto" priority />
+                    <Image src="/logo.png" alt="Monowara Hospital" width={300} height={64} className="h-10 w-auto" loading="eager" />
                     <h1 className="mt-10 text-[1.9rem] leading-tight font-medium tracking-[-0.02em]">Sign in</h1>
                     <p className="mt-1.5 text-[0.92rem] text-ink-3">Use the account a super admin created for you.</p>
 

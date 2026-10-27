@@ -133,7 +133,7 @@ function UserCard({ onNavigate }) {
 function Brand() {
     return (
         <Link href="/admin" className="flex items-center gap-3 px-3">
-            <Image src="/logo.png" alt="Monowara Hospital" width={300} height={64} className="h-8 w-auto" />
+            <Image src="/logo.png" alt="Monowara Hospital" width={300} height={64} className="h-8 w-auto" loading="eager" />
             <span className="sr-only">Dashboard home</span>
         </Link>
     );
