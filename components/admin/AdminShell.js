@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { adminFetch } from "@/lib/admin/api";
 import { INBOXES, ROLE_LABELS, navFor } from "@/lib/admin/config";
 import { cn } from "@/lib/utils";
@@ -63,7 +63,10 @@ function NavList({ groups, counts, pathname, onNavigate }) {
                     ) : null}
                     <ul className="space-y-0.5">
                         {g.items.map((item) => {
-                            const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+                            const active =
+                                item.href === "/admin"
+                                    ? pathname === "/admin"
+                                    : [item.href, ...(item.also ?? [])].some((h) => pathname === h || pathname.startsWith(`${h}/`));
                             const n = item.badge ? counts[item.badge] : 0;
                             return (
                                 <li key={item.href}>
@@ -100,33 +103,86 @@ function NavList({ groups, counts, pathname, onNavigate }) {
     );
 }
 
-function UserCard({ onNavigate }) {
+/** Account menu, top-right of the content area (desktop) / mobile top bar. */
+function UserMenu() {
     const { user, signOut } = useSession();
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+    const initials = user.name
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0].toUpperCase())
+        .join("");
+
+    useEffect(() => {
+        if (!open) return;
+        const onDown = (e) => {
+            if (!ref.current?.contains(e.target)) setOpen(false);
+        };
+        const onKey = (e) => {
+            if (e.key === "Escape") setOpen(false);
+        };
+        document.addEventListener("pointerdown", onDown);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("pointerdown", onDown);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [open]);
+
     return (
-        <div className="border-t border-line pt-4">
-            <div className="px-3">
-                <p className="truncate text-[0.9rem] font-medium">{user.name}</p>
-                <p className="truncate text-[0.78rem] text-ink-3">{ROLE_LABELS[user.role] ?? user.role}</p>
-            </div>
-            <div className="mt-3 flex gap-1">
-                <Link
-                    href="/admin/account"
-                    onClick={onNavigate}
-                    className="flex h-9 flex-1 items-center gap-2 rounded-lg px-3 text-[0.84rem] text-ink-2 hover:bg-ink/5 hover:text-ink"
-                >
-                    <AIcon name="key" className="text-ink-3" />
-                    My account
-                </Link>
-                <button
-                    type="button"
-                    onClick={() => signOut()}
-                    className="flex h-9 items-center gap-2 rounded-lg px-3 text-[0.84rem] text-ink-2 hover:bg-ink/5 hover:text-ink"
-                >
-                    <AIcon name="logout" className="text-ink-3" />
-                    Sign out
-                </button>
-            </div>
+        <div ref={ref} className="relative">
+            <button
+                type="button"
+                onClick={() => setOpen((o) => !o)}
+                aria-haspopup="menu"
+                aria-expanded={open}
+                className="flex items-center gap-2.5 rounded-full py-1 pr-2 pl-1 hover:bg-ink/5"
+            >
+                <span className="grid size-8 place-items-center rounded-full bg-teal-800 text-[0.75rem] font-semibold text-white" aria-hidden="true">
+                    {initials}
+                </span>
+                <span className="hidden text-left leading-tight sm:block">
+                    <span className="block max-w-[11rem] truncate text-[0.86rem] font-medium">{user.name}</span>
+                    <span className="block text-[0.72rem] text-ink-3">{ROLE_LABELS[user.role] ?? user.role}</span>
+                </span>
+                <AIcon name="next" className={cn("rotate-90 text-ink-3 transition-transform", open && "-rotate-90")} />
+                <span className="sr-only">Account menu</span>
+            </button>
+            {open ? (
+                <div role="menu" className="absolute top-full right-0 z-40 mt-2 w-60 overflow-hidden rounded-xl border border-line bg-card shadow-(--shadow-lift)">
+                    <div className="border-b border-line-soft px-4 py-3">
+                        <p className="truncate text-[0.88rem] font-medium">{user.name}</p>
+                        <p className="truncate text-[0.78rem] text-ink-3">{user.email}</p>
+                    </div>
+                    <Link
+                        href="/admin/account"
+                        role="menuitem"
+                        onClick={() => setOpen(false)}
+                        className="flex h-10 items-center gap-2.5 px-4 text-[0.88rem] text-ink-2 hover:bg-teal-50/60 hover:text-ink"
+                    >
+                        <AIcon name="key" className="text-ink-3" /> My account
+                    </Link>
+                    <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => signOut()}
+                        className="flex h-10 w-full items-center gap-2.5 border-t border-line-soft px-4 text-[0.88rem] text-ink-2 hover:bg-teal-50/60 hover:text-ink"
+                    >
+                        <AIcon name="logout" className="text-ink-3" /> Sign out
+                    </button>
+                </div>
+            ) : null}
         </div>
+    );
+}
+
+function ViewWebsite() {
+    return (
+        <a href="/" target="_blank" rel="noopener" className="flex items-center gap-2 px-3 text-[0.8rem] text-ink-3 hover:text-ink">
+            View website <AIcon name="external" />
+        </a>
     );
 }
 
@@ -162,44 +218,49 @@ export function AdminShell({ children }) {
                     <div className="mt-7 flex-1 overflow-y-auto">
                         <NavList groups={groups} counts={badges.counts} pathname={pathname} />
                     </div>
-                    <a
-                        href="/"
-                        target="_blank"
-                        rel="noopener"
-                        className="mb-3 flex items-center gap-2 px-3 text-[0.8rem] text-ink-3 hover:text-ink"
-                    >
-                        View website <AIcon name="external" />
-                    </a>
-                    <UserCard />
+                    <div className="border-t border-line pt-4">
+                        <ViewWebsite />
+                    </div>
                 </aside>
 
                 {/* Mobile top bar */}
                 <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-paper/95 px-4 backdrop-blur lg:hidden">
                     <Brand />
-                    <button
-                        type="button"
-                        onClick={() => setMenuOpen(true)}
-                        className="relative grid size-10 place-items-center rounded-lg hover:bg-ink/5"
-                        aria-label="Open menu"
-                    >
-                        <AIcon name="menu" className="size-5" />
-                        {Object.values(badges.counts).some(Boolean) ? (
-                            <span className="absolute top-2 right-2 size-2 rounded-full bg-teal-600" aria-hidden="true" />
-                        ) : null}
-                    </button>
+                    <div className="flex items-center gap-1">
+                        <UserMenu />
+                        <button
+                            type="button"
+                            onClick={() => setMenuOpen(true)}
+                            className="relative grid size-10 place-items-center rounded-lg hover:bg-ink/5"
+                            aria-label="Open menu"
+                        >
+                            <AIcon name="menu" className="size-5" />
+                            {Object.values(badges.counts).some(Boolean) ? (
+                                <span className="absolute top-2 right-2 size-2 rounded-full bg-teal-600" aria-hidden="true" />
+                            ) : null}
+                        </button>
+                    </div>
                 </header>
                 <Dialog open={menuOpen} onClose={closeMenu} variant="right" closeLabel="Close menu" className="bg-paper">
                     <div className="flex min-h-full flex-col px-3 pt-16 pb-5">
                         <div className="flex-1">
                             <NavList groups={groups} counts={badges.counts} pathname={pathname} onNavigate={closeMenu} />
                         </div>
-                        <UserCard onNavigate={closeMenu} />
+                        <div className="border-t border-line pt-4">
+                            <ViewWebsite />
+                        </div>
                     </div>
                 </Dialog>
 
-                <main id="admin-main" className="min-w-0 px-4 py-6 sm:px-6 lg:px-10 lg:py-9">
-                    <div className="mx-auto max-w-[76rem]">{children}</div>
-                </main>
+                <div className="min-w-0">
+                    {/* Desktop top bar: account menu top-right */}
+                    <div className="sticky top-0 z-30 hidden h-14 items-center justify-end border-b border-line bg-paper/95 px-10 backdrop-blur lg:flex">
+                        <UserMenu />
+                    </div>
+                    <main id="admin-main" className="min-w-0 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+                        <div className="mx-auto max-w-[76rem]">{children}</div>
+                    </main>
+                </div>
             </div>
         </BadgeCtx.Provider>
     );

@@ -18,20 +18,41 @@
 | **B2.1 — admin shell, login, forced password, fetch wrapper, role menu** | ✅ Done (2026-10-27) — see below |
 | **B2.2 — inboxes (bookings/messages/applications), staff accounts, activity log** | ✅ Done (2026-10-27) — see below |
 | **B2.3 — doctors module + overview charts + dev fixes** | ✅ Done (2026-10-27) — see below |
-| B2.4+ — departments/facilities/diagnostics, packages, settings… | ⏭ Next |
+| **B2.4 — departments, facilities, diagnostics + account menu top-right** | ✅ Done (2026-10-27) — see below |
+| B2.5+ — packages, settings, hero… | ⏭ Next |
 
 ---
 
-## ▶ START HERE (next chat = B2.4 — departments, facilities, diagnostics)
+## ▶ START HERE (next chat = B2.5 — packages)
 **Repos:** `E:\Works\monowara-hospital\mh-front` (Next.js 16, JS) · `E:\Works\monowara-hospital\mh-back` (Express 5 + Mongoose 9, ESM).
 **Local:** API `http://localhost:5036/api` · dashboard `http://localhost:3000/admin` (front `.env`: `NEXT_PUBLIC_ADMIN_API_URL=http://localhost:5036/api`). Public host later: `https://api.monowarahospital.com/api/<resource>` (no `/v1`).
 **Contract:** `docs/API_CONTRACT.md` — public GETs, admin auth, forms, uploads, inboxes, **admin doctors + stats**.
 **Roles:** `super_admin` · `opd_incharge` · `graphics_design` · `marketer` — map only in `mh-back/src/lib/permissions.js`.
-**Tests:** mh-back `npm test` (parity 163, auth, forms/uploads/inbox, **doctors-admin 43**) + `npm run check`; mh-front `npm run build` + `npx eslint .`.
-**Pattern to copy for every module (doctors is the reference):**
+**Tests:** mh-back `npm test` (parity 163, auth, forms/uploads/inbox, doctors-admin 43, **services-admin 23**) + `npm run check`; mh-front `npm run build` + `npx eslint .`.
+**Pattern to copy for every module.** Plain named/sluggable collections use the generic pieces from B2.4 — backend `crudRouter()` (`src/lib/crud.js`, one small `admin.routes.js` per collection with its zod `fields` + `inUse`), frontend config-driven list/editor (`components/admin/services/kinds.js` field types `L | Lopt | list | bool | image | seo`; copy the folder or extend the config). Doctors stays the reference for modules with special editors:
 - Backend `src/modules/<m>/admin.routes.js` mounted in `src/routes.js` under `admin`: `GET /options` (select data) · `GET /` (all incl. hidden, filters, paged) · `GET /:id` · `POST /` · `PATCH /:id` (partial, `.strict()`) · `DELETE /:id` (409 `IN_USE` when referenced → "hide instead"). Shared helpers `src/lib/admin.js`: `zL/zLRequired/zLOptional`, `zSlug`, `zId`, `zImage(folder)`, `applyPatch` (→ activity `changes`), `setSlug` (old slug → `previousSlugs`), `slugify`, `onLeaveToday`. Log `<m>.create|update|delete`. Leave a `// B3: revalidateTag(...)` line where the save happens. Add a `test/<m>-admin.test.mjs` to `npm test`.
 - Frontend `app/admin/<m>/page.js` (list) + `app/admin/<m>/[id]/page.js` (`new` = create), each with `export const instant = false` + `<Suspense>`. Components in `components/admin/<m>/` — list (URL filters via `useUrlState`, `useAdminGet`), editor (`FormSection`, `LText` EN/বাংলা, `Toggle`, sticky save bar sending only changed keys, beforeunload guard, delete dialog), pure `<m>Form.js` (doc ⇄ form). Flip `ready: true` in `lib/admin/config.js` `NAV`, add activity labels.
-**Order after B2.4:** packages → settings (WhatsApp desks, booking mode, hero interval; notice bar = graphics_design) → hero → media slots → FAQs → Aesthetic/BHRPC teams → articles → gallery → stories (consent) → pages/legal/management → jobs → SEO → home blocks. Then B3 (`DATA_SOURCE=api`, revalidateTag on save, forms wired).
+**Order after B2.5 packages:** settings (WhatsApp desks, booking mode, hero interval; notice bar = graphics_design) → hero → media slots → FAQs → Aesthetic/BHRPC teams → articles → gallery → stories (consent) → pages/legal/management → jobs → SEO → home blocks. Then B3 (`DATA_SOURCE=api`, revalidateTag on save, forms wired).
+
+---
+
+## B2.4 — Departments, facilities, diagnostics + account menu (2026-10-27)
+**Shell (Sifat's feedback):** the sidebar bottom had name/role/My account/Sign out and grew too tall → sidebar bottom now only **View website**; the account menu (initials avatar, name, role → My account / Sign out, closes on outside click/Esc) sits **top-right** in a slim sticky top bar on desktop and in the mobile header. Nav items can claim extra paths (`also`) — "Departments & services" stays active on facilities/diagnostics.
+
+**Backend (departments.manage = OPD in-charge + super admin)**
+- `src/lib/crud.js` — `crudRouter({ Model, entity, permission, fields, filter, query, inUse, check })`: list (all incl. hidden, `q`, `status`), get, create (slug from English name, `-2` on clash, appended last), strict partial PATCH (slug rename → `previousSlugs`, before/after in activity), DELETE with `inUse` → 409 `IN_USE`.
+- `departments/admin.routes.js` (name, summary, description ≤ 6000, services/conditions ≤ 40 rows, image `/uploads/departments`, isFeatured, seo{title,description}, isActive, order; delete blocked while doctors or packages point at it; `legacySlugs` read-only) · `facilities/admin.routes.js` (+ features, whenTo, is24x7) · `diagnostics/admin.routes.js` (+ tests, timing, preparation).
+- mh-front public pages `facilities/[slug]` and `diagnostics/[slug]`: old slug → 308 to the current one + canonical uses the current slug (departments/doctors already did this) — needed now that slugs can be renamed.
+
+**Frontend** `/admin/departments | /facilities | /diagnostics` (tabs) and `/<kind>/new | /<kind>/<id>`:
+- List: numbered in website order, thumbnail, summary, badges (Hidden, Featured, 24/7, **Bangla missing**), search, shown/hidden filter.
+- Editor (config in `components/admin/services/kinds.js`): Name & summary + web address (old WordPress links listed), Page content (description, repeatable EN/বাংলা rows with add/remove/move up-down), Visit information (facility: when to come, 24/7; diagnostic: timing, preparation), Image (shared `components/admin/ImageUpload.js`), Google listing (department SEO title/description with 60/155 counters), On the website (show/hide, featured, order), Delete (typed confirm; 409 reason shown). Same save bar / changed-keys-only PATCH / unsaved guard as doctors.
+
+**Verified**: mh-back `npm run check` (84 files) ✅ · `npm test` 5 suites ✅ (new `services-admin.test.mjs` 23: roles, featured/hidden filters, services/SEO patch, rename + public old-slug resolve + doctors-by-old-department-slug, legacySlugs/foreign image/41-row rejects, delete 409/200, facility whenTo→null + duplicate slug, diagnostic create/delete, activity) · mh-front build ✅, eslint clean · Playwright: services 16/16 (sidebar bottom only View website, top-right menu + Esc, 22 departments, row reorder, add service, SEO, rename → public resolves, delete blocked by doctors, nav active on facilities, facility 24/7 save, diagnostic create → delete, mobile menu, 390 px no overflow, no errors) + B2.1/B2.2 25/25 + doctors 17/17 re-run.
+
+**Pending / for Sifat**: restart both servers → `/admin/departments`. Many Bangla summaries/descriptions are filled; the "Bangla missing" badge shows the rest. Commit both repos.
+
+**Next — B2.5: packages** (category, Call-for-Price only, inclusions EN/BN list, related departments multi-select, image, featured/order; delete blocked if referenced by home blocks).
 
 ---
 

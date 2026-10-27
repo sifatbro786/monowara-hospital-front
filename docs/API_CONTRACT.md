@@ -199,3 +199,16 @@ Shapes: translatable `{ en, bn }` (empty optional ones → `null`); `schedule: [
 `bookings { total, daily[{day,count}], byStatus, topDoctors[{doctor,name,count}] }` (bookings.manage) ·
 `messages { total, daily }` (messages.manage) · `applications { total, byStatus }` (careers.manage) ·
 `doctors { active, hidden, onLeave, noPhoto, noBmdc, noSchedule }` (doctors.manage). Days are Dhaka calendar days, oldest first, ending today.
+
+## Admin: departments / facilities / diagnostics (B2.4) — `departments.manage`
+
+Same contract for `/api/admin/departments`, `/api/admin/facilities`, `/api/admin/diagnostics` (`src/lib/crud.js`):
+`GET /?q&status=active|hidden&page&limit≤100` (departments also `featured=true`) · `GET /:id` · `POST /` (`name.en` required, slug optional) · `PATCH /:id` (strict partial; slug rename → `previousSlugs`) · `DELETE /:id` (`409 IN_USE`).
+
+| Collection | Editable fields |
+|---|---|
+| departments | `name, summary, description, services[], conditions[], image (/uploads/departments), isFeatured, seo{title, description}, isActive, order` — delete blocked while doctors/packages reference it; `legacySlugs` read-only |
+| facilities | `name, summary, description, features[], whenTo (nullable), is24x7, image (/uploads/facilities), isActive, order` |
+| diagnostics | `name, summary, description, tests[], timing, preparation, image (/uploads/diagnostics), isActive, order` |
+
+All text fields are `{ en, bn }`; list rows `[{ en, bn }]` (≤ 40, features ≤ 30).

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { PageSkeleton } from "@/components/ui/PageSkeleton";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import { href } from "@/lib/i18n/config";
 import { ServiceDetail } from "@/components/services/ServiceDetail";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getSettings } from "@/lib/api/settings";
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }) {
     if (!item) return {};
     return pageMeta({
         lang,
-        path: `/diagnostics/${slug}`,
+        path: `/diagnostics/${item.slug}`, // canonical = current slug (old slugs redirect)
         title: t(item.name, lang),
         description: t(item.summary, lang),
         image: item.image,
@@ -36,6 +37,8 @@ async function DiagnosticPageContent({ params }) {
         getSettings(),
     ]);
     if (!item) notFound();
+    // Admin renamed the slug: the API resolves the old one (previousSlugs) → 308 to the new URL.
+    if (item.slug !== slug) permanentRedirect(href(lang, `/diagnostics/${item.slug}`));
     return (
         <>
             <JsonLd
