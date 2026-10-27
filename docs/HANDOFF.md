@@ -15,17 +15,55 @@
 | **B1.1 + B1.2 — mh-back scaffold, models, seed, public API** | ✅ Done (2026-10-27) — see below |
 | **B1.3 — auth, RBAC, activity log** | ✅ Done (2026-10-27) — see below |
 | **B1.4 — roles update, uploads, mail, forms, inboxes, export** | ✅ Done (2026-10-27) — see below |
-| B2 — admin dashboard | ⏭ Next |
+| **B2.1 — admin shell, login, forced password, fetch wrapper, role menu** | ✅ Done (2026-10-27) — see below |
+| **B2.2 — inboxes (bookings/messages/applications), staff accounts, activity log** | ✅ Done (2026-10-27) — see below |
+| B2.3+ — content CRUD modules | ⏭ Next |
 
 ---
 
-## ▶ START HERE (next chat = B2 admin dashboard)
+## ▶ START HERE (next chat = B2.3 — first content CRUD module: doctors)
 **Repos:** `E:\Works\monowara-hospital\mh-front` (Next.js 16, JS) · `E:\Works\monowara-hospital\mh-back` (Express 5 + Mongoose 9, ESM).
-**Local:** API `http://127.0.0.1:5036/api` (Atlas DB `monowara`, seeded) · front `.env` has `DATA_SOURCE=api`. Public host later: `https://api.monowarahospital.com/api/<resource>` (no `/v1`).
-**Contract:** `docs/API_CONTRACT.md` — public GETs, admin auth (cookies, `X-Requested-With`, refresh/retry rules), forms, uploads, inboxes.
-**Roles (client-confirmed):** `super_admin` (all) · `opd_incharge` (doctors/schedules, departments/facilities/diagnostics, packages, Aesthetic/BHRPC, bookings, messages, careers, FAQs) · `graphics_design` (hero, home blocks, media slots, gallery, articles, stories, notice bar, About/Patients & Visitors/Management) · `marketer` (SEO). Legal pages = super_admin only. Map: `mh-back/src/lib/permissions.js`.
-**Backend tests:** in `mh-back`: `npm test` (public parity 163, auth 46, forms/uploads/inbox 53 — real Express + Mongoose on an in-memory driver, no DB needed) and `npm run check` (esbuild). Run both after every backend change.
-**B2 plan:** (1) `app/admin` shell — noindex, not localised, own layout (no site Loader/TopBar), login + forced password change, one `adminFetch` wrapper (credentials: include, `X-Requested-With: mh-admin`, 401 TOKEN_EXPIRED → refresh once → retry, 409 REFRESH_RACE → retry), role-based nav from `permissions`. Dev cookie note: SameSite=Strict needs the browser to call the API on the same site as the page → either `NEXT_PUBLIC_API_URL=http://localhost:5036/api` or a dev rewrite of `/api` in next.config (decide first). (2) Inboxes (bookings/messages/applications + export, CV download), users, activity log — backend already done. (3) CRUD per module: backend `POST/PATCH/DELETE /api/admin/<module>` (zod mirroring the Mongoose models, `logActivity` with before/after, `previousSlugs` on slug rename) + screen; doctors (schedule editor HH:MM, leave), departments, packages, hero (+ settings.heroSlider.intervalSec), media slots, settings (WhatsApp desks, booking mode, notice bar = graphics_design), SEO, FAQs, articles, gallery, stories (consent required), pages, jobs. (4) B3 hook: after each admin save call Next `revalidateTag` (needs a secured revalidate route in mh-front).
+**Local:** API `http://localhost:5036/api` · dashboard `http://localhost:3000/admin` (front `.env`: `NEXT_PUBLIC_ADMIN_API_URL=http://localhost:5036/api`). Public host later: `https://api.monowarahospital.com/api/<resource>` (no `/v1`).
+**Contract:** `docs/API_CONTRACT.md` — public GETs, admin auth (cookies, `X-Requested-With`, refresh/retry), forms, uploads, inboxes.
+**Roles:** `super_admin` · `opd_incharge` · `graphics_design` · `marketer` — map only in `mh-back/src/lib/permissions.js`; the UI menu reads `permissions[]` from `/auth/me`.
+**Tests:** mh-back `npm test` (parity 163, auth 47, forms/uploads/inbox 55) + `npm run check`; mh-front `npm run build` + `npx eslint .`.
+**Admin UI building blocks (reuse, don't re-invent):** `lib/admin/api.js` (`adminFetch`, `adminDownload`), `lib/admin/config.js` (`NAV` — flip `ready: true` when a module's screen lands; `ROLE_LABELS`, `INBOXES`, activity labels), `lib/admin/format.js` (Dhaka dates, phone, temp password, password rule), `components/admin/ui.js` (buttons, fields, chips, Pager, Facts…), `components/admin/hooks.js` (`useUrlState`, `useAdminGet`), `session.js` (`useSession`, `RequirePermission`), `AdminShell` (`useBadges`). Pages using `useSearchParams` wrap the screen in `<Suspense>`.
+**B2.3+ plan (one module per step, backend + screen together):** backend `GET/POST/PATCH/DELETE /api/admin/<module>` (zod mirroring the Mongoose model, `.strict()`, `logActivity` with before/after `changes`, slug rename → push old slug to `previousSlugs`, image fields only `/uploads/...` from `POST /api/admin/uploads/:folder`) + screen. Order: **doctors** (profile, BMDC, schedule editor HH:MM per day, leave dates, photo upload, featured/order) → departments/facilities/diagnostics → packages → settings (WhatsApp desks, booking mode, hero interval; notice bar = graphics_design) → hero → media slots → FAQs → articles → gallery → stories (consent) → pages/legal → jobs → SEO → home blocks. B3 hook after each save: Next `revalidateTag` via a secured route in mh-front.
+
+---
+
+## B2.1 + B2.2 — Admin dashboard shell, auth screens, inboxes, staff accounts, activity log (2026-10-27)
+**Decisions**
+1. **Browser calls the API directly** (no `/api` rewrite through Next): same as production (`monowarahospital.com` → `api.monowarahospital.com` = same site, CORS + credentials), no extra hop on the 1-vCPU box. `NEXT_PUBLIC_ADMIN_API_URL`; a loopback API host follows the page's loopback hostname, so `localhost:3000` and `127.0.0.1:3000` both work in dev.
+2. `/admin` is its **own root layout** (`app/admin/layout.js`: no Loader/TopBar/Header, `lang="en"`, `robots: noindex,nofollow`). Moving between `/admin` and the public site is a full page load (Next: different root layouts) — intended. `proxy.js` already skipped `/admin`.
+3. **No `/admin/login` route** — `AdminProvider` renders the login form *in place* when signed out, so the alert-mail deep link (`/admin/bookings/<id>`) lands on that booking right after sign-in. Same for the forced password change.
+4. Everything under `/admin` is client-rendered behind the session gate (static shells at build); mh-back is the real guard (requireAuth + permission on every route).
+5. Filters/pages/open item live in the URL (`?status=new&q=…&page=2&open=<id>`) → shareable, back button works. `/admin/<inbox>/<id>` (email links) = same screen with that item open; closing returns to the list URL.
+6. Opening a **new message** auto-marks it Read (one PATCH, logged). Bookings: status + serial + staff note; when confirmed, the WhatsApp button pre-fills a Bangla confirmation with doctor, day, chamber time and serial.
+7. Temporary passwords are generated in the browser (`crypto.getRandomValues`, no 0/O/1/l/I) and shown **once** in a hand-over step.
+
+**Done — mh-front** (all new except `.env.example`)
+- `app/admin/layout.js`, `page.js` (overview), `bookings|messages|applications/page.js` + `[id]/page.js`, `users/page.js`, `activity/page.js`, `account/page.js`, `[...missing]/page.js` + `not-found.js` (unknown/not-yet-built modules → admin 404 inside the shell).
+- `lib/admin/api.js` — `adminFetch`: `credentials: include`, `X-Requested-With: mh-admin`, **single-flight refresh** (parallel 401s share one `/auth/refresh`), `409 REFRESH_RACE` → retry, other 401 → `signed-out` event, `403 PASSWORD_CHANGE_REQUIRED` → event; `adminDownload` (blob + server file name). `lib/admin/config.js`, `lib/admin/format.js`.
+- `components/admin/`: `AdminProvider` (session gate, reasons: idle/expired/revoked, **cross-tab sign-in/out via BroadcastChannel**), `session.js`, `AdminShell` (role menu, new-count badges polled every 60 s + on focus, mobile drawer), `LoginScreen` (Bangla wordmark side, no stock photo), `PasswordForm` (forced + voluntary, live rule check), `InboxScreen` + `InboxDetail` (status tabs with counts, search, date filters, pager, Excel export, detail sheet: call/WhatsApp/email, CV download, status/serial/note), `UsersScreen` (add / edit name-role-active / reset password / force sign-out; own role & active locked; role picker explains each role), `ActivityScreen` (type/person/date filters, before→after table, failed sign-ins in red), `Overview` (new counts, "what you manage", recent activity), `AccountScreen` (change password, sign out on all devices), `ui.js`, `hooks.js`.
+- `.env.example`: `NEXT_PUBLIC_ADMIN_API_URL`.
+
+**Done — mh-back (diffs)**
+1. **Bug fix `src/modules/auth/cookies.js`:** the access cookie had `Max-Age` = token TTL (10 min) → the browser deleted it exactly when the JWT expired → API saw no cookie → `AUTH_REQUIRED` instead of `TOKEN_EXPIRED` → staff would be signed out every 10 minutes. Cookie now expires with the session; the JWT inside still expires in 10 min. Test added.
+2. `src/modules/inbox/routes.js`: `handledByName` on list / get / patch (one `$in` lookup; `handledBy` id unchanged). Test added.
+3. `src/middlewares/security.js`: CORS `exposedHeaders: ["Content-Disposition"]` (download file names).
+4. `.env.example`: `ADMIN_URL` comment (origin only, no `/admin`).
+
+**Verified**: mh-back `npm run check` (77 files) ✅ · `npm test` parity 163/163, auth all ✅ (+1), forms/uploads/inbox all ✅ (+2) · mh-front `npm run build` ✅ (admin routes static shells, `[id]` partial prerender) · `npx eslint .` clean · esbuild ✅ · **Playwright e2e against the real mh-back app (in-memory driver, seeded)**: 25/25 — wrong password, deep link kept after login, message auto-read, badges 6→5 after confirm, status tab in URL, Bangla WhatsApp text with serial, handler name, Excel download name, pager, `[id]` deep link + close, CV download, create user + hand-over, own role locked, activity filters + changes, not-ready module 404, other tab follows sign-out, forced password for a new user, marketer sees no front desk + "No access" on `/admin/bookings`, 390 px no overflow, no console errors · **token expiry** (TTL 1 min, two tabs, 66 s idle): 3 parallel 401s → exactly one refresh, both tabs stay signed in, no reuse alarm.
+
+**Pending / for Sifat**
+1. mh-front `.env`: `NEXT_PUBLIC_ADMIN_API_URL=http://localhost:5036/api` → restart `npm run dev`.
+2. mh-back `.env`: `ADMIN_URL=http://localhost:3000` (email links); `CORS_ORIGINS` must contain the origin you open the dashboard on (default has both localhost/127.0.0.1:3000). Restart the API (cookie fix).
+3. Open `http://localhost:3000/admin` → sign in with the super admin from `npm run create-admin`. Create real staff accounts from **Staff accounts**.
+4. VPS (B4): `NEXT_PUBLIC_ADMIN_API_URL=https://api.monowarahospital.com/api` at **build time** (NEXT_PUBLIC_ is inlined), `CORS_ORIGINS=https://monowarahospital.com`, `COOKIE_SECURE=true`, `ADMIN_URL=https://monowarahospital.com`.
+5. Commit both repos.
+
+**Next — B2.3: doctors module** (see START HERE plan).
 
 ---
 

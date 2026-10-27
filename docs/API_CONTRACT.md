@@ -130,9 +130,15 @@ health tips & news, patient stories, notice bar, About/Patients & Visitors/Manag
 - `429 ACCOUNT_LOCKED` (message has the minutes) / `429 RATE_LIMITED`.
 - Password rule: ≥ 10 chars, ≤ 72 bytes, at least one letter and one number.
 
-**Dev note:** SameSite=Strict cookies need the admin page and the API on the same *site*: open the
-frontend at `http://localhost:3000` and call the API at `http://localhost:5036` (not 127.0.0.1), or proxy
-`/api` through Next in dev (B2 decides).
+**Browser → API directly (decided in B2.1, no Next rewrite):** the dashboard calls `NEXT_PUBLIC_ADMIN_API_URL`
+(VPS `https://api.monowarahospital.com/api`, local `http://localhost:5036/api`). Same *site* as the page, so
+SameSite=Strict cookies flow; cross-*origin*, so CORS with credentials (the page origin must be in `CORS_ORIGINS`).
+Locally a loopback API host follows the hostname the dashboard was opened with (`localhost` ↔ `127.0.0.1`), so both work.
+
+**Cookies (fixed in B2.1):** `mh_at` now lives as long as the session (`Expires` = session expiry), not 10 minutes.
+The JWT inside still expires after `ACCESS_TOKEN_TTL_MIN`; keeping the cookie lets the API answer `401 TOKEN_EXPIRED`
+(→ silent refresh). Before, the browser dropped the cookie at expiry → `AUTH_REQUIRED` → staff were signed out every 10 min.
+The UI also tries one refresh on `AUTH_REQUIRED` (cheap; a browser without a refresh cookie just gets 401 again).
 
 ---
 
@@ -167,6 +173,8 @@ Inboxes — same shape for `/api/admin/messages` (messages.manage), `/api/admin/
   `{ items, total, page, limit, counts: { <status>: n } }` (tab badges)
 - `GET /export.xlsx` same filters → Excel download (≤ 5000 rows, formula-safe, logged)
 - `GET /:id`, `PATCH /:id { status?, staffNote? }` (+ bookings `serial` 1–999) → sets handledBy/handledAt, logged
+- list / `GET /:id` / `PATCH` items also carry `handledByName` (staff name, B2.2); `handledBy` stays the user id
+- downloads (`export.xlsx`, `cv`): CORS exposes `Content-Disposition` so the dashboard can keep the server's file name
 - `GET /api/admin/applications/:id/cv` → the CV as a download (logged)
 
 Statuses — messages `new|read|replied|archived` · bookings `new|confirmed|completed|cancelled|no_show` ·
