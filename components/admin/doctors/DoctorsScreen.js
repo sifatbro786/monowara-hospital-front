@@ -27,9 +27,17 @@ export function DoctorsScreen() {
 
 function Days({ schedule = [], note }) {
     const days = new Set(schedule.map((s) => s.day));
-    if (!days.size) return <span className="text-[0.82rem] text-ink-3">{note?.en ? "By appointment" : "No times yet"}</span>;
+    if (!days.size)
+        return (
+            <span className="text-[0.82rem] text-ink-3">
+                {note?.en ? "By appointment" : "No times yet"}
+            </span>
+        );
     return (
-        <span className="flex flex-wrap gap-1" aria-label={`Chambers: ${DAYS.filter((d) => days.has(d)).join(", ")}`}>
+        <span
+            className="flex flex-wrap gap-1"
+            aria-label={`Chambers: ${DAYS.filter((d) => days.has(d)).join(", ")}`}
+        >
             {DAYS.map((d) => (
                 <span
                     key={d}
@@ -75,7 +83,11 @@ function Doctors() {
 
     return (
         <>
-            <PageHead eyebrow="Hospital" title="Doctors" sub={data ? `${data.total} ${data.total === 1 ? "doctor" : "doctors"}` : " "}>
+            <PageHead
+                eyebrow="Hospital"
+                title="Doctors"
+                sub={data ? `${data.total} ${data.total === 1 ? "doctor" : "doctors"}` : " "}
+            >
                 <Link href="/admin/doctors/new" className={abtn({ variant: "ink", size: "sm" })}>
                     <AIcon name="plus" /> Add doctor
                 </Link>
@@ -84,7 +96,10 @@ function Doctors() {
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_15rem_10rem]">
                 <Field label="Search" htmlFor="d-q">
                     <div className="relative">
-                        <AIcon name="search" className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-3" />
+                        <AIcon
+                            name="search"
+                            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-3"
+                        />
                         <input
                             id="d-q"
                             type="search"
@@ -97,7 +112,12 @@ function Doctors() {
                     </div>
                 </Field>
                 <Field label="Department" htmlFor="d-dept">
-                    <select id="d-dept" value={get("department")} onChange={(e) => set({ department: e.target.value })} className={inputCls}>
+                    <select
+                        id="d-dept"
+                        value={get("department")}
+                        onChange={(e) => set({ department: e.target.value })}
+                        className={inputCls}
+                    >
                         <option value="">All departments</option>
                         {departments.map((d) => (
                             <option key={d._id} value={d._id}>
@@ -108,7 +128,12 @@ function Doctors() {
                     </select>
                 </Field>
                 <Field label="On website" htmlFor="d-status">
-                    <select id="d-status" value={get("status")} onChange={(e) => set({ status: e.target.value })} className={inputCls}>
+                    <select
+                        id="d-status"
+                        value={get("status")}
+                        onChange={(e) => set({ status: e.target.value })}
+                        className={inputCls}
+                    >
                         <option value="">All</option>
                         <option value="active">Shown</option>
                         <option value="hidden">Hidden</option>
@@ -124,7 +149,9 @@ function Doctors() {
                         onClick={() => set({ quick: quick === value ? null : value })}
                         className={cn(
                             "h-8 rounded-full border px-3 text-[0.82rem] transition-colors",
-                            quick === value ? "border-ink bg-ink text-paper" : "border-line text-ink-2 hover:border-ink/40",
+                            quick === value
+                                ? "border-ink bg-ink text-paper"
+                                : "border-line text-ink-2 hover:border-ink/40",
                         )}
                     >
                         {label}
@@ -134,7 +161,13 @@ function Doctors() {
 
             {list.error ? <Notice className="mt-4">{list.error.message}</Notice> : null}
 
-            <section className={cn("mt-5 overflow-hidden rounded-xl border border-line bg-card", list.loading && data && "opacity-70")} aria-busy={list.loading}>
+            <section
+                className={cn(
+                    "mt-5 overflow-hidden rounded-xl border border-line bg-card",
+                    list.loading && data && "opacity-70",
+                )}
+                aria-busy={list.loading}
+            >
                 <div className="hidden grid-cols-[3rem_minmax(0,1.6fr)_minmax(0,1fr)_17rem_7rem] gap-4 border-b border-line bg-paper-2/50 px-4 py-2.5 text-[0.72rem] font-semibold tracking-[0.12em] text-ink-3 uppercase lg:grid">
                     <span aria-hidden="true" />
                     <span>Doctor</span>
@@ -159,7 +192,22 @@ function Doctors() {
                                         <span className="row-span-2 size-12 overflow-hidden rounded-lg bg-paper-2 lg:row-span-1">
                                             {d.photo ? (
                                                 // eslint-disable-next-line @next/next/no-img-element -- admin thumbnails: new uploads aren't known to next/image
-                                                <img src={d.photo} alt="" width={48} height={48} loading="lazy" onError={(e) => (e.currentTarget.style.visibility = "hidden")} className={cn("size-full object-cover object-top", d.isActive === false && "opacity-50 grayscale")} />
+                                                <img
+                                                    src={d.photo}
+                                                    alt=""
+                                                    width={48}
+                                                    height={48}
+                                                    loading="lazy"
+                                                    onError={(e) =>
+                                                        (e.currentTarget.style.visibility =
+                                                            "hidden")
+                                                    }
+                                                    className={cn(
+                                                        "size-full object-cover object-top",
+                                                        d.isActive === false &&
+                                                            "opacity-50 grayscale",
+                                                    )}
+                                                />
                                             ) : (
                                                 <span className="grid size-full place-items-center text-ink-3">
                                                     <AIcon name="stethoscope" />
@@ -167,18 +215,30 @@ function Doctors() {
                                             )}
                                         </span>
                                         <span className="min-w-0">
-                                            <span className="block truncate font-medium text-ink">{d.name.en}</span>
-                                            <span className="block truncate text-[0.82rem] text-ink-3">{d.designation?.en || d.degrees || "—"}</span>
+                                            <span className="block truncate font-medium text-ink">
+                                                {d.name.en}
+                                            </span>
+                                            <span className="block truncate text-[0.82rem] text-ink-3">
+                                                {d.designation?.en || d.degrees || "—"}
+                                            </span>
                                         </span>
-                                        <span className="min-w-0 truncate text-[0.86rem] text-ink-2 max-lg:hidden">{d.department?.name?.en ?? "—"}</span>
+                                        <span className="min-w-0 truncate text-[0.86rem] text-ink-2 max-lg:hidden">
+                                            {d.department?.name?.en ?? "—"}
+                                        </span>
                                         <span className="max-lg:col-start-2">
                                             <Days schedule={d.schedule} note={d.scheduleNote} />
                                         </span>
                                         <span className="flex flex-wrap gap-1 max-lg:col-start-2">
-                                            {d.isActive === false ? <Tag tone="muted">Hidden</Tag> : null}
+                                            {d.isActive === false ? (
+                                                <Tag tone="muted">Hidden</Tag>
+                                            ) : null}
                                             {leave ? <Tag tone="bad">On leave</Tag> : null}
                                             {d.isFeatured ? <Tag tone="good">Homepage</Tag> : null}
-                                            {d.isActive !== false && !leave && !d.isFeatured ? <span className="text-[0.82rem] text-ink-3">Shown</span> : null}
+                                            {d.isActive !== false && !leave && !d.isFeatured ? (
+                                                <span className="text-[0.82rem] text-ink-3">
+                                                    Shown
+                                                </span>
+                                            ) : null}
                                         </span>
                                     </Link>
                                 </li>
@@ -190,7 +250,14 @@ function Doctors() {
                 ) : (
                     <div className="h-48 animate-pulse bg-paper-2/40" />
                 )}
-                {data ? <Pager page={data.page} limit={data.limit} total={data.total} onPage={(p) => set({ page: p })} /> : null}
+                {data ? (
+                    <Pager
+                        page={data.page}
+                        limit={data.limit}
+                        total={data.total}
+                        onPage={(p) => set({ page: p })}
+                    />
+                ) : null}
             </section>
         </>
     );
@@ -202,5 +269,14 @@ function Tag({ tone, children }) {
         bad: "bg-emergency-soft text-emergency-ink",
         muted: "ring-1 ring-inset ring-line text-ink-3",
     };
-    return <span className={cn("inline-flex h-6 items-center rounded-full px-2 text-[0.72rem] font-semibold", tones[tone])}>{children}</span>;
+    return (
+        <span
+            className={cn(
+                "inline-flex h-6 items-center rounded-full px-2 text-[0.72rem] font-semibold",
+                tones[tone],
+            )}
+        >
+            {children}
+        </span>
+    );
 }

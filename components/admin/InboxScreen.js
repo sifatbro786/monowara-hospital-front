@@ -277,11 +277,11 @@ function Inbox({ kind, cfg }) {
                                     )}
                                 >
                                     {row.cells(r).map((cell, i) => (
-                                        <span key={i} className={cn("min-w-0", i === 0 ? "order-3 col-span-2 md:order-none md:col-span-1" : i === 1 ? "order-1 md:order-none" : "order-4 col-span-2 md:order-none md:col-span-1")}>
+                                        <span key={i} className={cn("min-w-0", i === 0 ? "order-3 col-span-2 md:order-0 md:col-span-1" : i === 1 ? "order-1 md:order-0" : "order-4 col-span-2 md:order-0 md:col-span-1")}>
                                             {cell}
                                         </span>
                                     ))}
-                                    <span className="order-2 justify-self-end md:order-none md:justify-self-start">
+                                    <span className="order-2 justify-self-end md:order-0 md:justify-self-start">
                                         <StatusChip status={r.status} label={cfg.statusLabels[r.status]} />
                                     </span>
                                 </button>

@@ -47,7 +47,8 @@ export function useAdminGet(path, query, { enabled = true } = {}) {
         adminFetch(p, { query: q, signal: ac.signal }).then(
             (data) => setRes({ key, tick, data, error: null }),
             (error) => {
-                if (error?.name !== "AbortError") setRes((r) => ({ key, tick, data: r.key === key ? r.data : null, error }));
+                if (error?.name !== "AbortError")
+                    setRes((r) => ({ key, tick, data: r.key === key ? r.data : null, error }));
             },
         );
         return () => ac.abort();

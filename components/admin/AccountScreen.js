@@ -19,7 +19,9 @@ export function AccountScreen() {
                     <h2 id="acc-pw" className="text-lg font-medium">
                         Change password
                     </h2>
-                    <p className="mt-1 text-[0.88rem] text-ink-3">Your other devices are signed out when you change it.</p>
+                    <p className="mt-1 text-[0.88rem] text-ink-3">
+                        Your other devices are signed out when you change it.
+                    </p>
                     <PasswordForm className="mt-5" />
                 </section>
                 <section aria-labelledby="acc-info" className="space-y-6">
@@ -31,14 +33,20 @@ export function AccountScreen() {
                             rows={[
                                 ["Role", ROLE_LABELS[user.role] ?? user.role],
                                 ["Last sign-in", fmtDateTime(user.lastLoginAt)],
-                                ["Password set", user.passwordChangedAt ? fmtDateTime(user.passwordChangedAt) : "—"],
+                                [
+                                    "Password set",
+                                    user.passwordChangedAt
+                                        ? fmtDateTime(user.passwordChangedAt)
+                                        : "—",
+                                ],
                             ]}
                         />
                     </div>
                     <div>
                         <h3 className="font-medium">Signed in somewhere else?</h3>
                         <p className="mt-1 mb-3 text-[0.88rem] text-ink-3">
-                            Lost phone or a shared computer — end every session of your account, including this one.
+                            Lost phone or a shared computer — end every session of your account,
+                            including this one.
                         </p>
                         <ABtn
                             variant="danger"

@@ -3,7 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { adminFetch } from "@/lib/admin/api";
 import { INBOXES, ROLE_LABELS, navFor } from "@/lib/admin/config";
 import { cn } from "@/lib/utils";
@@ -19,21 +27,32 @@ const POLL_MS = 60_000;
 
 function useInboxBadges(can) {
     const [counts, setCounts] = useState({});
-    const kinds = useMemo(() => Object.entries(INBOXES).filter(([, c]) => can(c.perm)).map(([k]) => k), [can]);
+    const kinds = useMemo(
+        () =>
+            Object.entries(INBOXES)
+                .filter(([, c]) => can(c.perm))
+                .map(([k]) => k),
+        [can],
+    );
 
     const refreshBadges = useCallback(async () => {
         if (document.visibilityState === "hidden") return;
         const pairs = await Promise.all(
             kinds.map(async (k) => {
                 try {
-                    const d = await adminFetch(INBOXES[k].api, { query: { status: "new", limit: 1 } });
+                    const d = await adminFetch(INBOXES[k].api, {
+                        query: { status: "new", limit: 1 },
+                    });
                     return [k, d.counts?.new ?? 0];
                 } catch {
                     return [k, undefined];
                 }
             }),
         );
-        setCounts((c) => ({ ...c, ...Object.fromEntries(pairs.filter(([, n]) => n !== undefined)) }));
+        setCounts((c) => ({
+            ...c,
+            ...Object.fromEntries(pairs.filter(([, n]) => n !== undefined)),
+        }));
     }, [kinds]);
 
     useEffect(() => {
@@ -49,7 +68,10 @@ function useInboxBadges(can) {
         };
     }, [kinds, refreshBadges]);
 
-    const setBadge = useCallback((k, n) => setCounts((c) => (c[k] === n ? c : { ...c, [k]: n })), []);
+    const setBadge = useCallback(
+        (k, n) => setCounts((c) => (c[k] === n ? c : { ...c, [k]: n })),
+        [],
+    );
     return useMemo(() => ({ counts, setBadge, refreshBadges }), [counts, setBadge, refreshBadges]);
 }
 
@@ -59,14 +81,18 @@ function NavList({ groups, counts, pathname, onNavigate }) {
             {groups.map((g, gi) => (
                 <div key={g.title ?? gi}>
                     {g.title ? (
-                        <p className="mb-1.5 px-3 text-[0.68rem] font-semibold tracking-[0.16em] text-ink-3 uppercase">{g.title}</p>
+                        <p className="mb-1.5 px-3 text-[0.68rem] font-semibold tracking-[0.16em] text-ink-3 uppercase">
+                            {g.title}
+                        </p>
                     ) : null}
                     <ul className="space-y-0.5">
                         {g.items.map((item) => {
                             const active =
                                 item.href === "/admin"
                                     ? pathname === "/admin"
-                                    : [item.href, ...(item.also ?? [])].some((h) => pathname === h || pathname.startsWith(`${h}/`));
+                                    : [item.href, ...(item.also ?? [])].some(
+                                          (h) => pathname === h || pathname.startsWith(`${h}/`),
+                                      );
                             const n = item.badge ? counts[item.badge] : 0;
                             return (
                                 <li key={item.href}>
@@ -76,16 +102,23 @@ function NavList({ groups, counts, pathname, onNavigate }) {
                                         aria-current={active ? "page" : undefined}
                                         className={cn(
                                             "flex h-10 items-center gap-3 rounded-lg px-3 text-[0.9rem] transition-colors",
-                                            active ? "bg-ink text-paper" : "text-ink-2 hover:bg-ink/5 hover:text-ink",
+                                            active
+                                                ? "bg-ink text-paper"
+                                                : "text-ink-2 hover:bg-ink/5 hover:text-ink",
                                         )}
                                     >
-                                        <AIcon name={item.icon} className={active ? "text-teal-200" : "text-ink-3"} />
+                                        <AIcon
+                                            name={item.icon}
+                                            className={active ? "text-teal-200" : "text-ink-3"}
+                                        />
                                         <span className="truncate">{item.label}</span>
                                         {n ? (
                                             <span
                                                 className={cn(
                                                     "ml-auto min-w-6 rounded-full px-1.5 text-center text-[0.72rem] leading-5 font-semibold tabular-nums",
-                                                    active ? "bg-teal-400 text-ink" : "bg-teal-800 text-white",
+                                                    active
+                                                        ? "bg-teal-400 text-ink"
+                                                        : "bg-teal-800 text-white",
                                                 )}
                                                 aria-label={`${n} new`}
                                             >
@@ -140,18 +173,34 @@ function UserMenu() {
                 aria-expanded={open}
                 className="flex items-center gap-2.5 rounded-full py-1 pr-2 pl-1 hover:bg-ink/5"
             >
-                <span className="grid size-8 place-items-center rounded-full bg-teal-800 text-[0.75rem] font-semibold text-white" aria-hidden="true">
+                <span
+                    className="grid size-8 place-items-center rounded-full bg-teal-800 text-[0.75rem] font-semibold text-white"
+                    aria-hidden="true"
+                >
                     {initials}
                 </span>
                 <span className="hidden text-left leading-tight sm:block">
-                    <span className="block max-w-[11rem] truncate text-[0.86rem] font-medium">{user.name}</span>
-                    <span className="block text-[0.72rem] text-ink-3">{ROLE_LABELS[user.role] ?? user.role}</span>
+                    <span className="block max-w-44 truncate text-[0.86rem] font-medium">
+                        {user.name}
+                    </span>
+                    <span className="block text-[0.72rem] text-ink-3">
+                        {ROLE_LABELS[user.role] ?? user.role}
+                    </span>
                 </span>
-                <AIcon name="next" className={cn("rotate-90 text-ink-3 transition-transform", open && "-rotate-90")} />
+                <AIcon
+                    name="next"
+                    className={cn(
+                        "rotate-90 text-ink-3 transition-transform",
+                        open && "-rotate-90",
+                    )}
+                />
                 <span className="sr-only">Account menu</span>
             </button>
             {open ? (
-                <div role="menu" className="absolute top-full right-0 z-40 mt-2 w-60 overflow-hidden rounded-xl border border-line bg-card shadow-(--shadow-lift)">
+                <div
+                    role="menu"
+                    className="absolute top-full right-0 z-40 mt-2 w-60 overflow-hidden rounded-xl border border-line bg-card shadow-(--shadow-lift)"
+                >
                     <div className="border-b border-line-soft px-4 py-3">
                         <p className="truncate text-[0.88rem] font-medium">{user.name}</p>
                         <p className="truncate text-[0.78rem] text-ink-3">{user.email}</p>
@@ -180,7 +229,12 @@ function UserMenu() {
 
 function ViewWebsite() {
     return (
-        <a href="/" target="_blank" rel="noopener" className="flex items-center gap-2 px-3 text-[0.8rem] text-ink-3 hover:text-ink">
+        <a
+            href="/"
+            target="_blank"
+            rel="noopener"
+            className="flex items-center gap-2 px-3 text-[0.8rem] text-ink-3 hover:text-ink"
+        >
             View website <AIcon name="external" />
         </a>
     );
@@ -189,7 +243,14 @@ function ViewWebsite() {
 function Brand() {
     return (
         <Link href="/admin" className="flex items-center gap-3 px-3">
-            <Image src="/logo.png" alt="Monowara Hospital" width={300} height={64} className="h-8 w-auto" loading="eager" />
+            <Image
+                src="/logo.png"
+                alt="Monowara Hospital"
+                width={300}
+                height={64}
+                className="h-8 w-auto"
+                loading="eager"
+            />
             <span className="sr-only">Dashboard home</span>
         </Link>
     );
@@ -236,15 +297,29 @@ export function AdminShell({ children }) {
                         >
                             <AIcon name="menu" className="size-5" />
                             {Object.values(badges.counts).some(Boolean) ? (
-                                <span className="absolute top-2 right-2 size-2 rounded-full bg-teal-600" aria-hidden="true" />
+                                <span
+                                    className="absolute top-2 right-2 size-2 rounded-full bg-teal-600"
+                                    aria-hidden="true"
+                                />
                             ) : null}
                         </button>
                     </div>
                 </header>
-                <Dialog open={menuOpen} onClose={closeMenu} variant="right" closeLabel="Close menu" className="bg-paper">
+                <Dialog
+                    open={menuOpen}
+                    onClose={closeMenu}
+                    variant="right"
+                    closeLabel="Close menu"
+                    className="bg-paper"
+                >
                     <div className="flex min-h-full flex-col px-3 pt-16 pb-5">
                         <div className="flex-1">
-                            <NavList groups={groups} counts={badges.counts} pathname={pathname} onNavigate={closeMenu} />
+                            <NavList
+                                groups={groups}
+                                counts={badges.counts}
+                                pathname={pathname}
+                                onNavigate={closeMenu}
+                            />
                         </div>
                         <div className="border-t border-line pt-4">
                             <ViewWebsite />
@@ -258,7 +333,7 @@ export function AdminShell({ children }) {
                         <UserMenu />
                     </div>
                     <main id="admin-main" className="min-w-0 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
-                        <div className="mx-auto max-w-[76rem]">{children}</div>
+                        <div className="mx-auto max-w-304">{children}</div>
                     </main>
                 </div>
             </div>

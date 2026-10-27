@@ -2,7 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { adminDownload, adminFetch } from "@/lib/admin/api";
-import { fmtBytes, fmtDateTime, fmtDay, fmtHHMM, fmtPhone, telLink, waLink } from "@/lib/admin/format";
+import {
+    fmtBytes,
+    fmtDateTime,
+    fmtDay,
+    fmtHHMM,
+    fmtPhone,
+    telLink,
+    waLink,
+} from "@/lib/admin/format";
 import { cn } from "@/lib/utils";
 import { Dialog } from "@/components/ui/Dialog";
 import { useAdminGet } from "./hooks";
@@ -21,7 +29,10 @@ function facts(kind, d) {
     const common = [
         ["Received", fmtDateTime(d.createdAt)],
         ["From page", d.source],
-        ["Handled", d.handledAt ? `${d.handledByName ?? "Staff"} · ${fmtDateTime(d.handledAt)}` : null],
+        [
+            "Handled",
+            d.handledAt ? `${d.handledByName ?? "Staff"} · ${fmtDateTime(d.handledAt)}` : null,
+        ],
     ];
     if (kind === "bookings")
         return [
@@ -35,7 +46,13 @@ function facts(kind, d) {
             ...common,
         ];
     if (kind === "messages")
-        return [["Name", d.name], ["Phone", fmtPhone(d.phone)], ["Email", d.email], ["Subject", d.subject], ...common];
+        return [
+            ["Name", d.name],
+            ["Phone", fmtPhone(d.phone)],
+            ["Email", d.email],
+            ["Subject", d.subject],
+            ...common,
+        ];
     return [
         ["Name", d.name],
         ["Phone", fmtPhone(d.phone)],
@@ -48,7 +65,13 @@ function facts(kind, d) {
 
 export function InboxDetail({ kind, cfg, id, onClose, onSaved }) {
     return (
-        <Dialog open={!!id} onClose={onClose} variant="right" className="w-[min(34rem,100vw)] bg-paper" closeLabel="Close details">
+        <Dialog
+            open={!!id}
+            onClose={onClose}
+            variant="right"
+            className="w-[min(34rem,100vw)] bg-paper"
+            closeLabel="Close details"
+        >
             {id ? <Detail key={id} kind={kind} cfg={cfg} id={id} onSaved={onSaved} /> : null}
         </Dialog>
     );
@@ -64,7 +87,9 @@ function Detail({ kind, cfg, id, onSaved }) {
     const autoRead = useRef(false);
 
     const doc = data;
-    const base = doc ? { status: doc.status, staffNote: doc.staffNote ?? "", serial: doc.serial ?? "" } : null;
+    const base = doc
+        ? { status: doc.status, staffNote: doc.staffNote ?? "", serial: doc.serial ?? "" }
+        : null;
     const f = form ?? base;
 
     async function patch(body) {
@@ -85,7 +110,9 @@ function Detail({ kind, cfg, id, onSaved }) {
     if (error) {
         return (
             <div className="p-6 pt-16">
-                <Notice>{error.status === 404 ? `This ${cfg.noun} no longer exists.` : error.message}</Notice>
+                <Notice>
+                    {error.status === 404 ? `This ${cfg.noun} no longer exists.` : error.message}
+                </Notice>
             </div>
         );
     }
@@ -93,7 +120,11 @@ function Detail({ kind, cfg, id, onSaved }) {
         return (
             <div className="space-y-3 p-6 pt-16" aria-busy={loading}>
                 {Array.from({ length: 6 }, (_, i) => (
-                    <div key={i} className="h-4 animate-pulse rounded bg-paper-2" style={{ width: `${80 - i * 8}%` }} />
+                    <div
+                        key={i}
+                        className="h-4 animate-pulse rounded bg-paper-2"
+                        style={{ width: `${80 - i * 8}%` }}
+                    />
                 ))}
             </div>
         );
@@ -101,12 +132,16 @@ function Detail({ kind, cfg, id, onSaved }) {
 
     const changed = {};
     if (f.status !== doc.status) changed.status = f.status;
-    if ((f.staffNote.trim() || null) !== (doc.staffNote ?? null)) changed.staffNote = f.staffNote.trim() || null;
+    if ((f.staffNote.trim() || null) !== (doc.staffNote ?? null))
+        changed.staffNote = f.staffNote.trim() || null;
     if (kind === "bookings") {
         const s = f.serial === "" ? null : Number(f.serial);
         if (s !== (doc.serial ?? null)) changed.serial = s;
     }
-    const serialBad = kind === "bookings" && f.serial !== "" && !(Number.isInteger(Number(f.serial)) && Number(f.serial) >= 1 && Number(f.serial) <= 999);
+    const serialBad =
+        kind === "bookings" &&
+        f.serial !== "" &&
+        !(Number.isInteger(Number(f.serial)) && Number(f.serial) >= 1 && Number(f.serial) <= 999);
     const dirty = Object.keys(changed).length > 0;
 
     async function save(e) {
@@ -139,22 +174,35 @@ function Detail({ kind, cfg, id, onSaved }) {
     return (
         <div className="flex min-h-full flex-col">
             <header className="border-b border-line px-6 pt-6 pb-5">
-                <p className="text-[0.72rem] font-semibold tracking-[0.16em] text-teal-700 uppercase">{cfg.noun}</p>
+                <p className="text-[0.72rem] font-semibold tracking-[0.16em] text-teal-700 uppercase">
+                    {cfg.noun}
+                </p>
                 <h2 className="mt-1 pr-10 text-[1.35rem] leading-snug font-medium">{doc.name}</h2>
                 <div className="mt-2 flex items-center gap-2">
                     <StatusChip status={doc.status} label={cfg.statusLabels[doc.status]} />
-                    {doc.serial ? <span className="text-[0.82rem] text-ink-3">Serial {doc.serial}</span> : null}
+                    {doc.serial ? (
+                        <span className="text-[0.82rem] text-ink-3">Serial {doc.serial}</span>
+                    ) : null}
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                     <a href={telLink(doc.phone)} className={abtn({ size: "sm" })}>
                         <AIcon name="phone" /> Call
                     </a>
                     <a
-                        href={waLink(doc.phone, kind === "bookings" && doc.status === "confirmed" ? confirmText(doc) : undefined)}
+                        href={waLink(
+                            doc.phone,
+                            kind === "bookings" && doc.status === "confirmed"
+                                ? confirmText(doc)
+                                : undefined,
+                        )}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={abtn({ size: "sm" })}
-                        title={kind === "bookings" && doc.status === "confirmed" ? "Opens WhatsApp with a confirmation message" : undefined}
+                        title={
+                            kind === "bookings" && doc.status === "confirmed"
+                                ? "Opens WhatsApp with a confirmation message"
+                                : undefined
+                        }
                     >
                         <AIcon name="whatsapp" className="text-wa" /> WhatsApp
                     </a>
@@ -180,16 +228,23 @@ function Detail({ kind, cfg, id, onSaved }) {
                 ) : null}
                 <Facts rows={facts(kind, doc)} />
 
-                <form onSubmit={save} className="space-y-4 rounded-xl border border-line bg-card p-4">
+                <form
+                    onSubmit={save}
+                    className="space-y-4 rounded-xl border border-line bg-card p-4"
+                >
                     <fieldset>
-                        <legend className="mb-2 text-[0.8rem] font-semibold text-ink-2">Status</legend>
+                        <legend className="mb-2 text-[0.8rem] font-semibold text-ink-2">
+                            Status
+                        </legend>
                         <div className="flex flex-wrap gap-1.5">
                             {cfg.statuses.map((s) => (
                                 <label
                                     key={s}
                                     className={cn(
                                         "cursor-pointer rounded-full border px-3 py-1.5 text-[0.84rem] transition-colors has-focus-visible:outline-2 has-focus-visible:outline-teal-600",
-                                        f.status === s ? "border-ink bg-ink text-paper" : "border-line text-ink-2 hover:border-ink/40",
+                                        f.status === s
+                                            ? "border-ink bg-ink text-paper"
+                                            : "border-line text-ink-2 hover:border-ink/40",
                                     )}
                                 >
                                     <input
@@ -206,7 +261,12 @@ function Detail({ kind, cfg, id, onSaved }) {
                         </div>
                     </fieldset>
                     {kind === "bookings" ? (
-                        <Field label="Serial number" htmlFor="d-serial" hint="Given by the OPD desk when confirming (1–999)." error={serialBad ? "Use a whole number from 1 to 999." : null}>
+                        <Field
+                            label="Serial number"
+                            htmlFor="d-serial"
+                            hint="Given by the OPD desk when confirming (1–999)."
+                            error={serialBad ? "Use a whole number from 1 to 999." : null}
+                        >
                             <input
                                 id="d-serial"
                                 type="number"
@@ -220,7 +280,11 @@ function Detail({ kind, cfg, id, onSaved }) {
                             />
                         </Field>
                     ) : null}
-                    <Field label="Staff note" htmlFor="d-note" hint="Only staff see this. Example: “Called, patient will come at 6 pm.”">
+                    <Field
+                        label="Staff note"
+                        htmlFor="d-note"
+                        hint="Only staff see this. Example: “Called, patient will come at 6 pm.”"
+                    >
                         <textarea
                             id="d-note"
                             rows={3}
@@ -232,7 +296,12 @@ function Detail({ kind, cfg, id, onSaved }) {
                     </Field>
                     {saveError ? <Notice>{saveError}</Notice> : null}
                     <div className="flex items-center gap-3">
-                        <ABtn type="submit" variant="ink" busy={busy} disabled={!dirty || serialBad}>
+                        <ABtn
+                            type="submit"
+                            variant="ink"
+                            busy={busy}
+                            disabled={!dirty || serialBad}
+                        >
                             Save
                         </ABtn>
                         {dirty ? (

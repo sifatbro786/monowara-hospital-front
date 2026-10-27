@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Container } from "@/components/ui/Layout";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getMedia } from "@/lib/api/media";
@@ -13,6 +13,7 @@ import { getSettings } from "@/lib/api/settings";
 import { getJobs, getJobBySlug } from "@/lib/api/pages";
 import { href } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/t";
+import { formatDhakaDate } from "@/lib/utils/dates";
 import { pageMeta } from "@/lib/seo/metadata";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }) {
     if (!j) return {};
     return pageMeta({
         lang,
-        path: `/careers/${slug}`,
+        path: `/careers/${j.slug}`, // canonical = current slug (old slugs redirect)
         title: t(j.title, lang),
         description: t(j.summary, lang),
     });
@@ -43,6 +44,8 @@ async function JobPageContent({ params }) {
         getMedia(),
     ]);
     if (!job) notFound();
+    // Admin renamed the slug: the API resolves the old one (previousSlugs) → 308 to the new URL.
+    if (job.slug !== slug) permanentRedirect(href(lang, `/careers/${job.slug}`));
     const c = dict.careers;
     return (
         <>
@@ -79,7 +82,7 @@ async function JobPageContent({ params }) {
                     {job.deadline && (
                         <div>
                             <dt className="text-paper/60">{c.deadline}</dt>
-                            <dd className="text-paper">{job.deadline}</dd>
+                            <dd className="text-paper">{formatDhakaDate(job.deadline, lang)}</dd>
                         </div>
                     )}
                 </dl>

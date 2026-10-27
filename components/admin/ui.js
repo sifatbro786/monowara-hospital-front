@@ -85,7 +85,14 @@ const ICONS = {
 
 export function AIcon({ name, className, ...rest }) {
     const C = ICONS[name];
-    return C ? <C aria-hidden="true" className={cn("size-[1.05em] shrink-0", className)} strokeWidth={1.75} {...rest} /> : null;
+    return C ? (
+        <C
+            aria-hidden="true"
+            className={cn("size-[1.05em] shrink-0", className)}
+            strokeWidth={1.75}
+            {...rest}
+        />
+    ) : null;
 }
 
 // ── Buttons ────────────────────────────────────────────────────────────────────────────────────────
@@ -96,7 +103,11 @@ const BTN = {
     ghost: "text-ink-2 hover:bg-ink/5 hover:text-ink",
     danger: "border border-emergency/40 bg-card text-emergency-ink hover:bg-emergency-soft",
 };
-const BTN_SIZE = { sm: "h-8 px-3 text-[0.82rem]", md: "h-10 px-4 text-sm", lg: "h-12 px-5 text-[0.95rem]" };
+const BTN_SIZE = {
+    sm: "h-8 px-3 text-[0.82rem]",
+    md: "h-10 px-4 text-sm",
+    lg: "h-12 px-5 text-[0.95rem]",
+};
 
 export function abtn({ variant = "outline", size = "md", className } = {}) {
     return cn(
@@ -110,7 +121,12 @@ export function abtn({ variant = "outline", size = "md", className } = {}) {
 
 export function ABtn({ variant, size, className, busy, children, type = "button", ...rest }) {
     return (
-        <button type={type} className={abtn({ variant, size, className })} disabled={busy || rest.disabled} {...rest}>
+        <button
+            type={type}
+            className={abtn({ variant, size, className })}
+            disabled={busy || rest.disabled}
+            {...rest}
+        >
             {busy ? <Spinner /> : null}
             {children}
         </button>
@@ -121,7 +137,10 @@ export function Spinner({ className }) {
     return (
         <span
             aria-hidden="true"
-            className={cn("inline-block size-4 animate-spin rounded-full border-2 border-current border-r-transparent", className)}
+            className={cn(
+                "inline-block size-4 animate-spin rounded-full border-2 border-current border-r-transparent",
+                className,
+            )}
         />
     );
 }
@@ -152,7 +171,14 @@ export function Field({ label, hint, error, htmlFor, children, className }) {
     );
 }
 
-export function PasswordInput({ id, value, onChange, autoComplete = "current-password", invalid, ...rest }) {
+export function PasswordInput({
+    id,
+    value,
+    onChange,
+    autoComplete = "current-password",
+    invalid,
+    ...rest
+}) {
     const [show, setShow] = useState(false);
     return (
         <div className="relative">
@@ -208,7 +234,9 @@ export function Notice({ tone = "error", children, className }) {
             role={tone === "error" ? "alert" : "status"}
             className={cn(
                 "flex items-start gap-2.5 rounded-lg px-3.5 py-2.5 text-[0.88rem]",
-                tone === "error" ? "bg-emergency-soft text-emergency-ink" : "bg-teal-50 text-teal-900",
+                tone === "error"
+                    ? "bg-emergency-soft text-emergency-ink"
+                    : "bg-teal-50 text-teal-900",
                 className,
             )}
         >
@@ -222,7 +250,9 @@ export function Empty({ title, children }) {
     return (
         <div className="px-6 py-14 text-center">
             <p className="font-medium text-ink">{title}</p>
-            {children ? <p className="mx-auto mt-1.5 max-w-md text-[0.88rem] text-ink-3">{children}</p> : null}
+            {children ? (
+                <p className="mx-auto mt-1.5 max-w-md text-[0.88rem] text-ink-3">{children}</p>
+            ) : null}
         </div>
     );
 }
@@ -232,8 +262,14 @@ export function PageHead({ eyebrow, title, children, sub }) {
     return (
         <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-line pb-5">
             <div className="min-w-0">
-                {eyebrow ? <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-teal-700">{eyebrow}</p> : null}
-                <h1 className="mt-1 text-[1.65rem] leading-tight font-medium tracking-[-0.02em]">{title}</h1>
+                {eyebrow ? (
+                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-teal-700">
+                        {eyebrow}
+                    </p>
+                ) : null}
+                <h1 className="mt-1 text-[1.65rem] leading-tight font-medium tracking-[-0.02em]">
+                    {title}
+                </h1>
                 {sub ? <p className="mt-1 text-[0.9rem] text-ink-3">{sub}</p> : null}
             </div>
             {children ? <div className="flex flex-wrap items-center gap-2">{children}</div> : null}
@@ -247,18 +283,33 @@ export function Pager({ page, limit, total, onPage }) {
     const from = (page - 1) * limit + 1;
     const to = Math.min(total, page * limit);
     return (
-        <nav className="flex items-center justify-between gap-4 border-t border-line px-4 py-3 text-[0.85rem] text-ink-3" aria-label="Pages">
+        <nav
+            className="flex items-center justify-between gap-4 border-t border-line px-4 py-3 text-[0.85rem] text-ink-3"
+            aria-label="Pages"
+        >
             <span>
                 {from}–{to} of {total}
             </span>
             <div className="flex items-center gap-1">
-                <ABtn size="sm" variant="ghost" onClick={() => onPage(page - 1)} disabled={page <= 1} aria-label="Previous page">
+                <ABtn
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onPage(page - 1)}
+                    disabled={page <= 1}
+                    aria-label="Previous page"
+                >
                     <AIcon name="prev" />
                 </ABtn>
                 <span className="px-2 tabular-nums">
                     {page} / {pages}
                 </span>
-                <ABtn size="sm" variant="ghost" onClick={() => onPage(page + 1)} disabled={page >= pages} aria-label="Next page">
+                <ABtn
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onPage(page + 1)}
+                    disabled={page >= pages}
+                    aria-label="Next page"
+                >
                     <AIcon name="next" />
                 </ABtn>
             </div>
@@ -297,7 +348,7 @@ export function Facts({ rows }) {
                 .map(([k, v]) => (
                     <div key={k} className="grid grid-cols-[7.5rem_1fr] gap-3 py-2.5 text-[0.9rem]">
                         <dt className="text-ink-3">{k}</dt>
-                        <dd className="min-w-0 break-words text-ink">{v}</dd>
+                        <dd className="min-w-0 wrap-break-word text-ink">{v}</dd>
                     </div>
                 ))}
         </dl>
@@ -308,10 +359,22 @@ export function Facts({ rows }) {
  * Bilingual text: English + বাংলা side by side (stacked on phones). value = { en, bn }.
  * `errors` uses the API's dotted paths: { "name.en": "…" } → pass prefix "name".
  */
-export function LText({ id, label, hint, value, onChange, required, multiline, rows = 3, maxLength, errors = {}, prefix }) {
+export function LText({
+    id,
+    label,
+    hint,
+    value,
+    onChange,
+    required,
+    multiline,
+    rows = 3,
+    maxLength,
+    errors = {},
+    prefix,
+}) {
     const v = value ?? { en: "", bn: "" };
     const Tag = multiline ? "textarea" : "input";
-    const errEn = prefix ? errors[`${prefix}.en`] ?? errors[prefix] : null;
+    const errEn = prefix ? (errors[`${prefix}.en`] ?? errors[prefix]) : null;
     const errBn = prefix ? errors[`${prefix}.bn`] : null;
     return (
         <fieldset className="space-y-1.5">
@@ -355,7 +418,9 @@ export function FormSection({ n, title, sub, children, aside }) {
     return (
         <section className="grid gap-x-10 gap-y-4 border-t border-line pt-7 lg:grid-cols-[14rem_minmax(0,1fr)]">
             <header>
-                <p className="text-[0.75rem] font-semibold text-teal-700 tabular-nums">{String(n).padStart(2, "0")}</p>
+                <p className="text-[0.75rem] font-semibold text-teal-700 tabular-nums">
+                    {String(n).padStart(2, "0")}
+                </p>
                 <h2 className="mt-0.5 text-[1.1rem] font-medium">{title}</h2>
                 {sub ? <p className="mt-1 text-[0.84rem] text-ink-3">{sub}</p> : null}
                 {aside}
@@ -367,9 +432,23 @@ export function FormSection({ n, title, sub, children, aside }) {
 
 export function Toggle({ id, checked, onChange, label, sub, disabled }) {
     return (
-        <label htmlFor={id} className={cn("flex cursor-pointer items-start gap-3", disabled && "cursor-not-allowed opacity-60")}>
+        <label
+            htmlFor={id}
+            className={cn(
+                "flex cursor-pointer items-start gap-3",
+                disabled && "cursor-not-allowed opacity-60",
+            )}
+        >
             <span className="relative mt-0.5 inline-flex shrink-0">
-                <input id={id} type="checkbox" role="switch" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" />
+                <input
+                    id={id}
+                    type="checkbox"
+                    role="switch"
+                    checked={checked}
+                    disabled={disabled}
+                    onChange={(e) => onChange(e.target.checked)}
+                    className="peer sr-only"
+                />
                 <span className="h-6 w-10 rounded-full bg-line transition-colors peer-checked:bg-teal-700 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-teal-600" />
                 <span className="absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
             </span>

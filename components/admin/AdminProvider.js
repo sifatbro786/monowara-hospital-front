@@ -36,7 +36,12 @@ export function AdminProvider({ children }) {
         () =>
             authApi.me().then(
                 (s) => setState(fromSession(s)),
-                (err) => setState(err.status === 401 ? { status: "anon" } : { status: "offline", error: err.message }),
+                (err) =>
+                    setState(
+                        err.status === 401
+                            ? { status: "anon" }
+                            : { status: "offline", error: err.message },
+                    ),
             ),
         [],
     );
@@ -99,7 +104,9 @@ export function AdminProvider({ children }) {
     if (state.status === "loading") {
         body = (
             <div className="grid min-h-dvh place-items-center" aria-busy="true">
-                <p className="text-[0.85rem] tracking-[0.16em] text-ink-3 uppercase">Monowara · Admin</p>
+                <p className="text-[0.85rem] tracking-[0.16em] text-ink-3 uppercase">
+                    Monowara · Admin
+                </p>
             </div>
         );
     } else if (state.status === "offline") {
@@ -119,11 +126,13 @@ export function AdminProvider({ children }) {
         body = (
             <div className="grid min-h-dvh place-items-center bg-paper p-5">
                 <div className="w-full max-w-md rounded-2xl border border-line bg-card p-7 shadow-(--shadow-lift)">
-                    <p className="text-[0.72rem] font-semibold tracking-[0.16em] text-teal-700 uppercase">First sign-in</p>
+                    <p className="text-[0.72rem] font-semibold tracking-[0.16em] text-teal-700 uppercase">
+                        First sign-in
+                    </p>
                     <h1 className="mt-1 text-2xl font-medium">Set your own password</h1>
                     <p className="mt-2 text-[0.9rem] text-ink-3">
-                        {state.user?.name}, your account was given a temporary password. Choose a new one to continue — only you will
-                        know it.
+                        {state.user?.name}, your account was given a temporary password. Choose a
+                        new one to continue — only you will know it.
                     </p>
                     <PasswordForm className="mt-6" forced />
                 </div>

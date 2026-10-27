@@ -42,9 +42,16 @@ export function PasswordForm({ forced = false, className }) {
     return (
         <form onSubmit={submit} className={cn("space-y-4", className)} noValidate>
             {error ? <Notice>{error}</Notice> : null}
-            {done && !forced ? <Notice tone="info">Password changed. Other devices were signed out.</Notice> : null}
+            {done && !forced ? (
+                <Notice tone="info">Password changed. Other devices were signed out.</Notice>
+            ) : null}
             <Field label={forced ? "Temporary password" : "Current password"} htmlFor="pw-current">
-                <PasswordInput id="pw-current" value={current} onChange={(e) => setCurrent(e.target.value)} required />
+                <PasswordInput
+                    id="pw-current"
+                    value={current}
+                    onChange={(e) => setCurrent(e.target.value)}
+                    required
+                />
             </Field>
             <Field
                 label="New password"
@@ -61,7 +68,11 @@ export function PasswordForm({ forced = false, className }) {
                     required
                 />
             </Field>
-            <Field label="Repeat new password" htmlFor="pw-confirm" error={mismatch ? "Doesn't match." : null}>
+            <Field
+                label="Repeat new password"
+                htmlFor="pw-confirm"
+                error={mismatch ? "Doesn't match." : null}
+            >
                 <PasswordInput
                     id="pw-confirm"
                     autoComplete="new-password"
@@ -72,7 +83,12 @@ export function PasswordForm({ forced = false, className }) {
                 />
             </Field>
             <div className="flex flex-wrap items-center gap-3 pt-1">
-                <ABtn type="submit" variant="ink" busy={busy} disabled={!current || !next || !confirm || !!problem || !!mismatch}>
+                <ABtn
+                    type="submit"
+                    variant="ink"
+                    busy={busy}
+                    disabled={!current || !next || !confirm || !!problem || !!mismatch}
+                >
                     {forced ? "Save and continue" : "Change password"}
                 </ABtn>
                 {forced ? (

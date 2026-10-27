@@ -39,7 +39,11 @@ export function toForm(d) {
         schedule: (d.schedule ?? []).map((s) => ({ day: s.day, from: s.from, to: s.to })),
         scheduleNote: L(d.scheduleNote),
         leaveOn: !!d.leave,
-        leave: { from: toDhakaDay(d.leave?.from), until: toDhakaDay(d.leave?.until), note: L(d.leave?.note) },
+        leave: {
+            from: toDhakaDay(d.leave?.from),
+            until: toDhakaDay(d.leave?.until),
+            note: L(d.leave?.note),
+        },
         isFeatured: !!d.isFeatured,
         isActive: d.isActive !== false,
         order: d.order ?? "",
@@ -64,7 +68,9 @@ export function toPayload(f) {
         photo: f.photo || null,
         schedule: f.schedule.map((s) => ({ day: s.day, from: s.from, to: s.to })),
         scheduleNote: optL(f.scheduleNote),
-        leave: f.leaveOn ? { from: f.leave.from || null, until: f.leave.until, note: optL(f.leave.note) } : null,
+        leave: f.leaveOn
+            ? { from: f.leave.from || null, until: f.leave.until, note: optL(f.leave.note) }
+            : null,
         isFeatured: f.isFeatured,
         isActive: f.isActive,
         ...(f.order !== "" && { order: Number(f.order) }),
@@ -74,7 +80,9 @@ export function toPayload(f) {
 /** Keys whose payload value differs from the original document's. */
 export function changedKeys(payload, original) {
     const base = toPayload(toForm(original));
-    return Object.keys(payload).filter((k) => JSON.stringify(payload[k] ?? null) !== JSON.stringify(base[k] ?? null));
+    return Object.keys(payload).filter(
+        (k) => JSON.stringify(payload[k] ?? null) !== JSON.stringify(base[k] ?? null),
+    );
 }
 
 const TITLE = /^(?:(?:assoc(?:iate)?\.?|asst\.?|assistant)\s+)?(?:prof(?:essor)?\.?\s+)/i;
@@ -107,9 +115,12 @@ export function scheduleProblems(schedule) {
     const byDay = {};
     schedule.forEach((s, i) => (byDay[s.day] ??= []).push({ ...s, i }));
     for (const slots of Object.values(byDay)) {
-        const sorted = slots.filter((s) => s.from && s.to).sort((a, b) => (a.from < b.from ? -1 : 1));
+        const sorted = slots
+            .filter((s) => s.from && s.to)
+            .sort((a, b) => (a.from < b.from ? -1 : 1));
         for (let k = 1; k < sorted.length; k++) {
-            if (sorted[k].from < sorted[k - 1].to) out[`schedule.${sorted[k].i}.from`] = "Overlaps another time that day.";
+            if (sorted[k].from < sorted[k - 1].to)
+                out[`schedule.${sorted[k].i}.from`] = "Overlaps another time that day.";
         }
     }
     return out;

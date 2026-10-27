@@ -212,3 +212,20 @@ Same contract for `/api/admin/departments`, `/api/admin/facilities`, `/api/admin
 | diagnostics | `name, summary, description, tests[], timing, preparation, image (/uploads/diagnostics), isActive, order` |
 
 All text fields are `{ en, bn }`; list rows `[{ en, bn }]` (≤ 40, features ≤ 30).
+
+## Admin: B2.5–B2.9 content modules
+
+All list-type modules use the `crudRouter` contract above (+ `PUT /<module>/order { ids }` to reorder):
+
+| Route | Permission | Notes |
+|---|---|---|
+| `/api/admin/packages` | packages.manage | `?category`, `featured`; required `name`, `category`; `departments[]` must exist; no price (Call for Price) |
+| `/api/admin/hero` | hero.manage | required `label`, `image{src,alt,position}`; slug from label (internal); last visible slide can't be deleted |
+| `/api/admin/keynumbers` · `/centres` · `/talks` | home.manage | not sluggable; centre `href` internal path; talk `youtubeId` 11 chars |
+| `/api/admin/stories` | stories.manage | `consent{confirmed,date}`; `recordedBy` set by the server |
+| `/api/admin/faqs` | faqs.manage | `?category`; required `question`, `answer` |
+| `/api/admin/jobs` | careers.manage | required `title`; `deadline` "YYYY-MM-DD" (Dhaka); delete blocked while applications exist |
+
+Singletons / special:
+- `GET /api/admin/settings` (settings.manage or notice.manage) · `PATCH /api/admin/settings` (settings.manage — any subset of the settings fields; `whatsappNumbers` = full list in display order, exactly one active primary; new desks get `_id` from the label) · `PATCH /api/admin/settings/notice { isActive, text{en,bn}, href }` (notice.manage).
+- `GET /api/admin/media` · `PATCH /api/admin/media/:id { src?, alt?, position?, overlay? }` (media.manage). Upload with `POST /api/admin/uploads/media?position=<css position>` (3:2 crop around it).

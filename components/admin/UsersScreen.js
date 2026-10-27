@@ -22,7 +22,13 @@ function Users() {
     const { user: me, reload: reloadSession } = useSession();
     const { get, set } = useUrlState();
     const query = useMemo(
-        () => ({ q: get("q") || undefined, role: get("role") || undefined, active: get("active") || undefined, page: Number(get("page")) || 1, limit: 50 }),
+        () => ({
+            q: get("q") || undefined,
+            role: get("role") || undefined,
+            active: get("active") || undefined,
+            page: Number(get("page")) || 1,
+            limit: 50,
+        }),
         [get],
     );
     const list = useAdminGet("/admin/users", query);
@@ -38,7 +44,11 @@ function Users() {
 
     return (
         <>
-            <PageHead eyebrow="Administration" title="Staff accounts" sub="One account per person — never share a login. Accounts are deactivated, not deleted, so the activity log stays readable.">
+            <PageHead
+                eyebrow="Administration"
+                title="Staff accounts"
+                sub="One account per person — never share a login. Accounts are deactivated, not deleted, so the activity log stays readable."
+            >
                 <ABtn variant="ink" size="sm" onClick={() => setDialog({ type: "create" })}>
                     <AIcon name="plus" /> Add staff
                 </ABtn>
@@ -50,14 +60,24 @@ function Users() {
                         id="u-q"
                         type="search"
                         defaultValue={get("q")}
-                        onKeyDown={(e) => e.key === "Enter" && set({ q: e.currentTarget.value.trim() })}
-                        onBlur={(e) => e.currentTarget.value.trim() !== get("q") && set({ q: e.currentTarget.value.trim() })}
+                        onKeyDown={(e) =>
+                            e.key === "Enter" && set({ q: e.currentTarget.value.trim() })
+                        }
+                        onBlur={(e) =>
+                            e.currentTarget.value.trim() !== get("q") &&
+                            set({ q: e.currentTarget.value.trim() })
+                        }
                         placeholder="Name or email, then Enter"
                         className={inputCls}
                     />
                 </Field>
                 <Field label="Role" htmlFor="u-role">
-                    <select id="u-role" value={get("role")} onChange={(e) => set({ role: e.target.value })} className={inputCls}>
+                    <select
+                        id="u-role"
+                        value={get("role")}
+                        onChange={(e) => set({ role: e.target.value })}
+                        className={inputCls}
+                    >
                         <option value="">All roles</option>
                         {ROLES.map((r) => (
                             <option key={r} value={r}>
@@ -67,7 +87,12 @@ function Users() {
                     </select>
                 </Field>
                 <Field label="Status" htmlFor="u-active">
-                    <select id="u-active" value={get("active")} onChange={(e) => set({ active: e.target.value })} className={inputCls}>
+                    <select
+                        id="u-active"
+                        value={get("active")}
+                        onChange={(e) => set({ active: e.target.value })}
+                        className={inputCls}
+                    >
                         <option value="">All</option>
                         <option value="true">Active</option>
                         <option value="false">Deactivated</option>
@@ -82,7 +107,10 @@ function Users() {
             ) : null}
             {list.error ? <Notice className="mt-4">{list.error.message}</Notice> : null}
 
-            <section className="mt-5 overflow-hidden rounded-xl border border-line bg-card" aria-busy={list.loading}>
+            <section
+                className="mt-5 overflow-hidden rounded-xl border border-line bg-card"
+                aria-busy={list.loading}
+            >
                 <div className="hidden grid-cols-[minmax(0,1.4fr)_10rem_9rem_9rem_auto] gap-4 border-b border-line bg-paper-2/50 px-4 py-2.5 text-[0.72rem] font-semibold tracking-[0.12em] text-ink-3 uppercase md:grid">
                     <span>Person</span>
                     <span>Role</span>
@@ -104,33 +132,64 @@ function Users() {
                                 >
                                     <span className="min-w-0">
                                         <span className="block truncate font-medium text-ink">
-                                            {u.name} {self ? <span className="text-[0.78rem] font-normal text-ink-3">(you)</span> : null}
+                                            {u.name}{" "}
+                                            {self ? (
+                                                <span className="text-[0.78rem] font-normal text-ink-3">
+                                                    (you)
+                                                </span>
+                                            ) : null}
                                         </span>
-                                        <span className="block truncate text-[0.82rem] text-ink-3">{u.email}</span>
+                                        <span className="block truncate text-[0.82rem] text-ink-3">
+                                            {u.email}
+                                        </span>
                                     </span>
                                     <span>{ROLE_LABELS[u.role] ?? u.role}</span>
                                     <span className="text-[0.84rem]">
                                         {!u.isActive ? (
                                             "Deactivated"
                                         ) : u.mustChangePassword ? (
-                                            <span className="text-teal-800">Awaiting first sign-in</span>
+                                            <span className="text-teal-800">
+                                                Awaiting first sign-in
+                                            </span>
                                         ) : (
                                             "Active"
                                         )}
                                     </span>
-                                    <span className="text-[0.84rem] text-ink-3" title={u.lastLoginAt ? fmtDateTime(u.lastLoginAt) : undefined}>
+                                    <span
+                                        className="text-[0.84rem] text-ink-3"
+                                        title={
+                                            u.lastLoginAt ? fmtDateTime(u.lastLoginAt) : undefined
+                                        }
+                                    >
                                         {u.lastLoginAt ? fmtAgo(u.lastLoginAt) : "Never"}
                                     </span>
                                     <span className="flex flex-wrap gap-1 md:justify-end">
-                                        <ABtn size="sm" variant="ghost" onClick={() => setDialog({ type: "edit", user: u })}>
+                                        <ABtn
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => setDialog({ type: "edit", user: u })}
+                                        >
                                             <AIcon name="edit" /> Edit
                                         </ABtn>
                                         {!self ? (
                                             <>
-                                                <ABtn size="sm" variant="ghost" onClick={() => setDialog({ type: "reset", user: u })}>
+                                                <ABtn
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                        setDialog({ type: "reset", user: u })
+                                                    }
+                                                >
                                                     <AIcon name="key" /> Reset password
                                                 </ABtn>
-                                                <ABtn size="sm" variant="ghost" onClick={() => setDialog({ type: "logout", user: u })} disabled={!u.isActive}>
+                                                <ABtn
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                        setDialog({ type: "logout", user: u })
+                                                    }
+                                                    disabled={!u.isActive}
+                                                >
                                                     <AIcon name="logout" /> Sign out
                                                 </ABtn>
                                             </>
@@ -145,14 +204,31 @@ function Users() {
                 ) : (
                     <div className="h-40 animate-pulse bg-paper-2/40" />
                 )}
-                {data ? <Pager page={data.page} limit={data.limit} total={data.total} onPage={(p) => set({ page: p })} /> : null}
+                {data ? (
+                    <Pager
+                        page={data.page}
+                        limit={data.limit}
+                        total={data.total}
+                        onPage={(p) => set({ page: p })}
+                    />
+                ) : null}
             </section>
 
             <Dialog open={!!dialog} onClose={() => setDialog(null)} closeLabel="Close">
                 {dialog?.type === "create" ? <CreateUser onDone={done} /> : null}
-                {dialog?.type === "edit" ? <EditUser user={dialog.user} self={dialog.user._id === me._id} onDone={done} /> : null}
-                {dialog?.type === "reset" ? <ResetPassword user={dialog.user} onDone={done} /> : null}
-                {dialog?.type === "logout" ? <ForceLogout user={dialog.user} onDone={done} onCancel={() => setDialog(null)} /> : null}
+                {dialog?.type === "edit" ? (
+                    <EditUser user={dialog.user} self={dialog.user._id === me._id} onDone={done} />
+                ) : null}
+                {dialog?.type === "reset" ? (
+                    <ResetPassword user={dialog.user} onDone={done} />
+                ) : null}
+                {dialog?.type === "logout" ? (
+                    <ForceLogout
+                        user={dialog.user}
+                        onDone={done}
+                        onCancel={() => setDialog(null)}
+                    />
+                ) : null}
             </Dialog>
         </>
     );
@@ -177,11 +253,20 @@ function RolePicker({ value, onChange, disabled }) {
                     key={r}
                     className={cn(
                         "flex cursor-pointer gap-3 rounded-lg border px-3 py-2.5 transition-colors has-focus-visible:outline-2 has-focus-visible:outline-teal-600",
-                        value === r ? "border-teal-700 bg-teal-50" : "border-line hover:border-ink/30",
+                        value === r
+                            ? "border-teal-700 bg-teal-50"
+                            : "border-line hover:border-ink/30",
                         disabled && "cursor-not-allowed opacity-60",
                     )}
                 >
-                    <input type="radio" name="role" value={r} checked={value === r} onChange={() => onChange(r)} className="mt-1 accent-teal-700" />
+                    <input
+                        type="radio"
+                        name="role"
+                        value={r}
+                        checked={value === r}
+                        onChange={() => onChange(r)}
+                        className="mt-1 accent-teal-700"
+                    />
                     <span>
                         <span className="block text-[0.9rem] font-medium">{ROLE_LABELS[r]}</span>
                         <span className="block text-[0.8rem] text-ink-3">{ROLE_NOTES[r]}</span>
@@ -194,7 +279,12 @@ function RolePicker({ value, onChange, disabled }) {
 
 function TempPasswordField({ value, onChange, error }) {
     return (
-        <Field label="Temporary password" htmlFor="tmp-pw" error={error} hint="They must change it at first sign-in. Share it in person or by phone — not in a group chat.">
+        <Field
+            label="Temporary password"
+            htmlFor="tmp-pw"
+            error={error}
+            hint="They must change it at first sign-in. Share it in person or by phone — not in a group chat."
+        >
             <div className="flex gap-2">
                 <input
                     id="tmp-pw"
@@ -205,7 +295,11 @@ function TempPasswordField({ value, onChange, error }) {
                     spellCheck={false}
                     aria-invalid={!!error || undefined}
                 />
-                <ABtn variant="outline" onClick={() => onChange(tempPassword())} aria-label="Generate a new password">
+                <ABtn
+                    variant="outline"
+                    onClick={() => onChange(tempPassword())}
+                    aria-label="Generate a new password"
+                >
                     <AIcon name="refresh" />
                 </ABtn>
             </div>
@@ -222,9 +316,14 @@ function Handover({ user, password, onDone, verb }) {
                 <CopyButton text={password} />
             </div>
             <p className="mt-3 text-[0.85rem] text-ink-3">
-                This is shown only now. They sign in at <strong>/admin</strong> and choose their own password immediately.
+                This is shown only now. They sign in at <strong>/admin</strong> and choose their own
+                password immediately.
             </p>
-            <ABtn variant="ink" className="mt-5" onClick={() => onDone(`${user.name}: ${verb.toLowerCase()}.`)}>
+            <ABtn
+                variant="ink"
+                className="mt-5"
+                onClick={() => onDone(`${user.name}: ${verb.toLowerCase()}.`)}
+            >
                 Done
             </ABtn>
         </DialogBody>
@@ -232,14 +331,27 @@ function Handover({ user, password, onDone, verb }) {
 }
 
 function CreateUser({ onDone }) {
-    const [form, setForm] = useState(() => ({ name: "", email: "", role: "opd_incharge", password: tempPassword() }));
+    const [form, setForm] = useState(() => ({
+        name: "",
+        email: "",
+        role: "opd_incharge",
+        password: tempPassword(),
+    }));
     const [busy, setBusy] = useState(false);
     const [errors, setErrors] = useState({});
     const [error, setError] = useState(null);
     const [created, setCreated] = useState(null);
     const pwProblem = passwordProblem(form.password);
 
-    if (created) return <Handover user={created} password={form.password} onDone={onDone} verb="Account created" />;
+    if (created)
+        return (
+            <Handover
+                user={created}
+                password={form.password}
+                onDone={onDone}
+                verb="Account created"
+            />
+        );
 
     async function submit(e) {
         e.preventDefault();
@@ -247,7 +359,12 @@ function CreateUser({ onDone }) {
         setError(null);
         setErrors({});
         try {
-            setCreated(await adminFetch("/admin/users", { method: "POST", body: { ...form, name: form.name.trim(), email: form.email.trim() } }));
+            setCreated(
+                await adminFetch("/admin/users", {
+                    method: "POST",
+                    body: { ...form, name: form.name.trim(), email: form.email.trim() },
+                }),
+            );
         } catch (err) {
             setErrors(err.fieldErrors);
             setError(err.code === "VALIDATION" ? "Check the highlighted fields." : err.message);
@@ -261,14 +378,39 @@ function CreateUser({ onDone }) {
             <form onSubmit={submit} className="space-y-4" noValidate>
                 {error ? <Notice>{error}</Notice> : null}
                 <Field label="Full name" htmlFor="c-name" error={errors.name}>
-                    <input id="c-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} maxLength={80} autoFocus required />
+                    <input
+                        id="c-name"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                        className={inputCls}
+                        maxLength={80}
+                        autoFocus
+                        required
+                    />
                 </Field>
                 <Field label="Work email" htmlFor="c-email" error={errors.email}>
-                    <input id="c-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inputCls} maxLength={254} required />
+                    <input
+                        id="c-email"
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        className={inputCls}
+                        maxLength={254}
+                        required
+                    />
                 </Field>
                 <RolePicker value={form.role} onChange={(role) => setForm({ ...form, role })} />
-                <TempPasswordField value={form.password} onChange={(password) => setForm({ ...form, password })} error={errors.password ?? pwProblem} />
-                <ABtn type="submit" variant="ink" busy={busy} disabled={form.name.trim().length < 2 || !form.email || !!pwProblem}>
+                <TempPasswordField
+                    value={form.password}
+                    onChange={(password) => setForm({ ...form, password })}
+                    error={errors.password ?? pwProblem}
+                />
+                <ABtn
+                    type="submit"
+                    variant="ink"
+                    busy={busy}
+                    disabled={form.name.trim().length < 2 || !form.email || !!pwProblem}
+                >
                     Create account
                 </ABtn>
             </form>
@@ -294,7 +436,9 @@ function EditUser({ user, self, onDone }) {
         setError(null);
         try {
             await adminFetch(`/admin/users/${user._id}`, { method: "PATCH", body });
-            onDone(`${form.name.trim()}: saved.${accessChange ? " They were signed out so the new access applies." : ""}`);
+            onDone(
+                `${form.name.trim()}: saved.${accessChange ? " They were signed out so the new access applies." : ""}`,
+            );
         } catch (err) {
             setError(err.fieldErrors?.name ?? err.message);
             setBusy(false);
@@ -306,10 +450,22 @@ function EditUser({ user, self, onDone }) {
             <form onSubmit={submit} className="space-y-4" noValidate>
                 {error ? <Notice>{error}</Notice> : null}
                 <Field label="Full name" htmlFor="e-name">
-                    <input id="e-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} maxLength={80} />
+                    <input
+                        id="e-name"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                        className={inputCls}
+                        maxLength={80}
+                    />
                 </Field>
-                <RolePicker value={form.role} onChange={(role) => setForm({ ...form, role })} disabled={self} />
-                <label className={cn("flex items-center gap-3 text-[0.9rem]", self && "opacity-60")}>
+                <RolePicker
+                    value={form.role}
+                    onChange={(role) => setForm({ ...form, role })}
+                    disabled={self}
+                />
+                <label
+                    className={cn("flex items-center gap-3 text-[0.9rem]", self && "opacity-60")}
+                >
                     <input
                         type="checkbox"
                         checked={form.isActive}
@@ -319,11 +475,23 @@ function EditUser({ user, self, onDone }) {
                     />
                     Account active (can sign in)
                 </label>
-                {self ? <p className="text-[0.8rem] text-ink-3">You can&apos;t change your own role or deactivate yourself — another super admin can.</p> : null}
-                {accessChange ? (
-                    <Notice tone="info">Saving signs {user.name} out on every device so the new access applies.</Notice>
+                {self ? (
+                    <p className="text-[0.8rem] text-ink-3">
+                        You can&apos;t change your own role or deactivate yourself — another super
+                        admin can.
+                    </p>
                 ) : null}
-                <ABtn type="submit" variant="ink" busy={busy} disabled={!Object.keys(body).length || form.name.trim().length < 2}>
+                {accessChange ? (
+                    <Notice tone="info">
+                        Saving signs {user.name} out on every device so the new access applies.
+                    </Notice>
+                ) : null}
+                <ABtn
+                    type="submit"
+                    variant="ink"
+                    busy={busy}
+                    disabled={!Object.keys(body).length || form.name.trim().length < 2}
+                >
                     Save changes
                 </ABtn>
             </form>
@@ -338,14 +506,22 @@ function ResetPassword({ user, onDone }) {
     const [doneUser, setDoneUser] = useState(null);
     const problem = passwordProblem(password);
 
-    if (doneUser) return <Handover user={doneUser} password={password} onDone={onDone} verb="Password reset" />;
+    if (doneUser)
+        return (
+            <Handover user={doneUser} password={password} onDone={onDone} verb="Password reset" />
+        );
 
     async function submit(e) {
         e.preventDefault();
         setBusy(true);
         setError(null);
         try {
-            setDoneUser(await adminFetch(`/admin/users/${user._id}/reset-password`, { method: "POST", body: { password } }));
+            setDoneUser(
+                await adminFetch(`/admin/users/${user._id}/reset-password`, {
+                    method: "POST",
+                    body: { password },
+                }),
+            );
         } catch (err) {
             setError(err.fieldErrors?.password ?? err.message);
             setBusy(false);
@@ -357,7 +533,8 @@ function ResetPassword({ user, onDone }) {
             <form onSubmit={submit} className="space-y-4" noValidate>
                 {error ? <Notice>{error}</Notice> : null}
                 <p className="text-[0.9rem] text-ink-2">
-                    Sets a temporary password, unlocks the account if it was locked, and signs {user.name} out everywhere.
+                    Sets a temporary password, unlocks the account if it was locked, and signs{" "}
+                    {user.name} out everywhere.
                 </p>
                 <TempPasswordField value={password} onChange={setPassword} error={problem} />
                 <ABtn type="submit" variant="ink" busy={busy} disabled={!!problem}>
@@ -382,7 +559,10 @@ function ForceLogout({ user, onDone, onCancel }) {
         }
     }
     return (
-        <DialogBody title={`Sign out ${user.name}?`} sub="Ends every session of this account right away (lost phone, shared computer). Their password stays the same.">
+        <DialogBody
+            title={`Sign out ${user.name}?`}
+            sub="Ends every session of this account right away (lost phone, shared computer). Their password stays the same."
+        >
             {error ? <Notice className="mb-4">{error}</Notice> : null}
             <div className="flex gap-2">
                 <ABtn variant="danger" busy={busy} onClick={go}>

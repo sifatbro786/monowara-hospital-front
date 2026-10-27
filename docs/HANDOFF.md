@@ -19,20 +19,44 @@
 | **B2.2 — inboxes (bookings/messages/applications), staff accounts, activity log** | ✅ Done (2026-10-27) — see below |
 | **B2.3 — doctors module + overview charts + dev fixes** | ✅ Done (2026-10-27) — see below |
 | **B2.4 — departments, facilities, diagnostics + account menu top-right** | ✅ Done (2026-10-27) — see below |
-| B2.5+ — packages, settings, hero… | ⏭ Next |
+| **B2.5–B2.9 — packages, settings + notice bar, hero + image slots, homepage blocks + stories, FAQs + careers** | ✅ Done (2026-10-27) — see below |
+| B2.10–B2.13 — Aesthetic/BHRPC, articles + gallery, pages, SEO + tap analytics + B2 QA | ⏭ Next |
 
 ---
 
-## ▶ START HERE (next chat = B2.5 — packages)
+## ▶ START HERE (next chat = B2.10 — MH Aesthetic & BHRPC)
 **Repos:** `E:\Works\monowara-hospital\mh-front` (Next.js 16, JS) · `E:\Works\monowara-hospital\mh-back` (Express 5 + Mongoose 9, ESM).
 **Local:** API `http://localhost:5036/api` · dashboard `http://localhost:3000/admin` (front `.env`: `NEXT_PUBLIC_ADMIN_API_URL=http://localhost:5036/api`). Public host later: `https://api.monowarahospital.com/api/<resource>` (no `/v1`).
 **Contract:** `docs/API_CONTRACT.md` — public GETs, admin auth, forms, uploads, inboxes, **admin doctors + stats**.
 **Roles:** `super_admin` · `opd_incharge` · `graphics_design` · `marketer` — map only in `mh-back/src/lib/permissions.js`.
-**Tests:** mh-back `npm test` (parity 163, auth, forms/uploads/inbox, doctors-admin 43, **services-admin 23**) + `npm run check`; mh-front `npm run build` + `npx eslint .`.
-**Pattern to copy for every module.** Plain named/sluggable collections use the generic pieces from B2.4 — backend `crudRouter()` (`src/lib/crud.js`, one small `admin.routes.js` per collection with its zod `fields` + `inUse`), frontend config-driven list/editor (`components/admin/services/kinds.js` field types `L | Lopt | list | bool | image | seo`; copy the folder or extend the config). Doctors stays the reference for modules with special editors:
+**Tests:** mh-back `npm test` (6 suites: parity 163, auth, forms/uploads/inbox, doctors-admin 43, services-admin 23, **content-admin 55**) + `npm run check`; mh-front `npm run build` + `npx eslint .`.
+**Pattern to copy for every module.** List-type collections = **config only**: backend `crudRouter()` (`src/lib/crud.js` — options `required`, `sluggable`, `slugFrom`, `label`, `search`, `query/filter`, `check`, `inUse`, `beforeSave`; gives list/get/create/patch/delete + `PUT /order`), frontend one entry in `lib/admin/collections.js` (field types `L Lopt list bool text select image heroImage seo departments department date youtube href consent`, `sections`, `list` columns/badges, `orderable`, `group` tabs) rendered by `components/admin/collection/{CollectionList,CollectionEditor,fields,form}.js`, plus two 10-line pages under `app/admin/<name>/`. Singletons/special screens (Settings, Notice, Image slots, Doctors) are hand-written. The B2.3 doctors notes below still describe the editor conventions:
 - Backend `src/modules/<m>/admin.routes.js` mounted in `src/routes.js` under `admin`: `GET /options` (select data) · `GET /` (all incl. hidden, filters, paged) · `GET /:id` · `POST /` · `PATCH /:id` (partial, `.strict()`) · `DELETE /:id` (409 `IN_USE` when referenced → "hide instead"). Shared helpers `src/lib/admin.js`: `zL/zLRequired/zLOptional`, `zSlug`, `zId`, `zImage(folder)`, `applyPatch` (→ activity `changes`), `setSlug` (old slug → `previousSlugs`), `slugify`, `onLeaveToday`. Log `<m>.create|update|delete`. Leave a `// B3: revalidateTag(...)` line where the save happens. Add a `test/<m>-admin.test.mjs` to `npm test`.
 - Frontend `app/admin/<m>/page.js` (list) + `app/admin/<m>/[id]/page.js` (`new` = create), each with `export const instant = false` + `<Suspense>`. Components in `components/admin/<m>/` — list (URL filters via `useUrlState`, `useAdminGet`), editor (`FormSection`, `LText` EN/বাংলা, `Toggle`, sticky save bar sending only changed keys, beforeunload guard, delete dialog), pure `<m>Form.js` (doc ⇄ form). Flip `ready: true` in `lib/admin/config.js` `NAV`, add activity labels.
-**Order after B2.5 packages:** settings (WhatsApp desks, booking mode, hero interval; notice bar = graphics_design) → hero → media slots → FAQs → Aesthetic/BHRPC teams → articles → gallery → stories (consent) → pages/legal/management → jobs → SEO → home blocks. Then B3 (`DATA_SOURCE=api`, revalidateTag on save, forms wired).
+**Remaining B2:** B2.10 MH Aesthetic + BHRPC singletons (team = ordered doctor picker, treatments list, contact numbers) → B2.11 health tips & news (articles: body, category, author/reviewer doctor, publish date) + gallery (categories, bulk upload) → B2.12 pages (About, Patients & Visitors, Management people, legal — legal = super_admin) → B2.13 SEO overrides (marketer) + WhatsApp/phone tap analytics (public `POST /api/events` from TapTracker, counts on the overview) + full B2 QA. Then B3 (`DATA_SOURCE=api`, revalidateTag on save, forms wired).
+
+---
+
+## B2.5–B2.9 — Packages, settings, hero, image slots, homepage blocks, stories, FAQs, careers (2026-10-27)
+**Generic layer (refactor of B2.4):** `crudRouter()` gained `required`, `sluggable:false`, `slugFrom`, `label`, `search`, `check(body, req, doc)`, `beforeSave(doc, body, req)` and **`PUT /order { ids }`** (arrow reordering, one `<entity>.reorder` log entry). Frontend B2.4 `components/admin/services/*` replaced by `components/admin/collection/*` + `lib/admin/collections.js` (same screens/behaviour for departments/facilities/diagnostics; B2.4 Playwright suite re-run 16/16). New helpers in `src/lib/admin.js`: `zDay`, `zPath`, `zUrl(hosts)`, `zPosition`, `zPhone`.
+
+| Step | Backend (`/api/admin/…`) | Screen | Who |
+|---|---|---|---|
+| B2.5 | `packages` — category (maternity/surgical/checkup), inclusions, departments (must exist, deduped), image, featured. **No price field** (Call for Price). Delete blocked while a homepage centre links to it | `/admin/packages` (category filter, department checkboxes) | OPD |
+| B2.6 | `settings` GET (settings or notice perm) · `PATCH /` (super admin): hotline/emergency/ambulance/landline, extra desk numbers, **WhatsApp desks** (exactly one active primary, stable ids from the label, order = position), booking mode, hero interval 2–15 s, email, address, hours, DGHS licence, years, socials (each on its own domain, https), Google Maps embed/directions (google hosts only) · `PATCH /notice` (graphics): on/off, text, internal or https link | `/admin/settings` (numbered sections, desk reorder, booking mode cards) · `/admin/notice` (live preview) | Super admin · Graphics |
+| B2.7 | `hero` slides (label, eyebrow, title with `*accent*`, subtitle, image {src from /uploads/hero, alt, position}); reorder; can't delete the last visible slide · `media` slots: GET + PATCH src/alt/position/overlay only (keys are code-defined); a replaced slot becomes `source: own` | `/admin/hero` (arrows, live title-over-photo preview, focal-point presets) · `/admin/media` (cards per slot, upload cropped 3:2 around the chosen point, darkening slider for header bands, "Stock photo" badge) | Graphics |
+| B2.8 | `keynumbers`, `centres` (internal link only; photo from home/departments/facilities/diagnostics/media), `talks` (11-char YouTube id) · `stories` — **consent**: `recordedBy` is stamped server-side from the session when consent is confirmed and cleared when withdrawn; the client can't send it; public `/api/home` still filters on consent | `/admin/keynumbers` · `/centres` · `/talks` (tabs; paste any YouTube link → id + thumbnail) · `/admin/stories` ("No consent — not shown" badge) | Graphics |
+| B2.9 | `faqs` (question/answer required, topic key lowercased) · `jobs` (department must exist, deadline as Dhaka day, delete blocked while applications point at it → hide) | `/admin/faqs` (arrows = chatbot order) · `/admin/jobs` | OPD |
+
+**Public site diffs:** `careers/[slug]` — renamed slug → 308, canonical on the current slug, and the deadline is formatted (`formatDhakaDate`) instead of printing the raw ISO date from the API.
+
+**Shared UI:** `ImageUpload` gained `query` (upload `?position=`), `imgStyle`, `overlay`, `removable`; `PositionPicker` (Left/Centre/Right/Top/Bottom + free "x% y%"); `ListEditor` moved to `collection/fields.js`.
+
+**Verified**: mh-back `npm run check` (91 files) ✅ · `npm test` 6 suites ✅ (new `content-admin.test.mjs` 55: roles per module, package rules (no price, category required, unknown dept, centre-link delete guard), settings (desk reorder + new id, one-primary rule ×2, social/map host checks, phone, email lowercase), notice (text required to switch on, href internal/https, graphics-only), hero (reorder → public order, duplicate ids, image required, last visible slide guard), media (replace → own, key immutable, role), key number, centre link, YouTube id, stories consent stamp/clear + public filtering, FAQs, jobs (Dhaka deadline, applications guard, hidden not public), activity) · mh-front build ✅, eslint clean · Playwright: B2.5–B2.9 23/23 + B2.1/2.2 25/25 + doctors 17/17 + services 16/16.
+
+**Pending / for Sifat**: restart both servers. Settings → DGHS licence + years serving are empty/old in the seed — fill from the client. Replace "Stock photo" image slots with the hospital's own photos as they arrive. Commit both repos.
+
+**Next — B2.10: MH Aesthetic & BHRPC** (`programs.manage`, OPD).
 
 ---
 
