@@ -11,6 +11,42 @@
 | 3 — Doctors & Departments | ✅ Done (2026-10-20) |
 | 4 — Packages, booking & content pages | ✅ Done (2026-10-21) |
 | 5 — Polish, SEO & demo | ✅ Done (2026-10-21) — Vercel deploy + client demo by Sifat (`docs/DEMO_CHECKLIST.md`) |
+| **Design lock** | ✅ Client locked the design (2026-10-27) → backend track |
+| **B1.1 + B1.2 — mh-back scaffold, models, seed, public API** | ✅ Done (2026-10-27) — see below |
+| B1.3 — auth, RBAC, activity log | ⏭ Next |
+| B1.4 — uploads, mail, forms, export | Pending |
+
+---
+
+## B1.1 + B1.2 — mh-back: scaffold, models, seed, public read API (2026-10-27)
+Repo: `E:\Works\monowara-hospital\mh-back` (Express 5, ESM, JavaScript). Public host decided by Sifat:
+**`https://api.monowarahospital.com/api/<resource>`** (e.g. `/api/doctors`) — no `/v1`.
+
+**Done**
+1. **Scaffold** — `src/server.js` (connect → listen on `HOST:PORT`, default `127.0.0.1:5020`; graceful SIGINT/SIGTERM; keep-alive > Nginx), `src/app.js`, `src/routes.js` (everything under `/api`), `src/config/env.js` (zod-validated env, process exits with a readable list on bad config), `src/config/db.js` (`strictQuery`), pino + pino-http (auth/cookie headers redacted; pretty in dev).
+2. **Security middleware** — helmet (CSP `default-src 'none'`, CORP `same-site`), CORS allow-list with credentials (`CORS_ORIGINS`), `query parser: simple` (no `?a[$ne]=` objects), custom body/params sanitiser (`$`/`.`/`__proto__` keys dropped — `express-mongo-sanitize` breaks on Express 5), zod `validate()` → `req.valid`, one error envelope `{ error: { code, message, details? } }` (Zod/Cast/Validation/11000/bad JSON/413 mapped; no stack traces in prod).
+3. **Rate limit** — public GETs 300/min/IP. Exempt: loopback calls **without** `X-Forwarded-For` (the Next server on the VPS, otherwise SSR would throttle itself — all renders share 127.0.0.1) and a valid `x-mh-internal-key` (`INTERNAL_API_KEY`, for `next build` off-VPS; timing-safe compare). `strictLimiter()` factory ready for login/forms.
+4. **Models** (`src/modules/<name>/model.js`, all re-exported from `src/models.js`) mirror `data/*.js` exactly: string `_id`s kept (`doc_…`, `dept_…`; new admin docs get an ObjectId-hex string), `{en,bn}` sub-schema, `isActive`/`order`, `slug` + `previousSlugs` (+ `legacySlugs` on departments/facilities/diagnostics), image fields must be `/uploads/...` paths (no external URLs), doctor `schedule` HH:MM + day enum, `leave`, package `priceMode: "call"` only. Collections: settings, heroslides, faqs, keynumbers, centres, talks, stories, departments, facilities, diagnostics, doctors, packages, articles, gallery, pages (`type: legal|site`), management, jobs, aesthetic, bhrpc, media, seo.
+5. **Public endpoints** — every row of `docs/API_CONTRACT.md` + `GET /api/health`. Doctors: `department` = id / slug / renamed slug, `day`, `q` (name en/bn, degrees, specialty en/bn, department name; regex-escaped, ≤ 80 chars), `featured`, `page`, `limit ≤ 100` (else 400) → `{ items, total, page, limit }`, department populated. Slug routes resolve the current slug first, then `previousSlugs`. Stories: only `consent.confirmed`, `consent.recordedBy` never leaves the DB. Aesthetic/BHRPC: team populated in admin order, inactive doctors skipped.
+6. **Seed** — `npm run seed -- --drop` imports `../mh-front/data/*.js` (or `--front <path>` / `MH_FRONT_DIR`). Validates everything before writing; aborts if any data field isn't in a schema (deep check — nested sub-schemas ignore `strict:"throw"`), warns on dangling refs, refuses non-empty collections without `--drop`, refuses `NODE_ENV=production` without `--production`. `--dry-run` = validation only, no DB.
+7. **mh-front diffs** — `lib/api/content.js`: static article sort comparator never returned 0 → same-day articles came out **reversed** (now date desc → order, same as the API). `lib/api/client.js` default + `.env.example`: `API_URL=http://127.0.0.1:5020/api` (127.0.0.1, not `localhost` — Node can resolve `::1`, the API binds IPv4 loopback). `docs/API_CONTRACT.md`: host, rate-limit, error rules.
+
+**Verified**: `npm run check` (esbuild, all files) ✅ · `npm run seed -- --dry-run` against the real `data/` ✅ (all 21 collections) and it rejects injected unknown fields (top-level and nested) ✅ · parity harness (real Express app, Mongoose queries answered in-memory with `sift`, compared to the static services' logic): **163/163** endpoint calls identical (all lists, filters, every detail slug) ✅ · 400 on `limit=500` / bad `day` / bad `category` / uppercase slug, `?department[$ne]=` harmless, 404s, renamed slug resolves, CORS blocks foreign origins, rate limit 429 at #301 for an `X-Forwarded-For` client while direct loopback stays 200 ✅.
+Not run here: a real `mongod` (couldn't run one in this environment) and `next build` with `DATA_SOURCE=api` → **Sifat runs both locally** (steps below).
+
+**Decisions**
+- API on a subdomain → the admin (monowarahospital.com) and API (api.monowarahospital.com) are **same-site**: `SameSite=Strict` cookies still work; cross-origin → CORS with credentials (B1.3).
+- Express 5.3 + Mongoose 9.11 (the versions Sifat installed; whole verification re-run on them). No `$lookup`/aggregation in the public API (two small queries instead).
+- Entry point is `src/server.js` (`npm run dev` / `npm start`). The empty root `server.js` from `npm init` is unused — delete it.
+- `pages` holds legal + site pages; section `body` is Mixed (legal = paragraph arrays, site = text) — the B2 admin validator enforces shape per type.
+- Settings are public as a whole; future private settings (form recipients, SMTP) must be `select: false`.
+
+**Pending / for Sifat**
+1. Install MongoDB Community locally (or use an existing one), then in `mh-back`: `npm install` → copy `.env.example` → `.env` → `npm run seed -- --drop` → `npm run dev` → open `http://127.0.0.1:5020/api/health` and `/api/doctors?limit=3`.
+2. In `mh-front` `.env.local`: `DATA_SOURCE=api`, `API_URL=http://127.0.0.1:5020/api` → `npm run build` must pass (the site must look identical to the static demo). Switch back to `static` for the Vercel demo.
+3. `git init` + first commit in `mh-back`; commit the mh-front diffs.
+
+**Next — B1.3**: `users` (bcrypt, roles super_admin/admin/marketer), `/api/auth` login/refresh/logout/me — access + refresh JWT in HttpOnly `SameSite=Strict` cookies (refresh rotation + reuse detection, idle timeout), login limiter + lockout, `requireAuth`/`requireRole`, `activitylogs`, first super-admin via a CLI script (no public signup).
 
 ---
 
@@ -101,7 +137,7 @@ Checked the code against the proposal (§3, §5.1–5.5, §7, §8) and **ran the
 | 11 | Blank optional settings (map, hours, socials, address, invalid `bookingMode`) would crash pages. | `normaliseSettings()` fills defaults (map links fall back to a name+address search). |
 | 12 | `t()` returned "" when only Bangla was filled; talk titles read `.bn` directly. | `t()` falls back to any filled language; talk titles use it. |
 
-Not changed (decisions): only the **first** active hero slide is used (single-hero design — the admin should edit one hero, not a slider); key numbers ~~stay hidden (Sifat's revision 3)~~ → shown again under the QuickPanel (2026-10-21, see Post-Phase-5); old-WordPress redirects stay in `data/redirects.mjs` (build-time) — admin slug renames use `previousSlugs` instead.
+Not changed (decisions): ~~only the **first** active hero slide is used~~ → superseded 2026-10-25: the hero is a multi-slide slider (`GET /hero` returns all active slides, interval in `settings.heroSlider.intervalSec`); key numbers ~~stay hidden (Sifat's revision 3)~~ → shown again under the QuickPanel (2026-10-21, see Post-Phase-5); old-WordPress redirects stay in `data/redirects.mjs` (build-time) — admin slug renames use `previousSlugs` instead.
 
 ---
 
@@ -287,6 +323,8 @@ See `data/_placeholders.md` and master plan §7 — WhatsApp desk labels + prima
 Not done in this environment: `git commit` (no shell on the Windows machine from this session — files were written into the repo directly; commit locally).
 
 ## Next — after design lock (backend track)
+> Design locked 2026-10-27. B1.1–B1.2 done (section at the top); continue with B1.3.
+
 Before: Sifat deploys to Vercel and runs the client demo with `docs/DEMO_CHECKLIST.md`; collect the §4 items; client signs §5.
 1. **B1 `mh-api`** (Express, modular): Mongoose models mirroring `data/*` (incl. `{en,bn}` package inclusions, structured settings address, media slots), auth (JWT HttpOnly cookie + refresh), RBAC, zod, rate limit, custom NoSQL sanitising, multer + sharp (same rules as `scripts/optimize-media.mjs`; also a JPEG OG rendition per upload), Nodemailer.
 2. **B2 admin** in `app/admin` (all proposal §5.4 modules + FAQ, hero, media slots, WhatsApp tap analytics from `contact_tap` events).

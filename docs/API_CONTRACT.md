@@ -3,10 +3,21 @@
 > What the Next.js frontend expects when `DATA_SOURCE=api`. Verified on 2026-10-21 by building and
 > crawling the whole site (288 URLs, EN + BN) against a mock API that behaves like Mongo/Express
 > (ISO dates, `limit` capped at 100, populated departments, a renamed slug, `/uploads` served
-> separately). Every public endpoint is `GET`, under `API_URL` (e.g. `http://127.0.0.1:5020/api/v1`).
+> separately). Every public endpoint is `GET`, under `API_URL`.
+>
+> **Implemented in `mh-back` (B1, 2026-10-27).** Public host: `https://api.monowarahospital.com/api/<resource>`
+> (e.g. `/api/doctors`). The Next server on the VPS calls `http://127.0.0.1:5020/api` directly (no Nginx hop);
+> browsers (admin, forms) use the public host. Parity-tested: 163/163 endpoint calls return exactly what the
+> static layer returns from `data/*.js`.
 
 ## General rules
 
+- **Hosts / limits:** `api.monowarahospital.com` (Nginx → `127.0.0.1:5020`). Public GETs are rate-limited per
+  client IP (`RATE_LIMIT_PUBLIC_PER_MIN`, default 300). Exempt: direct loopback calls without
+  `X-Forwarded-For` (the Next server on the VPS) and requests with a valid `x-mh-internal-key`
+  (`INTERNAL_API_KEY`, for `next build` on another machine). Nginx must *set* `X-Forwarded-For $remote_addr`.
+- **Errors:** `{ "error": { "code", "message", "details?" } }` — `400 VALIDATION` (bad query, e.g. `limit > 100`,
+  unknown `day`/`category`), `404 NOT_FOUND`, `429 RATE_LIMITED`. `GET /api/health` → 200 / 503 (DB down).
 - **Envelope:** `{ "data": … }` (a bare body also works). `404` → the page renders not-found. Any other
   non-2xx → the page error boundary. Requests time out after `API_TIMEOUT_MS` (default 8000).
 - **Public endpoints return active documents only** (`isActive !== false`), sorted by `order` ascending
