@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { adminFetch } from "@/lib/admin/api";
 import { COLLECTIONS, GROUPS } from "@/lib/admin/collections";
 import { cn } from "@/lib/utils";
 import { useAdminGet, useDebounced, useUrlState } from "../hooks";
 import { RequirePermission } from "../session";
-import { AIcon, Empty, Field, Notice, PageHead, abtn, inputCls } from "../ui";
+import { ABtn, AIcon, Empty, Field, Notice, PageHead, abtn, inputCls } from "../ui";
 
 export function CollectionTabs({ current }) {
     const group = COLLECTIONS[current].group;
@@ -80,8 +80,10 @@ function List({ name, cfg }) {
     const extra = Object.fromEntries(
         (cfg.filters ?? []).map((f) => [f.key, get(f.key) || undefined]),
     );
-    const list = useAdminGet(cfg.api, query);
-    const data = list.data ?? list.previous;
+    const list = useAdminGet(cfg.api, cfg.noFilters ? undefined : query);
+    const raw = list.data ?? list.previous;
+    // fixed sets (pages) come back as a plain array
+    const data = Array.isArray(raw) ? { items: raw } : raw;
     const filtered = !!(get("q") || get("status") || Object.values(extra).some(Boolean));
     const [orderError, setOrderError] = useState(null);
     const [moving, setMoving] = useState(false);
@@ -113,12 +115,22 @@ function List({ name, cfg }) {
                 title={group?.title ?? cfg.title}
                 sub={cfg.listHint}
             >
-                <Link href={`${cfg.path}/new`} className={abtn({ variant: "ink", size: "sm" })}>
-                    <AIcon name="plus" /> Add {cfg.noun}
-                </Link>
+                {cfg.bulkUpload ? (
+                    <BulkUpload
+                        cfg={cfg}
+                        category={get("category")}
+                        onDone={list.reload}
+                    />
+                ) : null}
+                {!cfg.noCreate ? (
+                    <Link href={`${cfg.path}/new`} className={abtn({ variant: "ink", size: "sm" })}>
+                        <AIcon name="plus" /> Add {cfg.noun}
+                    </Link>
+                ) : null}
             </PageHead>
             <CollectionTabs current={name} />
 
+            {!cfg.noFilters ? (
             <div
                 className={cn(
                     "mt-5 grid gap-3",
@@ -173,6 +185,7 @@ function List({ name, cfg }) {
                     </select>
                 </Field>
             </div>
+            ) : null}
 
             {list.error ? <Notice className="mt-4">{list.error.message}</Notice> : null}
             {orderError ? <Notice className="mt-4">{orderError}</Notice> : null}
@@ -284,12 +297,66 @@ function List({ name, cfg }) {
                 )}
             </section>
             <p className="mt-3 text-[0.8rem] text-ink-3">
-                {cfg.orderable
+                {cfg.listNote ?? (cfg.orderable
                     ? filtered
                         ? "Clear the search and filters to change the order."
                         : "The website shows them in this order — use the arrows to move one."
-                    : "The website follows this order — change it with “Sort order” inside each entry."}
+                    : "The website follows this order — change it with “Sort order” inside each entry.")}
             </p>
+        </>
+    );
+}
+
+/**
+ * Several photos at once (gallery): each file → POST /admin/uploads/<folder> → POST <api> { src, category }.
+ * Sequential, so one bad file doesn't stop the rest; captions are added afterwards.
+ */
+function BulkUpload({ cfg, category, onDone }) {
+    const input = useRef(null);
+    const [state, setState] = useState(null); // { done, total, failed: [] }
+
+    async function run(files) {
+        const list = [...files];
+        if (!list.length) return;
+        const failed = [];
+        setState({ done: 0, total: list.length, failed });
+        for (const [i, file] of list.entries()) {
+            try {
+                const fd = new FormData();
+                fd.append("file", file);
+                const up = await adminFetch(`/admin/uploads/${cfg.bulkUpload.folder}`, { method: "POST", body: fd });
+                await adminFetch(cfg.api, {
+                    method: "POST",
+                    body: { src: up.src, category: category || cfg.bulkUpload.category },
+                });
+            } catch (err) {
+                failed.push(`${file.name}: ${err.message}`);
+            }
+            setState({ done: i + 1, total: list.length, failed: [...failed] });
+        }
+        if (input.current) input.current.value = "";
+        onDone();
+    }
+
+    const busy = state && state.done < state.total;
+    return (
+        <>
+            <input
+                ref={input}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/avif"
+                multiple
+                hidden
+                onChange={(e) => run(e.target.files)}
+            />
+            <ABtn size="sm" busy={busy} onClick={() => input.current?.click()}>
+                <AIcon name="image" /> {busy ? `Uploading ${state.done + 1}/${state.total}…` : "Upload photos"}
+            </ABtn>
+            {state && !busy && state.failed.length ? (
+                <Notice className="basis-full">
+                    {state.failed.length} of {state.total} failed — {state.failed.join(" · ")}
+                </Notice>
+            ) : null}
         </>
     );
 }

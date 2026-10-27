@@ -4,13 +4,28 @@ import { useEffect } from "react";
 
 /**
  * One delegated listener for every WhatsApp (wa.me) and phone (tel:) link on the site.
- * Pushes a GA4-ready event into window.dataLayer — no analytics script is loaded yet;
- * B4 adds GTM/GA4, which reads this queue (and B3 can also POST it to /api/v1/taps for
- * the admin "WhatsApp tap analytics" board). No personal data: only the desk/number tapped,
- * the page and the page section.
+ * Pushes a GA4-ready event into window.dataLayer (B4 adds GTM/GA4, which reads this queue) and
+ * sends a beacon to mh-back POST /api/events/tap for the dashboard's tap board (Overview).
+ * No personal data: only the desk/number tapped and the page section.
  *
  *   { event: "contact_tap", channel: "whatsapp" | "call", desk, number, section, page_path, lang }
  */
+
+// Same API as the dashboard. Unset (static demo) → no beacon, dataLayer only.
+const TAP_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL
+    ? `${process.env.NEXT_PUBLIC_ADMIN_API_URL.replace(/\/$/, "")}/events/tap`
+    : null;
+
+/** Beacon: text/plain = CORS "simple" request (no preflight); never blocks the navigation. */
+function sendTap(payload) {
+    if (!TAP_URL || typeof navigator.sendBeacon !== "function") return;
+    try {
+        navigator.sendBeacon(TAP_URL, new Blob([JSON.stringify(payload)], { type: "text/plain" }));
+    } catch {
+        /* analytics is best-effort */
+    }
+}
+
 export function TapTracker({ lang }) {
     useEffect(() => {
         const onClick = (e) => {
@@ -30,21 +45,28 @@ export function TapTracker({ lang }) {
                     : url.slice(4).replace(/\D/g, "");
             // stable, non-localised names: data-track > nearest id > landmark tag
             const section =
-                a.closest("[data-track]")?.getAttribute("data-track") ||
-                a.closest("[id]:not(main)")?.id ||
-                a.closest("header, footer, nav, dialog")?.tagName.toLowerCase() ||
-                "main";
+                (
+                    a.closest("[data-track]")?.getAttribute("data-track") ||
+                    a.closest("[id]:not(main)")?.id ||
+                    a.closest("header, footer, nav, dialog")?.tagName.toLowerCase() ||
+                    "main"
+                )
+                    .replace(/[^\w.-]+/g, "-")
+                    .slice(0, 40) || "main";
+            const desk = a.getAttribute("data-wa-tap") || undefined;
 
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
                 event: "contact_tap",
                 channel,
-                desk: a.getAttribute("data-wa-tap") || undefined,
+                desk,
                 number,
                 section,
                 page_path: window.location.pathname,
                 lang,
             });
+            if (/^\d{5,15}$/.test(number))
+                sendTap({ channel, desk: /^[\w.-]{1,40}$/.test(desk ?? "") ? desk : undefined, number, section });
         };
         // capture phase: runs even if a component stops propagation; never blocks navigation
         document.addEventListener("click", onClick, { capture: true, passive: true });

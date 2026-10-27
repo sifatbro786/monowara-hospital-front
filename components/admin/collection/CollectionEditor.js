@@ -4,18 +4,19 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { adminFetch } from "@/lib/admin/api";
-import { COLLECTIONS } from "@/lib/admin/collections";
+import { COLLECTIONS, GROUPS } from "@/lib/admin/collections";
 import { fmtDateTime } from "@/lib/admin/format";
 import { cn } from "@/lib/utils";
 import { Dialog } from "@/components/ui/Dialog";
 import { useAdminGet } from "../hooks";
 import { RequirePermission } from "../session";
 import { ABtn, AIcon, Field, FormSection, Notice, abtn, inputCls } from "../ui";
+import { CollectionTabs } from "./CollectionList";
 import { FieldInput } from "./fields";
 import { changedKeys, missingRequired, slugify, toForm, toPayload } from "./form";
 
 export function CollectionEditor({ name }) {
-    const cfg = COLLECTIONS[name];
+    const cfg = useMemo(() => ({ ...COLLECTIONS[name], key: name }), [name]);
     return (
         <RequirePermission perm={cfg.perm}>
             <Loader cfg={cfg} />
@@ -23,10 +24,16 @@ export function CollectionEditor({ name }) {
     );
 }
 
-function Loader({ cfg }) {
+function Loader({ cfg: base }) {
     const { id } = useParams();
-    const isNew = id === "new";
-    const doc = useAdminGet(isNew ? null : `${cfg.api}/${id}`);
+    const isNew = !base.singleton && !base.noCreate && id === "new";
+    const doc = useAdminGet(isNew ? null : base.singleton ? base.api : `${base.api}/${id}`);
+    // fields that depend on the document (site vs legal page)
+    const fieldsFor = base.fieldsFor;
+    const cfg = useMemo(
+        () => (fieldsFor && doc.data ? { ...base, fields: fieldsFor(doc.data) } : base),
+        [base, fieldsFor, doc.data],
+    );
     if (doc.error) {
         return (
             <div className="py-10">
@@ -35,9 +42,11 @@ function Loader({ cfg }) {
                         ? `This ${cfg.noun} doesn't exist (maybe deleted).`
                         : doc.error.message}
                 </Notice>
-                <Link href={cfg.path} className="mt-4 inline-block text-teal-800 underline">
-                    Back to {cfg.title.toLowerCase()}
-                </Link>
+                {!cfg.singleton ? (
+                    <Link href={cfg.path} className="mt-4 inline-block text-teal-800 underline">
+                        Back to {cfg.title.toLowerCase()}
+                    </Link>
+                ) : null}
             </div>
         );
     }
@@ -109,7 +118,7 @@ function Editor({ cfg, original, onSaved }) {
                 router.replace(`${cfg.path}/${doc._id}`);
             } else {
                 const body = Object.fromEntries(changed.map((k) => [k, payload[k]]));
-                const updated = await adminFetch(`${cfg.api}/${original._id}`, {
+                const updated = await adminFetch(cfg.singleton ? cfg.api : `${cfg.api}/${original._id}`, {
                     method: "PATCH",
                     body,
                 });
@@ -132,35 +141,63 @@ function Editor({ cfg, original, onSaved }) {
     );
     const title = f[cfg.nameKey]?.en || "Untitled";
     const slugRenamed = !isNew && cfg.slug && f.slug && f.slug !== original.slug;
+    const viewUrl =
+        isNew || original.isActive === false
+            ? null
+            : cfg.viewUrl
+              ? cfg.viewUrl(original)
+              : cfg.slug?.publicBase
+                ? `${cfg.slug.publicBase}/${original.slug}`
+                : null;
+    const canDelete = !isNew && !cfg.singleton && !cfg.noCreate;
+    const group = cfg.group && cfg.singleton ? GROUPS[cfg.group] : null;
     const allErrors = { ...errors, ...(isNew ? {} : missing) };
 
     return (
         <form onSubmit={save} noValidate className="pb-28">
-            <nav className="mb-3 text-[0.84rem]">
-                <Link
-                    href={cfg.path}
-                    className="inline-flex items-center gap-1 text-ink-3 hover:text-ink"
-                >
-                    <AIcon name="prev" /> {cfg.title}
-                </Link>
-            </nav>
+            {group ? (
+                <div className="mb-6">
+                    <p className="text-[0.72rem] font-semibold tracking-[0.16em] text-teal-700 uppercase">
+                        {group.eyebrow}
+                    </p>
+                    <h1 className="mt-1 text-[1.65rem] leading-tight font-medium tracking-[-0.02em]">
+                        {group.title}
+                    </h1>
+                    <CollectionTabs current={cfg.key} />
+                </div>
+            ) : (
+                <nav className="mb-3 text-[0.84rem]">
+                    <Link
+                        href={cfg.path}
+                        className="inline-flex items-center gap-1 text-ink-3 hover:text-ink"
+                    >
+                        <AIcon name="prev" /> {GROUPS[cfg.group]?.title ?? cfg.title}
+                    </Link>
+                </nav>
+            )}
             <header className="flex flex-wrap items-start justify-between gap-4 pb-6">
                 <div className="min-w-0">
-                    <p className="text-[0.72rem] font-semibold tracking-[0.16em] text-teal-700 uppercase">
-                        {isNew ? `New ${cfg.noun}` : `Edit ${cfg.noun}`}
-                    </p>
-                    <h1 className="mt-1 truncate text-[1.65rem] leading-tight font-medium tracking-[-0.02em]">
-                        {title}
-                    </h1>
+                    {group ? (
+                        <h2 className="truncate text-[1.2rem] leading-tight font-medium">{title}</h2>
+                    ) : (
+                        <>
+                            <p className="text-[0.72rem] font-semibold tracking-[0.16em] text-teal-700 uppercase">
+                                {isNew ? `New ${cfg.noun}` : `Edit ${cfg.noun}`}
+                            </p>
+                            <h1 className="mt-1 truncate text-[1.65rem] leading-tight font-medium tracking-[-0.02em]">
+                                {title}
+                            </h1>
+                        </>
+                    )}
                     {!isNew ? (
                         <p className="mt-1 text-[0.82rem] text-ink-3">
                             Last saved {fmtDateTime(original.updatedAt)}
                         </p>
                     ) : null}
                 </div>
-                {!isNew && cfg.slug?.publicBase && original.isActive !== false ? (
+                {viewUrl ? (
                     <a
-                        href={`${cfg.slug.publicBase}/${original.slug}`}
+                        href={viewUrl}
                         target="_blank"
                         rel="noopener"
                         className={abtn({ size: "sm" })}
@@ -232,7 +269,7 @@ function Editor({ cfg, original, onSaved }) {
                                 ) : null}
                             </Field>
                         ) : null}
-                        {s === "website" && !cfg.orderable ? (
+                        {s === "website" && !cfg.orderable && !cfg.noOrder ? (
                             <Field
                                 label="Sort order"
                                 htmlFor="f-order"
@@ -252,7 +289,7 @@ function Editor({ cfg, original, onSaved }) {
                         ) : null}
                     </FormSection>
                 ))}
-                {!isNew ? (
+                {canDelete ? (
                     <FormSection
                         n={sections.length + 1}
                         title="Delete"
@@ -293,7 +330,7 @@ function Editor({ cfg, original, onSaved }) {
                 </div>
             </div>
 
-            {!isNew ? (
+            {canDelete ? (
                 <DeleteDialog
                     open={confirmDelete}
                     onClose={() => setConfirmDelete(false)}

@@ -20,20 +20,41 @@
 | **B2.3 — doctors module + overview charts + dev fixes** | ✅ Done (2026-10-27) — see below |
 | **B2.4 — departments, facilities, diagnostics + account menu top-right** | ✅ Done (2026-10-27) — see below |
 | **B2.5–B2.9 — packages, settings + notice bar, hero + image slots, homepage blocks + stories, FAQs + careers** | ✅ Done (2026-10-27) — see below |
-| B2.10–B2.13 — Aesthetic/BHRPC, articles + gallery, pages, SEO + tap analytics + B2 QA | ⏭ Next |
+| **B2.10–B2.13 — Aesthetic/BHRPC, articles + gallery, pages + management, SEO + tap analytics + B2 QA** | ✅ Done (2026-10-27) — **B2 complete** |
+| B3 — site reads the API (`DATA_SOURCE=api`), revalidate on save, forms wired, SEO overrides applied | ⏭ Next |
 
 ---
 
-## ▶ START HERE (next chat = B2.10 — MH Aesthetic & BHRPC)
+## ▶ START HERE (next chat = B3 — connect the public site to mh-back)
 **Repos:** `E:\Works\monowara-hospital\mh-front` (Next.js 16, JS) · `E:\Works\monowara-hospital\mh-back` (Express 5 + Mongoose 9, ESM).
 **Local:** API `http://localhost:5036/api` · dashboard `http://localhost:3000/admin` (front `.env`: `NEXT_PUBLIC_ADMIN_API_URL=http://localhost:5036/api`). Public host later: `https://api.monowarahospital.com/api/<resource>` (no `/v1`).
 **Contract:** `docs/API_CONTRACT.md` — public GETs, admin auth, forms, uploads, inboxes, **admin doctors + stats**.
 **Roles:** `super_admin` · `opd_incharge` · `graphics_design` · `marketer` — map only in `mh-back/src/lib/permissions.js`.
-**Tests:** mh-back `npm test` (6 suites: parity 163, auth, forms/uploads/inbox, doctors-admin 43, services-admin 23, **content-admin 55**) + `npm run check`; mh-front `npm run build` + `npx eslint .`.
-**Pattern to copy for every module.** List-type collections = **config only**: backend `crudRouter()` (`src/lib/crud.js` — options `required`, `sluggable`, `slugFrom`, `label`, `search`, `query/filter`, `check`, `inUse`, `beforeSave`; gives list/get/create/patch/delete + `PUT /order`), frontend one entry in `lib/admin/collections.js` (field types `L Lopt list bool text select image heroImage seo departments department date youtube href consent`, `sections`, `list` columns/badges, `orderable`, `group` tabs) rendered by `components/admin/collection/{CollectionList,CollectionEditor,fields,form}.js`, plus two 10-line pages under `app/admin/<name>/`. Singletons/special screens (Settings, Notice, Image slots, Doctors) are hand-written. The B2.3 doctors notes below still describe the editor conventions:
+**Tests:** mh-back `npm test` (7 suites: parity 163, auth, forms/uploads/inbox, doctors-admin 43, services-admin 23, content-admin 55, **final-admin 42**) + `npm run check`; mh-front `npm run build` + `npx eslint .`.
+**Pattern to copy for every module.** List-type collections = **config only**: backend `crudRouter()` (`src/lib/crud.js` — options `required`, `sluggable`, `slugFrom`, `label`, `search`, `query/filter`, `check`, `inUse`, `beforeSave`; gives list/get/create/patch/delete + `PUT /order`), frontend one entry in `lib/admin/collections.js` (field types `L Lopt list bool text select image heroImage seo departments department date youtube href consent number textNull ref ids path treatments pillars sections`, `sections`, `list` columns/badges, `orderable`, `group` tabs; modes `singleton`, `noCreate`, `fieldsFor(doc)`, `viewUrl`, `bulkUpload`) rendered by `components/admin/collection/{CollectionList,CollectionEditor,fields,form}.js`, plus two 10-line pages under `app/admin/<name>/`. Singletons/special screens (Settings, Notice, Image slots, Doctors) are hand-written. The B2.3 doctors notes below still describe the editor conventions:
 - Backend `src/modules/<m>/admin.routes.js` mounted in `src/routes.js` under `admin`: `GET /options` (select data) · `GET /` (all incl. hidden, filters, paged) · `GET /:id` · `POST /` · `PATCH /:id` (partial, `.strict()`) · `DELETE /:id` (409 `IN_USE` when referenced → "hide instead"). Shared helpers `src/lib/admin.js`: `zL/zLRequired/zLOptional`, `zSlug`, `zId`, `zImage(folder)`, `applyPatch` (→ activity `changes`), `setSlug` (old slug → `previousSlugs`), `slugify`, `onLeaveToday`. Log `<m>.create|update|delete`. Leave a `// B3: revalidateTag(...)` line where the save happens. Add a `test/<m>-admin.test.mjs` to `npm test`.
 - Frontend `app/admin/<m>/page.js` (list) + `app/admin/<m>/[id]/page.js` (`new` = create), each with `export const instant = false` + `<Suspense>`. Components in `components/admin/<m>/` — list (URL filters via `useUrlState`, `useAdminGet`), editor (`FormSection`, `LText` EN/বাংলা, `Toggle`, sticky save bar sending only changed keys, beforeunload guard, delete dialog), pure `<m>Form.js` (doc ⇄ form). Flip `ready: true` in `lib/admin/config.js` `NAV`, add activity labels.
-**Remaining B2:** B2.10 MH Aesthetic + BHRPC singletons (team = ordered doctor picker, treatments list, contact numbers) → B2.11 health tips & news (articles: body, category, author/reviewer doctor, publish date) + gallery (categories, bulk upload) → B2.12 pages (About, Patients & Visitors, Management people, legal — legal = super_admin) → B2.13 SEO overrides (marketer) + WhatsApp/phone tap analytics (public `POST /api/events` from TapTracker, counts on the overview) + full B2 QA. Then B3 (`DATA_SOURCE=api`, revalidateTag on save, forms wired).
+**B3 plan (connect the site):** 1) `lib/api/*` switch on `DATA_SOURCE=api` → fetch mh-back public GETs with `cacheTag` per resource (read `node_modules/next/dist/docs` for `"use cache"`/`cacheTag`/`revalidateTag` in 16) and keep the mock path for the Vercel demo; 2) mh-back calls a secret-protected Next route `POST /api/revalidate { tags }` at every `// B3: revalidateTag(...)` line; 3) wire the public forms (booking, contact, careers apply with CV) to the B1.4 endpoints; 4) apply SEO overrides (`/api/seo` public read by path) in `generateMetadata`; 5) render Management on About and the article doctor byline; 6) full site QA against the live API.
+
+---
+
+## B2.10–B2.13 — Programmes, articles, gallery, pages, SEO, tap analytics (2026-10-27)
+| Step | Backend (`/api/admin/…`) | Screen | Who |
+|---|---|---|---|
+| B2.10 | `programs/aesthetic` + `programs/bhrpc` singletons (GET/PATCH), `programs/options` | `/admin/aesthetic` · `/admin/bhrpc` (tabs). Ordered doctor team picker, treatments cards (name/summary/photo/show), contact desk, BHRPC who-for/services lists + reading list (article picker) | OPD |
+| B2.11 | `articles` (+ `articles/options` doctors for bylines — graphics can't read `/admin/doctors`) · `gallery` | `/admin/articles` (category filter, sections editor, publish date, "Scheduled" badge, written by / reviewed by) · `/admin/gallery` (**Upload photos** = multi-file bulk upload into the current category, arrows = gallery order, "Caption missing" badge) | Graphics |
+| B2.12 | `pages` (site → pages.manage, legal → legal.manage; fixed set) · `management` | `/admin/pages` (About: text/pillars/mission/vision; Patients & Visitors: sections with **#anchors kept**, bullet points, "Confirmed by the hospital" switch; legal: paragraphs separated by a blank line, Draft switch) · `/admin/management` (tab) | Graphics (legal: super admin) |
+| B2.13 | `seo` overrides + `seo/paths` · public `POST /api/events/tap` → `tapstats` · `stats/overview.taps` | `/admin/seo` (page picker with suggestions, EN/BN counters 60/155, share image) · Overview **WhatsApp & call taps** (daily bars, by desk / number / section) for marketer + super admin | Marketer |
+
+**Generic layer:** `crudRouter({ sort })`; `collections.js` modes `singleton`, `noCreate` (+ `noFilters`, `noOrder`, `listNote`), `fieldsFor(doc)`, `viewUrl(doc)`, `bulkUpload`; new field types `number textNull ref ids path treatments pillars sections(variant article|site|legal)` with a shared `Repeater`. `TapTracker` now also sends a `sendBeacon` (text/plain, no preflight) to `${NEXT_PUBLIC_ADMIN_API_URL}/events/tap`; with the env unset (Vercel demo) only the dataLayer push happens. Icons `images`, `news` added.
+
+**Decisions:** article/gallery categories are a fixed select (keys must exist in the site dictionaries `tips.categories` / `gallery.categories`); page slugs/anchors can't change from the dashboard (menus link to them); the tap board counts taps only — no visitor data.
+
+**Verified:** mh-back `npm run check` ✅ · `npm test` 7 suites ✅ (`final-admin` 42: roles per module, team/topic validation, treatment slugs, article rules + BHRPC delete guard, byline options, gallery, management, page types/permissions/anchors/legal paragraphs, SEO duplicate path + paths, beacon origin/junk/upsert, taps stats) · mh-front build ✅, eslint clean · Playwright B2.10–B2.13 22/22 (incl. real beacon from the public homepage counted on the overview, graphics/marketer menus, marketer at 390 px).
+
+**Pending / for Sifat:** restart both servers; front `.env` must have `NEXT_PUBLIC_ADMIN_API_URL` for the tap beacon (already there locally; production = `https://api.monowarahospital.com/api`). Run `npm run seed` again if your local DB predates the articles/gallery/pages seed. Client to provide: Management people + chairman's message, legal text review (pages are marked Draft), Aesthetic clinic phone/WhatsApp, more gallery photos.
+
+**Next — B3** (see START HERE).
 
 ---
 

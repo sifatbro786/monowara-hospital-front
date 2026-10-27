@@ -13,6 +13,43 @@ export function youtubeId(input = "") {
     return m ? m[1] : s;
 }
 
+const paras = (text) =>
+    text
+        .split(/\n\s*\n/)
+        .map((p) => p.trim())
+        .filter(Boolean);
+
+/**
+ * Content sections. variant: "article" { heading, body } · "site" + anchor id, bullet points,
+ * "confirm" marker and link (kept as-is) · "legal" body = paragraph arrays, edited as text with
+ * a blank line between paragraphs.
+ */
+function sectionToForm(variant, s = {}) {
+    const f = { id: s.id ?? "", heading: L(s.heading) };
+    if (variant === "legal") {
+        f.body = { en: (s.body?.en ?? []).join("\n\n"), bn: (s.body?.bn ?? []).join("\n\n") };
+    } else f.body = L(s.body);
+    if (variant === "site") {
+        f.points = s.points ? s.points.map(L) : null;
+        f.confirm = s.confirm;
+        f.link = s.link;
+    }
+    return f;
+}
+
+function sectionToPayload(variant, x) {
+    if (variant === "article") return { heading: trimL(x.heading), body: trimL(x.body) };
+    const base = { ...(x.id && { id: x.id }), heading: trimL(x.heading) };
+    if (variant === "legal") return { ...base, body: { en: paras(x.body.en), bn: paras(x.body.bn) } };
+    return {
+        ...base,
+        body: trimL(x.body),
+        ...(x.points && { points: x.points.map(trimL).filter((p) => p.en || p.bn) }),
+        ...(x.confirm !== undefined && { confirm: x.confirm }),
+        ...(x.link && { link: x.link }),
+    };
+}
+
 export function toForm(cfg, d = {}) {
     const f = { order: d.order ?? "" };
     if (cfg.slug) f.slug = d.slug ?? "";
@@ -61,6 +98,31 @@ export function toForm(cfg, d = {}) {
                     date: toDhakaDay(v?.date),
                     recordedBy: v?.recordedBy ?? null,
                 };
+                break;
+            case "number":
+            case "textNull":
+            case "ref":
+            case "path":
+                f[fd.key] = v ?? "";
+                break;
+            case "ids":
+                f[fd.key] = [...(v ?? [])];
+                break;
+            case "treatments":
+                f[fd.key] = (v ?? []).map((t) => ({
+                    _id: t._id,
+                    slug: t.slug,
+                    name: L(t.name),
+                    summary: L(t.summary),
+                    image: t.image ?? null,
+                    isActive: t.isActive !== false,
+                }));
+                break;
+            case "pillars":
+                f[fd.key] = (v ?? []).map((p) => ({ title: L(p.title), body: L(p.body) }));
+                break;
+            case "sections":
+                f[fd.key] = (v ?? []).map((s) => sectionToForm(fd.variant, s));
                 break;
         }
     }
@@ -118,10 +180,39 @@ export function toPayload(cfg, f) {
                 out[fd.key] = youtubeId(v);
                 break;
             case "date":
-                out[fd.key] = v || null;
+                if (v || !fd.omitEmpty) out[fd.key] = v || null;
                 break;
             case "consent":
                 out[fd.key] = { confirmed: v.confirmed, date: v.confirmed ? v.date || null : null };
+                break;
+            case "number":
+                out[fd.key] = v === "" || v === null ? null : Number(v);
+                break;
+            case "textNull":
+            case "ref":
+                out[fd.key] = String(v).trim() || null;
+                break;
+            case "path":
+                out[fd.key] = v.trim();
+                break;
+            case "ids":
+                out[fd.key] = v;
+                break;
+            case "treatments":
+                out[fd.key] = v.map((t) => ({
+                    ...(t._id && { _id: t._id }),
+                    ...(t.slug && { slug: t.slug }),
+                    name: trimL(t.name),
+                    summary: trimL(t.summary),
+                    image: t.image || null,
+                    isActive: t.isActive,
+                }));
+                break;
+            case "pillars":
+                out[fd.key] = v.map((p) => ({ title: trimL(p.title), body: trimL(p.body) }));
+                break;
+            case "sections":
+                out[fd.key] = v.map((x) => sectionToPayload(fd.variant, x));
                 break;
         }
     }

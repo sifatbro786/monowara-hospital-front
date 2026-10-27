@@ -90,6 +90,7 @@ export function Overview() {
                 <InboxInsight m={stats.messages} a={stats.applications} days={stats.days} />
             ) : null}
             {stats?.doctors ? <DoctorHealth d={stats.doctors} /> : null}
+            {stats?.taps ? <TapsInsight t={stats.taps} days={stats.days} /> : null}
 
             <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
                 <section aria-labelledby="ov-access">
@@ -292,6 +293,55 @@ function InboxInsight({ m, a, days }) {
                     />
                 </div>
             ) : null}
+        </section>
+    );
+}
+
+/** WhatsApp / call button taps from the site's beacon (no personal data — desk, number, section). */
+function TapsInsight({ t, days }) {
+    const rows = (list) => list.map((r) => ({ key: r.key, label: r.label, value: r.count }));
+    return (
+        <section className="mt-10" aria-labelledby="ov-taps">
+            <SectionTitle id="ov-taps">WhatsApp & call taps · last {days} days</SectionTitle>
+            <div className="mt-3 grid gap-px overflow-hidden rounded-xl border border-line bg-line lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)]">
+                <div className="bg-card p-5">
+                    <p className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+                        <span className="flex items-baseline gap-2">
+                            <span className="text-[2.1rem] leading-none font-medium tabular-nums">
+                                {t.total}
+                            </span>
+                            <span className="text-[0.86rem] text-ink-3">taps</span>
+                        </span>
+                        <span className="text-[0.86rem] text-ink-2">
+                            <AIcon name="whatsapp" className="mr-1 inline text-teal-700" />
+                            {t.whatsapp} WhatsApp
+                        </span>
+                        <span className="text-[0.86rem] text-ink-2">
+                            <AIcon name="phone" className="mr-1 inline text-teal-700" />
+                            {t.calls} calls
+                        </span>
+                    </p>
+                    <DailyBars data={t.daily} noun="tap" className="mt-6" />
+                    <p className="mt-3 text-[0.78rem] text-ink-3">
+                        Counted when a visitor taps a WhatsApp or phone button on the website — the
+                        chat or call itself isn&apos;t tracked.
+                    </p>
+                </div>
+                <div className="grid gap-px bg-line">
+                    <div className="bg-card p-5">
+                        <h3 className="mb-3 text-[0.86rem] font-medium">WhatsApp desks</h3>
+                        <HBars rows={rows(t.byDesk)} empty="No WhatsApp taps yet." />
+                    </div>
+                    <div className="bg-card p-5">
+                        <h3 className="mb-3 text-[0.86rem] font-medium">Numbers called</h3>
+                        <HBars rows={rows(t.byNumber)} empty="No call taps yet." />
+                    </div>
+                    <div className="bg-card p-5">
+                        <h3 className="mb-3 text-[0.86rem] font-medium">Where on the page</h3>
+                        <HBars rows={rows(t.bySection)} empty="—" />
+                    </div>
+                </div>
+            </div>
         </section>
     );
 }

@@ -229,3 +229,19 @@ All list-type modules use the `crudRouter` contract above (+ `PUT /<module>/orde
 Singletons / special:
 - `GET /api/admin/settings` (settings.manage or notice.manage) · `PATCH /api/admin/settings` (settings.manage — any subset of the settings fields; `whatsappNumbers` = full list in display order, exactly one active primary; new desks get `_id` from the label) · `PATCH /api/admin/settings/notice { isActive, text{en,bn}, href }` (notice.manage).
 - `GET /api/admin/media` · `PATCH /api/admin/media/:id { src?, alt?, position?, overlay? }` (media.manage). Upload with `POST /api/admin/uploads/media?position=<css position>` (3:2 crop around it).
+
+## Admin: B2.10–B2.13 — programmes, articles, gallery, pages, SEO, taps
+
+| Route | Permission | Notes |
+|---|---|---|
+| `GET /api/admin/programs/options` | programs.manage | `{ doctors[{_id,name,designation,department,photo,isActive}], articles[{_id,title,slug,category,isActive}] }` for the pickers |
+| `GET\|PATCH /api/admin/programs/aesthetic` | programs.manage | singleton: name, tagline, about, mission, vision, phone, whatsapp, email, hours, location, heroImage (`/uploads/aesthetic`), `doctors[]` (ordered ids, must exist → 400 `UNKNOWN_DOCTOR`), `treatments[{_id?,slug?,name,summary,image,isActive}]` (full list in display order; new ones get `aes_<slug>`). Logs `aesthetic.update` |
+| `GET\|PATCH /api/admin/programs/bhrpc` | programs.manage | singleton: short, name, tagline, about, whoFor[], services[], doctors[], `topics[]` = article slugs (400 `UNKNOWN_ARTICLE`). Logs `bhrpc.update` |
+| `/api/admin/articles` (+ `GET /articles/options` → `{ doctors }`) | articles.manage | crud; `?category`; newest first; required `title`, `category`; `publishedAt` Dhaka day (omitted on create = today; future = scheduled); `sections[{heading,body}]`; `author`/`reviewedBy` doctor ids or null; delete blocked while on the BHRPC reading list |
+| `/api/admin/gallery` | gallery.manage | crud, not sluggable; required `src`; `?category`; bulk upload = upload + POST per file |
+| `/api/admin/management` | pages.manage | crud, not sluggable; name, role, photo (`/uploads/management`), message |
+| `GET /api/admin/pages` · `GET\|PATCH /api/admin/pages/:id` | pages.manage (site) · legal.manage (legal) | fixed set — no create/delete/slug change; list = plain array of the types you may edit. Site body: title, summary, body, sections[{id,heading,body,points?,confirm?,link?}], pillars, mission, vision, isActive. Legal body: title, summary, sections[{id,heading,body{en:[…],bn:[…]}}], isDraft, isActive. Missing anchors are generated from the heading |
+| `/api/admin/seo` (+ `GET /seo/paths` → `[{path,label}]`) | seo.manage | crud, not sluggable, sorted by path; required `path` (locale-less, `/doctors/x`), unique → 409 `DUPLICATE_PATH`; title ≤70, description ≤170, image (`/uploads/seo`), isActive. **Read by the site in B3** |
+| `POST /api/events/tap` | public | beacon from `TapTracker` (text/plain JSON `{channel:"whatsapp"\|"call", desk?, number, section?}`), always 204, foreign Origin ignored, 60/10 min per IP; counted per Dhaka day in `tapstats` |
+
+`GET /api/admin/stats/overview` adds `taps { total, whatsapp, calls, daily[], byDesk[], byNumber[], bySection[] }` for seo.manage or settings.manage.
