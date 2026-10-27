@@ -87,3 +87,87 @@ number, isPrimary, isActive, order }`, `bookingMode` (`numbers`|`form`|`both`, a
 - `seo[]`: keyed by locale-less path (`/doctors`, `/doctors/<slug>`); an override applies only in the
   language it was written in.
 - All admin text is rendered as plain text (never HTML). `*phrase*` in titles = one italic accent.
+
+---
+
+## Admin auth (B1.3) — what the B2 admin UI must do
+
+All under `https://api.monowarahospital.com/api` (local `http://localhost:5036/api`). Browser calls only.
+
+**Every admin request:** `fetch(url, { credentials: "include", headers: { "X-Requested-With": "mh-admin", "Content-Type": "application/json" } })`.
+The header is mandatory on POST/PATCH/PUT/DELETE (CSRF guard); the Origin must be in `CORS_ORIGINS`.
+Cookies are HttpOnly — the UI never sees or stores tokens (no localStorage).
+
+| Endpoint | Body | Result |
+|---|---|---|
+| `POST /auth/login` | `{ email, password }` | `{ user, permissions[] }` + sets `mh_at` (access, 10 min, Path=/api) and `mh_rt` (refresh, Path=/api/auth) |
+| `POST /auth/refresh` | — | rotates both cookies → `{ user, permissions }` |
+| `POST /auth/logout` | — | revokes this session, clears cookies (always 200) |
+| `POST /auth/logout-all` | — | revokes every session of the user |
+| `GET /auth/me` | — | `{ user, permissions }` (works while a password change is pending) |
+| `POST /auth/password` | `{ currentPassword, newPassword }` | other sessions die, this browser gets new cookies |
+| `GET /admin/users` | `?q&role&active&page&limit` | `{ items, total, page, limit }` — `users.manage` |
+| `POST /admin/users` | `{ name, email, role, password }` | 201 user, `mustChangePassword: true` |
+| `PATCH /admin/users/:id` | `{ name?, role?, isActive? }` | role/active change revokes their sessions; can't change self |
+| `POST /admin/users/:id/reset-password` | `{ password }` | temp password, unlocks, revokes sessions |
+| `POST /admin/users/:id/logout-all` | — | force sign-out |
+| `GET /admin/activity` | `?actor&action (or "auth.*")&entity&entityId&from&to&page&limit` | `{ items, total, page, limit }` newest first — `activity.read` |
+
+`user` = `{ _id, name, email, role, isActive, mustChangePassword, lastLoginAt, passwordChangedAt, createdAt, updatedAt }`.
+`permissions` drive menu visibility only — the server checks every route (map in `mh-back/src/lib/permissions.js`).
+
+**Roles (client, 2026-10-27):** `super_admin` (everything + users, settings, activity log, legal pages) ·
+`opd_incharge` (doctors & chamber times, departments/facilities/diagnostics, packages, Aesthetic/BHRPC,
+bookings, messages, careers, FAQs) · `graphics_design` (hero, homepage blocks, image slots, gallery,
+health tips & news, patient stories, notice bar, About/Patients & Visitors/Management pages) ·
+`marketer` (SEO).
+
+**Client error handling (one fetch wrapper):**
+- `401 TOKEN_EXPIRED` → `POST /auth/refresh` once, then retry the original request.
+- `409 REFRESH_RACE` → another tab just refreshed; retry the original request (no second refresh).
+- any other `401` (`AUTH_REQUIRED`, `SESSION_REVOKED`, `SESSION_IDLE`, `SESSION_EXPIRED`, `INVALID_CREDENTIALS`) → login screen.
+- `403 PASSWORD_CHANGE_REQUIRED` → change-password screen. `403 FORBIDDEN` → "no access" state.
+- `429 ACCOUNT_LOCKED` (message has the minutes) / `429 RATE_LIMITED`.
+- Password rule: ≥ 10 chars, ≤ 72 bytes, at least one letter and one number.
+
+**Dev note:** SameSite=Strict cookies need the admin page and the API on the same *site*: open the
+frontend at `http://localhost:3000` and call the API at `http://localhost:5036` (not 127.0.0.1), or proxy
+`/api` through Next in dev (B2 decides).
+
+---
+
+## Public forms (B1.4) — wired in B3
+
+Browser → API directly (no cookies). JSON, except the CV upload. Send the honeypot `website` (empty) and
+`source` (current path) from every form. `201 { data: { received: true, id } }` on success; a filled
+honeypot also gets `202 { received: true }` (silently dropped). Errors: `400 VALIDATION` with
+`details[{ path, message }]` → show next to the field; `429 RATE_LIMITED` → "please try again in a few minutes".
+
+| Endpoint | Body | Limits / rules |
+|---|---|---|
+| `POST /api/contact` | `{ name, phone, email?, subject?, message, website, source? }` | 5 / 10 min / IP. phone = BD mobile (stored `01XXXXXXXXX`), message 5–800 |
+| `POST /api/appointments` | `{ name, phone, department? (slug), doctor? (slug), date? (YYYY-MM-DD), note?, website, source? }` | 5 / 10 min / IP. `403 BOOKING_DISABLED` unless `settings.bookingMode` is `form`/`both`. Date: today … +60 days (Dhaka). With doctor + date: `409 NO_CHAMBER` (no chamber that weekday), `409 DOCTOR_ON_LEAVE`. `409 DUPLICATE_BOOKING` = same phone + doctor + day still open. `400 UNKNOWN_DOCTOR` / `UNKNOWN_DEPARTMENT` |
+| `POST /api/careers/apply` | multipart: `name, phone, email, job? (slug), note?, website, source?` + file `cv` | 3 / 30 min / IP. CV = PDF/DOC/DOCX by **file content** (`415 CV_TYPE`), ≤ 5 MB (`413 FILE_TOO_LARGE`), `400 CV_REQUIRED`, `400 UNKNOWN_JOB`. Stored privately, never public |
+
+Each accepted form emails a plain-text alert to `ADMIN_EMAIL` (Reply-To = sender when given). Mail failures never fail the form.
+
+## Admin: uploads & inboxes (B1.4)
+
+`POST /api/admin/uploads/:folder?position=<css position>` — multipart field `file` (JPG/PNG/WebP/AVIF by
+content, ≤ 10 MB). Folder → permission: `doctors` (doctors) · `departments|facilities|diagnostics`
+(departments) · `packages` · `aesthetic` (programs) · `hero` · `home` · `media` · `gallery` · `articles` ·
+`management` (pages) · `seo`. → `201 { src: "/uploads/<folder>/<name>.webp", og: "/uploads/…og.jpg" | null,
+width, height, bytes, originalBytes, warnings[] }`. Save `src` into the document field. WebP re-encode,
+EXIF stripped, auto-rotated, max width per folder (hero 2560 + warning under 2000, doctors 900, media cropped
+to 3:2 around `position`). SVG/HEIC rejected (`415`).
+
+Inboxes — same shape for `/api/admin/messages` (messages.manage), `/api/admin/bookings` (bookings.manage),
+`/api/admin/applications` (careers.manage):
+- `GET /` `?status&q&from&to&page&limit` (+ bookings `doctor`, `date`; applications `job`) →
+  `{ items, total, page, limit, counts: { <status>: n } }` (tab badges)
+- `GET /export.xlsx` same filters → Excel download (≤ 5000 rows, formula-safe, logged)
+- `GET /:id`, `PATCH /:id { status?, staffNote? }` (+ bookings `serial` 1–999) → sets handledBy/handledAt, logged
+- `GET /api/admin/applications/:id/cv` → the CV as a download (logged)
+
+Statuses — messages `new|read|replied|archived` · bookings `new|confirmed|completed|cancelled|no_show` ·
+applications `new|reviewed|shortlisted|rejected|hired`.

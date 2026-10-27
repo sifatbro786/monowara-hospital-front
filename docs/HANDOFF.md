@@ -13,8 +13,70 @@
 | 5 — Polish, SEO & demo | ✅ Done (2026-10-21) — Vercel deploy + client demo by Sifat (`docs/DEMO_CHECKLIST.md`) |
 | **Design lock** | ✅ Client locked the design (2026-10-27) → backend track |
 | **B1.1 + B1.2 — mh-back scaffold, models, seed, public API** | ✅ Done (2026-10-27) — see below |
-| B1.3 — auth, RBAC, activity log | ⏭ Next |
-| B1.4 — uploads, mail, forms, export | Pending |
+| **B1.3 — auth, RBAC, activity log** | ✅ Done (2026-10-27) — see below |
+| **B1.4 — roles update, uploads, mail, forms, inboxes, export** | ✅ Done (2026-10-27) — see below |
+| B2 — admin dashboard | ⏭ Next |
+
+---
+
+## ▶ START HERE (next chat = B2 admin dashboard)
+**Repos:** `E:\Works\monowara-hospital\mh-front` (Next.js 16, JS) · `E:\Works\monowara-hospital\mh-back` (Express 5 + Mongoose 9, ESM).
+**Local:** API `http://127.0.0.1:5036/api` (Atlas DB `monowara`, seeded) · front `.env` has `DATA_SOURCE=api`. Public host later: `https://api.monowarahospital.com/api/<resource>` (no `/v1`).
+**Contract:** `docs/API_CONTRACT.md` — public GETs, admin auth (cookies, `X-Requested-With`, refresh/retry rules), forms, uploads, inboxes.
+**Roles (client-confirmed):** `super_admin` (all) · `opd_incharge` (doctors/schedules, departments/facilities/diagnostics, packages, Aesthetic/BHRPC, bookings, messages, careers, FAQs) · `graphics_design` (hero, home blocks, media slots, gallery, articles, stories, notice bar, About/Patients & Visitors/Management) · `marketer` (SEO). Legal pages = super_admin only. Map: `mh-back/src/lib/permissions.js`.
+**Backend tests:** in `mh-back`: `npm test` (public parity 163, auth 46, forms/uploads/inbox 53 — real Express + Mongoose on an in-memory driver, no DB needed) and `npm run check` (esbuild). Run both after every backend change.
+**B2 plan:** (1) `app/admin` shell — noindex, not localised, own layout (no site Loader/TopBar), login + forced password change, one `adminFetch` wrapper (credentials: include, `X-Requested-With: mh-admin`, 401 TOKEN_EXPIRED → refresh once → retry, 409 REFRESH_RACE → retry), role-based nav from `permissions`. Dev cookie note: SameSite=Strict needs the browser to call the API on the same site as the page → either `NEXT_PUBLIC_API_URL=http://localhost:5036/api` or a dev rewrite of `/api` in next.config (decide first). (2) Inboxes (bookings/messages/applications + export, CV download), users, activity log — backend already done. (3) CRUD per module: backend `POST/PATCH/DELETE /api/admin/<module>` (zod mirroring the Mongoose models, `logActivity` with before/after, `previousSlugs` on slug rename) + screen; doctors (schedule editor HH:MM, leave), departments, packages, hero (+ settings.heroSlider.intervalSec), media slots, settings (WhatsApp desks, booking mode, notice bar = graphics_design), SEO, FAQs, articles, gallery, stories (consent required), pages, jobs. (4) B3 hook: after each admin save call Next `revalidateTag` (needs a secured revalidate route in mh-front).
+
+---
+
+## B1.4 — Client roles, uploads, mail, public forms, inboxes, Excel export (2026-10-27)
+**Roles changed (client decision):** `super_admin`, `opd_incharge`, `graphics_design`, `marketer` — the old `admin` role is gone.
+Map (only in `src/lib/permissions.js`): super_admin = everything (+ users, settings, activity log, **legal pages**); opd_incharge = doctors/chamber times, departments/facilities/diagnostics, packages, Aesthetic/BHRPC, bookings, messages, careers, **FAQs**; graphics_design = hero, homepage blocks, image slots, gallery, health tips & news, patient stories, notice bar, About/Patients & Visitors/Management pages; marketer = SEO only. Bold = my assumption, one-line change if the client disagrees.
+
+**Done**
+1. **Uploads** (`src/modules/uploads`) — `POST /api/admin/uploads/:folder`, permission per folder, multer in memory (raw file never hits disk) → sharp decode-check (non-images, SVG, HEIC → 415), auto-rotate, EXIF/GPS stripped, WebP at a per-folder max width (same rules as `scripts/optimize-media.mjs`; media slots cropped to 3:2 around `position`), 1200×630 JPEG OG rendition for share-able folders, random-suffixed safe names, atomic write. sharp cache off + concurrency 1 for the 1-vCPU VPS. Dev: `SERVE_UPLOADS=true` serves `UPLOAD_DIR` at `/uploads`.
+2. **Mail** (`src/lib/mailer.js`) — Nodemailer pool from `SMTP_*`, plain text only, header CR/LF stripped, never throws (logged), alerts are fire-and-forget to `ADMIN_EMAIL` with a dashboard link (`ADMIN_URL`).
+3. **Public forms** (`src/modules/forms`) — field names match the existing `BookingForm`/`ContactForm`/`ApplyForm`: `POST /api/contact`, `/api/appointments`, `/api/careers/apply`. Allow-listed Origin, per-IP limits (5/10 min; apply 3/30 min), honeypot → silent 202, BD mobile normalised, names/subjects forced single-line, control chars stripped. Appointments: only when `bookingMode` is form/both; date window today…+60 (Dhaka), chamber weekday + leave checks, duplicate guard, slot + doctor/department name snapshots. CV: type by magic bytes (PDF/DOC/DOCX), ≤ 5 MB, stored under `PRIVATE_DIR/cv/YYYY-MM/<random>.<ext>` (never web-served).
+4. **Inboxes** (`src/modules/inbox`) — `messages`, `bookings`, `applications` collections; one router factory: list (+ status tab counts), filters, `PATCH` status/staffNote (+ booking `serial`) with handledBy/At and before/after activity entries, `export.xlsx` (exceljs, ≤ 5000 rows, formula-injection-safe cells, export logged), CV download (attachment, nosniff, logged).
+5. Error handler: Multer errors → 413/400; Express-internal 4xx (static 404) keep their status without leaking paths.
+6. Deps (pinned): `multer 2.4.0`, `sharp 0.35.5`, `nodemailer 10.0.16`, `exceljs 4.4.0`. New env: `UPLOAD_DIR`, `PRIVATE_DIR`, `SERVE_UPLOADS`, `UPLOAD_MAX_MB`, `CV_MAX_MB`, `SMTP_*`, `MAIL_FROM`, `ADMIN_EMAIL`, `ADMIN_URL`.
+
+**Verified**: `npm run check` (77 files) ✅ · B1.4 end-to-end (real Express + Mongoose on the in-memory driver, real seeded doctors/departments/jobs, a fake SMTP server capturing mails): **53/53** — normalisation, header-injection, honeypot, field errors, origin, rate limit, booking off/on, chamber slot, duplicate, no-chamber day, past date, unknown doctor, leave, department-only; PDF/DOCX accepted, exe-as-pdf 415, 6 MB 413; role 403s per inbox; booking confirm + serial; PATCH can't edit patient data; xlsx parsed back (no formula cells, `'=HYPERLINK`); CV bytes identical + not reachable via /uploads; uploads per role, EXIF rotate + strip, 3:2 crop, OG 1200×630, SVG/text 415, traversal, 11 MB 413, dev static + 404; activity entries; exactly 10 alert mails ✅ · auth suite re-run with the new roles 46/46 ✅ · public parity 163/163 ✅.
+
+**Pending / for Sifat**
+1. `npm install` in `mh-back` (4 new deps; sharp downloads its prebuilt binary).
+2. Add the B1.4 block from `.env.example` to `.env` (`UPLOAD_DIR=../mh-front/public/uploads`, `PRIVATE_DIR=./private`, `SERVE_UPLOADS=false`, `ADMIN_EMAIL=…`, `ADMIN_URL=`). **Don't set `MEDIA_ORIGIN` in dev** — Next 16 blocks optimising images from localhost/private IPs (`images.dangerouslyAllowLocalIP` defaults to false); `next dev` serves new files in `public/uploads` directly. Your `SMTP_*` lines already match. **Regenerate the Gmail app password** (it was exposed earlier in this session).
+3. If any user was created with the old `admin` role: `db.users.updateMany({ role: "admin" }, { $set: { role: "opd_incharge" } })` in Atlas.
+4. VPS later (B4): copy `mh-front/public/uploads` → `/var/www/mh/uploads`; `PRIVATE_DIR=/var/www/mh/private` (outside every Nginx root); `SERVE_UPLOADS=false`.
+
+**Next — B2 admin dashboard** (`mh-front/app/admin`, noindex, not localised): login + forced password change, fetch wrapper (refresh/retry rules in the contract), role-based menu from `permissions`, inbox screens (bookings/messages/applications + exports), user management, activity log, then CRUD modules (doctors + schedule editor, departments, packages, hero, media slots, settings incl. WhatsApp desks + booking mode, SEO…). Backend CRUD endpoints per module land with each screen.
+
+---
+
+## B1.3 — Staff auth, RBAC, activity log (2026-10-27)
+**Done** (all in `mh-back`; contract for the admin UI: `docs/API_CONTRACT.md` → "Admin auth")
+1. **Users** (`src/modules/users`) — `name, email (unique, lowercased), passwordHash (select:false), role, isActive, mustChangePassword, tokenVersion, failedLogins, lockUntil, lastLoginAt, passwordChangedAt, createdBy`. bcryptjs cost 12 (pure JS — no native build on Windows/VPS). Password rule: ≥ 10 chars, ≤ 72 bytes (bcrypt limit; Bangla = 3 bytes/char), letter + number. No public signup.
+2. **Sessions** (`src/modules/auth`) — one doc per login. Access = HS256 JWT (10 min, iss/aud checked, algorithm pinned) in `mh_at` (Path=/api). Refresh = opaque `"<sessionId>.<secret>"`, only sha256 stored, in `mh_rt` (Path=/api/auth). Both HttpOnly + SameSite=Strict, Secure in production. Every refresh rotates (atomic compare-and-swap); replaying an old refresh token > 30 s later revokes the session (theft), < 30 s = `409 REFRESH_RACE` (two tabs). Idle > 30 min → `SESSION_IDLE`; absolute 7 days; TTL index cleans up.
+3. **requireAuth** re-reads user + session on every request → role change, deactivation, password reset, logout apply **immediately** (not after token expiry). `mustChangePassword` blocks everything except `/auth/me`, `/auth/password`, `/auth/logout(-all)`.
+4. **RBAC** *(roles superseded in B1.4 by the client's 4 roles — see above)* — `src/lib/permissions.js` is the only role→permission map (proposal §5.4): super_admin = all; admin = doctors, departments/facilities/diagnostics, packages, programs (Aesthetic/BHRPC), bookings, messages, careers; marketer = hero, home blocks, notice bar, articles, gallery, stories, SEO, media slots. **Assumptions to confirm with the client:** FAQs = admin + marketer; legal/About/Management pages = super admin only. Routes use `requirePermission("<perm>")` (typos fail at boot).
+5. **Login protection** — per account: 5 failures → locked 15 min (atomic `$inc`). Per IP: 20 **failed** logins / 15 min (successful ones don't count — a whole office shares one NAT IP). Unknown email and wrong password return the identical 401 and take the same time (dummy bcrypt compare). Disabled accounts get the same generic 401.
+6. **CSRF** (`src/middlewares/csrf.js`) on `/api/auth` + `/api/admin`: Origin must be allow-listed + `X-Requested-With` required on unsafe methods (forces a CORS preflight; covers sibling subdomains, which SameSite treats as same-site). `Cache-Control: no-store` on both.
+7. **User admin** — `/api/admin/users` list/create/patch/reset-password/logout-all (super admin). Can't change own role or disable self; last active super admin protected; role/active change and resets revoke the user's sessions. No DELETE (deactivate keeps the activity log intact).
+8. **Activity log** — `activity` collection, append-only, actor snapshotted, ip + user agent, `changes: { field: [before, after] }`. Logged: login, failed login (with reason), locked, logout, logout-all, refresh-token reuse, password change, users create/update/reset/force-logout. `GET /api/admin/activity` with filters (`action=auth.*` prefix). B2 modules call `logActivity(req, {...})` on every save.
+9. **CLI** — `npm run create-admin -- --email … --name "…"` (password asked hidden; or `ADMIN_PASSWORD` env). `--reset` = new password + unlock + sign out everywhere (locked-out super admin recovery).
+10. New env: `JWT_ACCESS_SECRET` (**required**), `ACCESS_TOKEN_TTL_MIN`, `SESSION_IDLE_MIN`, `SESSION_MAX_DAYS`, `LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCK_MIN`, `COOKIE_DOMAIN`, `COOKIE_SECURE`. Deps: `bcryptjs`, `jsonwebtoken`, `cookie-parser`.
+
+**Verified**: `npm run check` (68 files) ✅ · end-to-end test (real Express + real Mongoose on an in-memory driver collection): **46/46** — CSRF header/origin, NoSQL injection, identical 401s, lockout, cookie flags, forced password change, marketer 403s, exact marketer permission set, rotation, race 409, reuse → revoke (kills the legit access token too), idle logout, expired / `alg:none` / foreign-secret tokens, instant revoke on role change, self-demotion blocked, mass-assignment (`passwordHash` in PATCH) rejected, deactivated login, reset unlocks, activity entries + before/after, logout + replayed cookie ✅ · IP limiter: 20 failures then 429 ✅ · public parity still 163/163 ✅ · CLI validation paths ✅.
+Not run here: against a real MongoDB → Sifat (steps below).
+
+**Pending / for Sifat**
+1. `npm install` in `mh-back` (3 new deps).
+2. Add to `mh-back/.env`: `JWT_ACCESS_SECRET=` + output of `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` (server refuses to start without it). Different value on the VPS.
+3. `npm run create-admin -- --email solaimanislamsifat@gmail.com --name "Sifat"` → `npm run dev`.
+4. Smoke test (PowerShell/Thunder Client): `POST http://localhost:5036/api/auth/login` with header `X-Requested-With: mh-admin` and JSON `{ "email": "...", "password": "..." }` → 200 + two cookies; then `GET /api/auth/me` with the cookies → your user.
+5. Confirm with the client: FAQs (admin + marketer?) and legal/About/Management pages (super admin only?).
+
+**Next — B1.4**: uploads (multer + sharp → `/uploads/<collection>/…webp`, same rules as `scripts/optimize-media.mjs`, magic-byte check, size caps, JPEG OG rendition), Nodemailer (SMTP from `.env`), public forms with strict limiters + honeypot: contact → `messages`, careers apply with CV (PDF/DOC, stored outside the web root, admin-only download) → `applications`, booking request (when `bookingMode` = form/both) → `bookings`; email alert to `ADMIN_EMAIL`; exceljs export for bookings/messages/applications.
 
 ---
 
@@ -323,7 +385,7 @@ See `data/_placeholders.md` and master plan §7 — WhatsApp desk labels + prima
 Not done in this environment: `git commit` (no shell on the Windows machine from this session — files were written into the repo directly; commit locally).
 
 ## Next — after design lock (backend track)
-> Design locked 2026-10-27. B1.1–B1.2 done (section at the top); continue with B1.3.
+> Design locked 2026-10-27. B1.1–B1.4 done (sections at the top); continue with B2.
 
 Before: Sifat deploys to Vercel and runs the client demo with `docs/DEMO_CHECKLIST.md`; collect the §4 items; client signs §5.
 1. **B1 `mh-api`** (Express, modular): Mongoose models mirroring `data/*` (incl. `{en,bn}` package inclusions, structured settings address, media slots), auth (JWT HttpOnly cookie + refresh), RBAC, zod, rate limit, custom NoSQL sanitising, multer + sharp (same rules as `scripts/optimize-media.mjs`; also a JPEG OG rendition per upload), Nodemailer.
