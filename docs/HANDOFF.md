@@ -34,6 +34,44 @@
 **How a save reaches the site (B3):** admin write (2xx) → `mh-back/src/lib/revalidate.js` (`TAGS_BY_MODULE`, debounced) → `POST <SITE_REVALIDATE_URL>` (`mh-front/app/api/revalidate/route.js`, secret header) → `revalidateTag(tag, { expire: 0 })`. New admin module = add its mount → tags line there.
 **B4 plan:** 1) VPS base: Node 24, MongoDB (localhost, auth on, `mh_api` user), Nginx, PM2 (`mh-web` = `next start` from a locally built `.next`, `mh-api`), UFW 22/80/443, Certbot for `monowarahospital.com`, `www`, `api.`; 2) Nginx: `api.` → 127.0.0.1:5020 (`proxy_set_header X-Forwarded-For $remote_addr`), site → 127.0.0.1:3000, `/uploads/` from `/var/www/mh/uploads`, **deny `/api/revalidate` from outside** (only mh-back on loopback calls it), body limit ≥ 6 MB for CVs on `api.`; 3) envs (production values listed under B3 → For Sifat); 4) `npm run seed -- --production` once, `npm run create-admin`, copy `public/uploads` → `/var/www/mh/uploads`; 5) daily `mongodump` + uploads/private tar with rotation (cron), test a restore; 6) `NEXT_PUBLIC_SITE_ENV=production` (indexing + sitemap), GA4/GTM reading `dataLayer` `contact_tap`, Search Console + sitemap, 308 map check against the live WordPress URLs; 7) smoke test on the live box (admin save → page, all forms, emails arrive), staff training + handover doc.
 
+**B4 plan overrides (2026-10-28) — read "B4 pre-deploy findings" below first:** MongoDB runs in **Docker** (not apt), SSL = **Cloudflare Origin Certificate** (not Certbot), Nginx must restore the real visitor IP from Cloudflare.
+
+---
+
+## B4 pre-deploy findings & decisions (2026-10-28) — no code changed
+
+**Server (Hostinger, checked by Sifat):** `srv2038695.hstgr.cloud`, IPv4 `201.18.217.72`, **KVM 4** (4 vCPU / 16 GB / 200 GB — not KVM 1, so `next build` on the VPS is fine), **Ubuntu 26.04**, Malaysia (KL), root SSH with password, Hostinger firewall **0 rules**, weekly backups, 2 snapshots, Monarx malware agent.
+- **The VPS is NOT empty — someone else uses it.** Running: `opencode` (127.0.0.1:49374), Docker container `freellmapi` (ghcr.io/tashfeenahmed/freellmapi, **127.0.0.1:3001**), home dir has `AGENTS.md`, `apk-fork`, `freellmapi`, `termi-plus`; a root login on 2026-10-26 came from another IP. **Never stop/delete any of it.** Avoid port 3001. Owner/purpose not yet confirmed with the client (question deferred).
+- No Nginx installed, no `/var/www` → our stack is a fresh install. Old WordPress is **not** on this VPS (it is on some cPanel host — Namecheap Advanced DNS says "manage in cPanel").
+- Free ports for us: Next **3000**, API **5020** (production; local dev stays 5036), Mongo 27017 (loopback only), 80/443.
+
+**Domain (Namecheap, `monowarahospital.com`):** active until 2035, WithheldForPrivacy on, **DNSSEC off** (good — NS change is safe), nameservers already **Cloudflare** (`ed.ns.cloudflare.com`, `susan.ns.cloudflare.com`). So DNS lives in an existing Cloudflare account whose owner is **unknown** (client or old WP developer).
+- **Domain email exists: `info@monowarahospital.com`** → MX/TXT (SPF/DKIM/DMARC) records must survive any DNS move. Before touching DNS, record every current record (`nslookup -type=MX|TXT|A` for `@`, `www`, `mail`, etc.).
+
+**Decisions:**
+1. **MongoDB:** self-hosted on the VPS, **Docker `mongo:8`**, published as `-p 127.0.0.1:27017:27017` (the `127.0.0.1:` prefix is mandatory — Docker bypasses UFW), volume `/var/lib/mh-mongo`, root user + app user `mh_api` (readWrite on `monowara`). URI: `mongodb://mh_api:<pw>@127.0.0.1:27017/monowara?authSource=monowara`. **No Atlas M0** (512 MB, no backups, not for production) and never Sifat's personal Atlas URI. Daily `mongodump --gzip` cron + uploads/private tar. Docker chosen because MongoDB's apt repo may not support Ubuntu 26.04 yet.
+2. **Cloudflare (Free plan) in front of everything.** Settings: A `@`/`www`/`api` → 201.18.217.72 proxied; SSL **Full (strict)**; Always Use HTTPS; min TLS 1.2; **Rocket Loader off**; **Email Address Obfuscation off**; no "Cache Everything" rule. Origin Certificate (15 y, `monowarahospital.com` + `*.monowarahospital.com`) → `/etc/ssl/cloudflare/mh.pem|mh.key` (key chmod 600). Because the origin cert is only trusted by Cloudflare, records stay orange (no grey-cloud test).
+3. **Real client IP (must, or the public rate limit is shared by all users):** `/etc/nginx/conf.d/cloudflare-realip.conf` with `real_ip_header CF-Connecting-IP;` + `set_real_ip_from` for every range at https://www.cloudflare.com/ips/ ; API location sends `X-Forwarded-For $remote_addr` + `X-Forwarded-Proto https`. mh-back keeps `TRUST_PROXY=loopback`. Cloudflare needs **no** `.env` values. Open check: if an admin upload ever overwrites the same filename, Cloudflare serves the old image → verify mh-back upload naming is unique (else add a purge token).
+4. **No Cloudinary** (master plan rule; Sifat once confused the name with Cloudflare).
+5. **Mail:** Gmail SMTP with an **App Password** from the client's Gmail (needs 2-Step Verification → client's phone OTP). `MAIL_FROM` must be that same Gmail address (Gmail rewrites other senders). Alternative later: SMTP of `info@monowarahospital.com` if the client gives its host.
+
+**Cloudflare access — two paths:**
+- A) Find the existing account: search the client's Gmail for "cloudflare"; try "Sign in with Google" / Forgot password with that Gmail. If found or the owner is known → get invited as member (Manage Account → Members → Administrator). Namecheap unchanged.
+- B) Owner unknown → new Cloudflare account with the client's Gmail → Add domain (Free) → verify the scanned records against the saved list (MX/TXT for `info@`!) → put the 2 new nameservers in Namecheap (Domain List → Manage → Nameservers → Custom DNS) → wait for Active.
+
+**DNS safety rules (path B):** never change the Namecheap nameserver dropdown to "Namecheap BasicDNS"/"Web Hosting DNS" — Namecheap holds no records, so site + `info@` mail die instantly. Adding the domain to a new Cloudflare account is harmless (zone stays *Pending* until NS change). The NS switch is the only risky moment → do it on launch day, after the VPS stack is ready and the record list is verified. Cloudflare's scan sees proxy IPs for the old proxied A records (irrelevant — we repoint to the VPS) and may **miss DKIM** (`<selector>._domainkey`) → get it from the mail provider (MX tells which one) before switching.
+
+**Current public DNS (dnschecker, 2026-10-28, apex only):** A/AAAA = Cloudflare proxy IPs (old WP origin hidden); **MX** `mx1.privateemail.com` 10, `mx2.privateemail.com` 10; **TXT** `v=spf1 include:spf.privateemail.com ~all`; no CAA, no DS. → `info@` is **Namecheap Private Email**. Still to check: `www`, `mail`, `autodiscover`, `_dmarc`, `default._domainkey`.
+**Target zone in the new Cloudflare account:** A `@`/`www`/`api` → 201.18.217.72 (proxied; delete the scanned Cloudflare-IP A/AAAA) · MX `@` mx1/mx2.privateemail.com pri 10 · TXT `@` SPF as above · TXT `default._domainkey` = DKIM from Namecheap → Private Email panel · CNAME `mail`, `autodiscover`, `autoconfig` → `privateemail.com` · optional TXT `_dmarc` `v=DMARC1; p=none;`. **All mail records DNS-only (grey).**
+
+**Status / waiting on client (2026-10-28):** client has given Namecheap + Hostinger access; **Gmail credentials promised, not yet shared**; Cloudflare account owner unknown; asking the client who owns the Cloudflare account and whether the VPS is shared; the Gmail 2-Step/App Password step waits until the Gmail is shared.
+
+**Production `.env` diffs (from local):**
+- mh-back: `NODE_ENV=production`, `PORT=5020`, `CORS_ORIGINS=https://monowarahospital.com,https://www.monowarahospital.com`, Docker Mongo URI above, `UPLOAD_DIR=/var/www/mh/uploads`, `PRIVATE_DIR=/var/www/mh/private`, `SERVE_UPLOADS=false`, client Gmail SMTP + `MAIL_FROM`, `ADMIN_EMAIL` (client's list), `ADMIN_URL=https://monowarahospital.com`, `SITE_REVALIDATE_URL=http://127.0.0.1:3000/api/revalidate`, **new** `JWT_ACCESS_SECRET` + `REVALIDATE_SECRET` (never reuse dev values). Local `.env` currently has STR's Gmail + Sifat's email — replace.
+- mh-front: `DATA_SOURCE=api`, `API_URL=http://127.0.0.1:5020/api`, `NEXT_PUBLIC_SITE_ENV=production`, `NEXT_PUBLIC_SITE_URL=https://monowarahospital.com`, `MEDIA_ORIGIN=https://monowarahospital.com`, `NEXT_PUBLIC_ADMIN_API_URL` + `NEXT_PUBLIC_API_URL=https://api.monowarahospital.com/api`, same `REVALIDATE_SECRET` as mh-back. `NEXT_PUBLIC_*` are build-time → set before `next build`.
+
+**How to run B4 with Sifat:** he is new to Docker, Cloudflare and Nginx → guide step by step with every command, one step at a time, wait for his terminal output (screenshots) before the next step. Offered: a deploy guide as .docx.
+
 ---
 
 ## Marketer role + articles (2026-10-28, client approved)
