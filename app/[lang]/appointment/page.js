@@ -8,7 +8,7 @@ import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getSettings } from "@/lib/api/settings";
 import { getAllDoctors } from "@/lib/api/doctors";
 import { getDepartments } from "@/lib/api/departments";
-import { BookingForm, BookingFormFromQuery } from "@/components/booking/BookingForm";
+import { BookingForm } from "@/components/booking/BookingForm";
 import { t, digits } from "@/lib/i18n/t";
 import { pageMeta } from "@/lib/seo/metadata";
 
@@ -56,9 +56,7 @@ export default async function AppointmentPage({ params }) {
                     <p className="mt-3 text-ink-2">{dict.appointment.form.lead}</p>
                 </div>
                 <div className="lg:col-span-8">
-                    <Suspense fallback={<BookingForm {...formProps} />}>
-                        <BookingFormFromQuery {...formProps} />
-                    </Suspense>
+                    <BookingForm {...formProps} />
                 </div>
             </Container>
         </section>

@@ -19,7 +19,8 @@ const WRAP = "mx-auto w-full max-w-336 px-4 sm:px-6 lg:px-10"; // = <Container>
  * - Each slide: background photo (Ken Burns while active) under an ink-teal wash, copy anchored
  *   bottom-left. Crossfade (EffectFade) + rewind (no loop clones → exactly one <h1>).
  * - No visible controls (client): autoplay every `intervalMs` (settings.heroSlider.intervalSec,
- *   admin-editable, default 5 s), swipe on touch, ←/→ keys. Pauses on hover, hidden tab, off-screen.
+ *   admin-editable, default 5 s), swipe on touch, ←/→ keys. Keeps running on hover; pauses only
+ *   when the hero is off-screen or the tab is hidden.
  * - `actions` (Book / Emergency / WhatsApp) are common: one server-rendered overlay pinned above
  *   the QuickPanel overlap. Its measured height is reserved under every slide's copy
  *   (--hero-actions), so copy never collides with the buttons whatever the slide length.
@@ -47,7 +48,8 @@ export function HeroCarousel({ slides, actions, labels, lang, intervalMs = 5000 
             fadeEffect: { crossFade: true },
             speed: SPEED,
             rewind: true,
-            autoplay: { delay, disableOnInteraction: false, pauseOnMouseEnter: true },
+            // Never pauses on hover (client 2026-10-28): the slide keeps changing under the pointer.
+            autoplay: { delay, disableOnInteraction: false, pauseOnMouseEnter: false },
             keyboard: { enabled: true, onlyInViewport: true },
             a11y: {
                 containerRoleDescriptionMessage: "carousel",

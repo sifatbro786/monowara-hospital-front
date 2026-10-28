@@ -36,6 +36,25 @@
 
 ---
 
+## Marketer role + articles (2026-10-28, client approved)
+`marketer` = **SEO + Health tips & news** (`articles.manage` now `[graphics_design, marketer]` in `mh-back/src/lib/permissions.js`). Follows automatically: dashboard menu (Overview · Health tips & news · SEO), `/admin/articles/options` byline picker, `/uploads/articles` images. Still no access to doctors, packages, gallery, bookings, settings. Role label in `lib/admin/config.js`: "Marketing (SEO & articles)". Tests: auth (marketer permissions = `articles.manage,seo.manage`), final-admin (marketer edits an article 200; gallery/doctors 403). Browser check as marketer ✅.
+
+---
+
+## Post-B3 fixes + SEO seed (2026-10-28)
+| What | Fix |
+|---|---|
+| Hero slider stopped while the mouse was over it (client) | `HeroCarousel` autoplay `pauseOnMouseEnter: false`. Still pauses off-screen / hidden tab |
+| **Bug:** a file-like or malformed slug (`/doctors/x.webp`, a missing `/uploads/…` or `/fonts/…` file falling through to `[lang]`, bot probes) → API 400 → page **500** | `lib/api/client.js` `apiGetBySlug()` — slug checked against the API's `SLUG_RE` first → `null` → 404. All 9 `get…BySlug` services use it. (Missing `/uploads/*` under `next dev` still logs a Next "static shell" invariant — dev-only noise; on the VPS Nginx answers `/uploads` itself: **B4 Nginx `location /uploads/ { try_files $uri =404; }`**) |
+| **Bug:** text typed into the appointment form before hydration could be wiped (Suspense fallback form swapped for the `?for=` form) | one `BookingForm` instance; `?for=` read after mount and only fills empty fields; `BookingFormFromQuery` removed |
+| SEO from the dashboard | `data/seo.js` — 66 hand-written EN + BN entries (17 main pages, 22 departments, 10 facilities, 6 diagnostics, 11 packages). Titles without the brand (template adds " · Monowara Hospital"), EN ≤ 40 + suffix, descriptions ≤ 155, only facts already on the site. Static demo uses them directly; DB: **`npm run seed:seo`** (= `seed --only seo --add-missing`: inserts only paths not in the DB, never overwrites the marketer's edits, then POSTs `seo` to the site's revalidate route). Generic: `--only <collections>` + `--add-missing` work for any collection |
+
+**Verified:** mh-back `npm test` 8 suites ✅ (parity `/seo` now compares in API order = by path) · seed `--add-missing` run twice on the in-memory DB: 65 added + 1 hand-made entry kept, second run adds 0 · mh-front eslint ✅, esbuild ✅, static build ✅, API build ✅ · e2e 37/37 (new: hero still changes slide while hovered, seeded EN/BN/home titles, unknown slug 404 and `x.webp` slug 404 in prod, `?for=` preselect) · production crawl 292 pages / 298 internal links: 0 broken links, 0 page errors · all 109 `/uploads` paths referenced in code/data exist in `public/uploads`.
+
+**For Sifat:** `cd mh-back && npm run seed:seo` (API + site running → the site refreshes by itself). `.env` notes: add `http://127.0.0.1:3000` to `CORS_ORIGINS` if you ever open the site on 127.0.0.1; leave `MEDIA_ORIGIN` unset locally (`next/image` refuses localhost/private IPs — it's for the VPS only). Commit both repos.
+
+---
+
 ## B3 — Site on the API, revalidation, live forms (2026-10-27)
 **What changed**
 | Area | mh-back | mh-front |

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { Icon, WhatsAppMark } from "@/components/ui/Icon";
 import { whatsappLink, cn } from "@/lib/utils";
 import { FORMS_LIVE, submitForm, currentSource } from "@/lib/forms";
@@ -21,17 +20,16 @@ const todayISO = () =>
  */
 const DATE_CODES = new Set(["DATE_PAST", "DATE_TOO_FAR", "NO_CHAMBER", "DOCTOR_ON_LEAVE"]);
 
-export function BookingForm({ doctors, departments, waNumber, labels, common, context = "" }) {
+export function BookingForm({ doctors, departments, waNumber, labels, common }) {
     const f = labels;
     const c = common;
-    const preDoctor = doctors.find((d) => d.name === context)?.slug || "";
     const [values, setValues] = useState({
         name: "",
         phone: "",
-        department: preDoctor ? doctors.find((d) => d.slug === preDoctor).dept : "",
-        doctor: preDoctor,
+        department: "",
+        doctor: "",
         date: "",
-        note: preDoctor ? "" : context,
+        note: "",
         website: "",
     });
     const [errors, setErrors] = useState({});
@@ -43,6 +41,19 @@ export function BookingForm({ doctors, departments, waNumber, labels, common, co
     const [minDate, setMinDate] = useState("");
     // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => setMinDate(todayISO()), []);
+    // ?for=<doctor or package name> preselects after mount. One form instance from SSR to client
+    // (no Suspense swap), so nothing typed before hydration is lost; only empty fields are filled.
+    useEffect(() => {
+        const context = (new URLSearchParams(window.location.search).get("for") || "").slice(0, 120);
+        if (!context) return;
+        const doc = doctors.find((d) => d.name === context);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setValues((v) =>
+            doc
+                ? { ...v, department: v.department || doc.dept, doctor: v.doctor || doc.slug }
+                : { ...v, note: v.note || context },
+        );
+    }, [doctors]);
 
     const set = (k) => (e) => {
         const v = e.target.value;
@@ -271,12 +282,6 @@ export function BookingForm({ doctors, departments, waNumber, labels, common, co
             </div>
         </form>
     );
-}
-
-/** Reads ?for= so a doctor chosen elsewhere is preselected. */
-export function BookingFormFromQuery(props) {
-    const params = useSearchParams();
-    return <BookingForm {...props} context={(params.get("for") || "").slice(0, 120)} />;
 }
 
 function Field({ label, error, className, children }) {
