@@ -89,7 +89,11 @@
             "waIntro": "Appointment request — Monowara Hospital website",
             "sentTitle": "Request ready in WhatsApp",
             "sentLead": "Send the message in WhatsApp and our desk will confirm your serial. If WhatsApp didn't open, call the hotline above.",
-            "again": "Send another request"
+            "again": "Send another request",
+            "liveSubmit": "Send request",
+            "liveSentTitle": "Request received",
+            "liveSentLead": "Our desk will call you on {phone} to confirm the serial. For anything urgent, call the hotline above.",
+            "offlineCta": "Send via WhatsApp instead"
         }
     },
     "dock": {
@@ -408,7 +412,9 @@
         "related": "Keep reading",
         "all": "All articles",
         "bhrpcCta": "Pregnancy care at BHRPC",
-        "metaDescription": "Health tips from Monowara Hospital, Dhaka — pregnancy, diabetes, thalassaemia, dengue and heart health, in Bangla and English."
+        "metaDescription": "Health tips from Monowara Hospital, Dhaka — pregnancy, diabetes, thalassaemia, dengue and heart health, in Bangla and English.",
+        "writtenBy": "Written by",
+        "reviewedBy": "Medically reviewed by"
     },
     "gallery": {
         "eyebrow": "Gallery",
@@ -463,7 +469,11 @@
             "doneTitle": "Almost done — email your CV",
             "doneLead": "Online uploads open soon. For now, please email your CV to {email} — we've filled in the subject for you.",
             "emailCv": "Email my CV",
-            "mailSubject": "Job application"
+            "mailSubject": "Job application",
+            "liveSubmit": "Send application",
+            "liveDoneTitle": "Application received",
+            "liveDoneLead": "Thank you. HR reviews every CV and contacts shortlisted candidates by phone or email.",
+            "offlineLead": "Your CV didn't go through just now. Please email it to {email} instead — we've filled in the subject for you."
         }
     },
     "contact": {
@@ -494,7 +504,25 @@
             "waIntro": "Message from the Monowara Hospital website",
             "sentTitle": "Message ready in WhatsApp",
             "sentLead": "Send it in WhatsApp and our desk will reply during working hours.",
-            "again": "Send another message"
+            "again": "Send another message",
+            "liveSubmit": "Send message",
+            "liveSentTitle": "Message sent",
+            "liveSentLead": "Thank you — our team will reply by phone or email during working hours.",
+            "offlineCta": "Send via WhatsApp instead"
+        }
+    },
+    "forms": {
+        "sending": "Sending…",
+        "errRate": "Too many attempts from this connection — please try again in a few minutes, or call us.",
+        "errOffline": "We couldn't reach the hospital's server just now.",
+        "errGeneric": "Something went wrong — please check the form and try again.",
+        "errStale": "That choice is no longer available — please reload the page and choose again.",
+        "codes": {
+            "BOOKING_DISABLED": "Online requests are paused right now — please call or WhatsApp us.",
+            "DATE_TOO_FAR": "Requests open up to 60 days ahead — pick an earlier date.",
+            "NO_CHAMBER": "This doctor has no chamber on that day — pick another date.",
+            "DOCTOR_ON_LEAVE": "The doctor is on leave on that date — pick another date or doctor.",
+            "DUPLICATE_BOOKING": "We already have this request — our desk will call you to confirm."
         }
     }
 }

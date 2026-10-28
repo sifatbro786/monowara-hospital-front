@@ -39,7 +39,12 @@ export default async function AppointmentPage({ params }) {
     const mode = settings.bookingMode || "numbers";
     const showForm = mode === "form" || mode === "both";
     const formProps = showForm
-        ? await formData({ lang, labels: dict.appointment.form, wa: settings.primaryWhatsapp })
+        ? await formData({
+              lang,
+              labels: dict.appointment.form,
+              common: dict.forms,
+              wa: settings.primaryWhatsapp,
+          })
         : null;
     const form = showForm && (
         <section aria-labelledby="form-title" className="border-t border-line bg-paper-2">
@@ -121,10 +126,11 @@ export default async function AppointmentPage({ params }) {
     );
 }
 
-async function formData({ lang, labels, wa }) {
+async function formData({ lang, labels, common, wa }) {
     const [items, departments] = await Promise.all([getAllDoctors(), getDepartments()]);
     return {
         labels,
+        common,
         waNumber: wa?.number,
         departments: departments.map((d) => ({ slug: d.slug, name: t(d.name, lang) })),
         doctors: items.map((d) => ({

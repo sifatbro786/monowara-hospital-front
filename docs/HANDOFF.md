@@ -21,20 +21,53 @@
 | **B2.4 — departments, facilities, diagnostics + account menu top-right** | ✅ Done (2026-10-27) — see below |
 | **B2.5–B2.9 — packages, settings + notice bar, hero + image slots, homepage blocks + stories, FAQs + careers** | ✅ Done (2026-10-27) — see below |
 | **B2.10–B2.13 — Aesthetic/BHRPC, articles + gallery, pages + management, SEO + tap analytics + B2 QA** | ✅ Done (2026-10-27) — **B2 complete** |
-| B3 — site reads the API (`DATA_SOURCE=api`), revalidate on save, forms wired, SEO overrides applied | ⏭ Next |
+| **B3 — site on the API, revalidate on save, live forms, bylines, scheduled articles, BHRPC reading list** | ✅ Done (2026-10-27) — see below |
+| B4 — VPS go-live (Nginx, PM2, SSL, Mongo auth + backups, GA4/Search Console, training) | ⏭ Next |
 
 ---
 
-## ▶ START HERE (next chat = B3 — connect the public site to mh-back)
+## ▶ START HERE (next chat = B4 — VPS go-live)
 **Repos:** `E:\Works\monowara-hospital\mh-front` (Next.js 16, JS) · `E:\Works\monowara-hospital\mh-back` (Express 5 + Mongoose 9, ESM).
-**Local:** API `http://localhost:5036/api` · dashboard `http://localhost:3000/admin` (front `.env`: `NEXT_PUBLIC_ADMIN_API_URL=http://localhost:5036/api`). Public host later: `https://api.monowarahospital.com/api/<resource>` (no `/v1`).
-**Contract:** `docs/API_CONTRACT.md` — public GETs, admin auth, forms, uploads, inboxes, **admin doctors + stats**.
-**Roles:** `super_admin` · `opd_incharge` · `graphics_design` · `marketer` — map only in `mh-back/src/lib/permissions.js`.
-**Tests:** mh-back `npm test` (7 suites: parity 163, auth, forms/uploads/inbox, doctors-admin 43, services-admin 23, content-admin 55, **final-admin 42**) + `npm run check`; mh-front `npm run build` + `npx eslint .`.
-**Pattern to copy for every module.** List-type collections = **config only**: backend `crudRouter()` (`src/lib/crud.js` — options `required`, `sluggable`, `slugFrom`, `label`, `search`, `query/filter`, `check`, `inUse`, `beforeSave`; gives list/get/create/patch/delete + `PUT /order`), frontend one entry in `lib/admin/collections.js` (field types `L Lopt list bool text select image heroImage seo departments department date youtube href consent number textNull ref ids path treatments pillars sections`, `sections`, `list` columns/badges, `orderable`, `group` tabs; modes `singleton`, `noCreate`, `fieldsFor(doc)`, `viewUrl`, `bulkUpload`) rendered by `components/admin/collection/{CollectionList,CollectionEditor,fields,form}.js`, plus two 10-line pages under `app/admin/<name>/`. Singletons/special screens (Settings, Notice, Image slots, Doctors) are hand-written. The B2.3 doctors notes below still describe the editor conventions:
-- Backend `src/modules/<m>/admin.routes.js` mounted in `src/routes.js` under `admin`: `GET /options` (select data) · `GET /` (all incl. hidden, filters, paged) · `GET /:id` · `POST /` · `PATCH /:id` (partial, `.strict()`) · `DELETE /:id` (409 `IN_USE` when referenced → "hide instead"). Shared helpers `src/lib/admin.js`: `zL/zLRequired/zLOptional`, `zSlug`, `zId`, `zImage(folder)`, `applyPatch` (→ activity `changes`), `setSlug` (old slug → `previousSlugs`), `slugify`, `onLeaveToday`. Log `<m>.create|update|delete`. Leave a `// B3: revalidateTag(...)` line where the save happens. Add a `test/<m>-admin.test.mjs` to `npm test`.
-- Frontend `app/admin/<m>/page.js` (list) + `app/admin/<m>/[id]/page.js` (`new` = create), each with `export const instant = false` + `<Suspense>`. Components in `components/admin/<m>/` — list (URL filters via `useUrlState`, `useAdminGet`), editor (`FormSection`, `LText` EN/বাংলা, `Toggle`, sticky save bar sending only changed keys, beforeunload guard, delete dialog), pure `<m>Form.js` (doc ⇄ form). Flip `ready: true` in `lib/admin/config.js` `NAV`, add activity labels.
-**B3 plan (connect the site):** 1) `lib/api/*` switch on `DATA_SOURCE=api` → fetch mh-back public GETs with `cacheTag` per resource (read `node_modules/next/dist/docs` for `"use cache"`/`cacheTag`/`revalidateTag` in 16) and keep the mock path for the Vercel demo; 2) mh-back calls a secret-protected Next route `POST /api/revalidate { tags }` at every `// B3: revalidateTag(...)` line; 3) wire the public forms (booking, contact, careers apply with CV) to the B1.4 endpoints; 4) apply SEO overrides (`/api/seo` public read by path) in `generateMetadata`; 5) render Management on About and the article doctor byline; 6) full site QA against the live API.
+**Local (API mode):** API `http://localhost:5036/api` · site `npm run build && npm start` on :3000 with `DATA_SOURCE=api` · dashboard `/admin`.
+**Contract:** `docs/API_CONTRACT.md` (public GETs + cache tags, revalidation, forms, admin). **Roles:** map only in `mh-back/src/lib/permissions.js`.
+**Tests:** mh-back `npm run check` + `npm test` (8 suites: parity 163, auth, forms/uploads/inbox, doctors-admin, services-admin, content-admin, final-admin, **b3**); mh-front `npx eslint .` + `npm run build` (static mode, no API needed) — an API-mode build needs mh-back running.
+**How a save reaches the site (B3):** admin write (2xx) → `mh-back/src/lib/revalidate.js` (`TAGS_BY_MODULE`, debounced) → `POST <SITE_REVALIDATE_URL>` (`mh-front/app/api/revalidate/route.js`, secret header) → `revalidateTag(tag, { expire: 0 })`. New admin module = add its mount → tags line there.
+**B4 plan:** 1) VPS base: Node 24, MongoDB (localhost, auth on, `mh_api` user), Nginx, PM2 (`mh-web` = `next start` from a locally built `.next`, `mh-api`), UFW 22/80/443, Certbot for `monowarahospital.com`, `www`, `api.`; 2) Nginx: `api.` → 127.0.0.1:5020 (`proxy_set_header X-Forwarded-For $remote_addr`), site → 127.0.0.1:3000, `/uploads/` from `/var/www/mh/uploads`, **deny `/api/revalidate` from outside** (only mh-back on loopback calls it), body limit ≥ 6 MB for CVs on `api.`; 3) envs (production values listed under B3 → For Sifat); 4) `npm run seed -- --production` once, `npm run create-admin`, copy `public/uploads` → `/var/www/mh/uploads`; 5) daily `mongodump` + uploads/private tar with rotation (cron), test a restore; 6) `NEXT_PUBLIC_SITE_ENV=production` (indexing + sitemap), GA4/GTM reading `dataLayer` `contact_tap`, Search Console + sitemap, 308 map check against the live WordPress URLs; 7) smoke test on the live box (admin save → page, all forms, emails arrive), staff training + handover doc.
+
+---
+
+## B3 — Site on the API, revalidation, live forms (2026-10-27)
+**What changed**
+| Area | mh-back | mh-front |
+|---|---|---|
+| Revalidate on save | `src/lib/revalidate.js` (new): `revalidateOnSave` on the admin router — after any 2xx POST/PATCH/PUT/DELETE under a content module, queue its tags (`doctors`, `departments`, …, `keynumbers/centres/talks/stories → home`, `programs → aesthetic+bhrpc`), 250 ms debounce → one POST, 5 s timeout, 1 retry, logged, never blocks/fails the save. All `// B3: revalidateTag` placeholders removed. Env `SITE_REVALIDATE_URL` + `REVALIDATE_SECRET` (≥ 32, required when the URL is set) | `app/api/revalidate/route.js` (new): POST only, constant-time secret check (401), tag allow-list regex, ≤ 40 tags (400), `revalidateTag(tag, { expire: 0 })` |
+| Fresh first visit | — | `export const ensureStatic = "navigation"` on every prerendered `[slug]` page (doctors, departments, facilities, diagnostics, packages, health-tips, careers, legal). **Why:** without it Next 16 answers the first request after a save with the route's App Shell resumed from build-time cache data → staff saw the old page once. Bonus: a slug created in the dashboard is served complete on its first visit (no skeleton to Google) |
+| Public forms | (B1.4 endpoints unchanged) | `lib/forms.js` (new) `submitForm` + `FORMS_LIVE`; BookingForm / ContactForm / ApplyForm post to the API when `NEXT_PUBLIC_API_URL` (fallback `NEXT_PUBLIC_ADMIN_API_URL`) is set; field errors + API codes in EN/BN (`dict.forms`, `*.form.live*`); offline/5xx → WhatsApp (booking, contact) or email (CV) fallback; `FormNotice` in `Fields.js`. Demo build (no URL) behaves exactly as before. `TapTracker` uses the same base URL |
+| Articles | `articles/routes.js`: public list + detail only `publishedAt ≤ now` (scheduled = hidden, 404); `author`/`reviewedBy` populated (active doctors only, `slug name designation photo`) | `lib/api/content.js` static mirror of both rules, tags `articles` + `doctors`; article page shows "Written by / Medically reviewed by" (photo, link to the doctor) + JSON-LD `author`/`reviewedBy` `Physician` |
+| BHRPC | — | reading list = `bhrpc.topics` (admin picks, admin order) instead of "all pregnancy articles" |
+| About | — | Management strip (up to 4 people) appears once Management has entries; empty today → nothing renders |
+
+SEO overrides were already applied in `lib/seo/metadata.js` (`pageMeta` reads `/seo`) — verified live.
+
+**Decisions:** collection-level tags only (per-doc tags exist but aren't needed: every per-doc reader also has the collection tag — simpler, no slug bookkeeping in mh-back). `{ expire: 0 }` (not `"max"`): staff check the page right after saving. One middleware instead of calls in each route → a new module can't forget to revalidate. Forms decide live/demo by the public API URL baked into the build, not by `DATA_SOURCE` (server-only). Scheduled articles appear by themselves within ≤ 1 h (`cacheLife("hours")`); no publish-time trigger.
+
+**Verified:** mh-back `npm run check` (100 files) ✅ · `npm test` 8 suites ✅ — parity 163/163 (articles still match the static layer), new `b3.test.mjs` 16: tags + secret per module, 400/403/GET → no call, two saves in the debounce → one call, inbox writes → no call, every content module mapped, scheduled hidden (list + 404), byline shape (no phone/schedule), hidden doctor → byline null · mh-front `npx eslint .` clean, esbuild on changed files ✅, `next build` ✅ in **static** mode (373 pages) and in **API** mode against a live mh-back · **e2e on `next start` + live API, 30/30:** doctor designation EN/BN updated on the next request, hidden doctor 404 + gone from Find a Doctor, notice bar on every page, byline + JSON-LD, scheduled article hidden from list/detail/BHRPC, BHRPC order from admin, SEO override in `<title>`, homepage key number, contact → Messages (source `/contact`), BN booking with `NO_CHAMBER` in Bangla at the date then accepted (doctor/date/slot/source in Bookings), API down → WhatsApp fallback link with the typed text, fake PDF → CV-type error, real PDF → Applications with CV, 390 px no overflow, no page errors. Revalidate route: no secret 401, bad tag 400.
+
+> This session couldn't run commands on Sifat's PC (the computer link's shell didn't start), so the repos were copied here, built/tested here, and the changed files written back. **Git commits are not made** — commit both repos yourself.
+
+**For Sifat**
+1. Generate one secret: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
+2. `mh-back/.env`: `SITE_REVALIDATE_URL=http://127.0.0.1:3000/api/revalidate`, `REVALIDATE_SECRET=<secret>` → restart the API.
+3. `mh-front/.env`: `DATA_SOURCE=api`, `API_URL=http://127.0.0.1:5036/api`, `NEXT_PUBLIC_API_URL=http://localhost:5036/api`, `REVALIDATE_SECRET=<same secret>`, optional `MEDIA_ORIGIN=http://localhost:5036` (see new uploads without restart). Then `npm run build && npm start` (API must be running for the build). In `next dev` there is no persistent page cache, so revalidation only really shows on `next start`.
+4. Booking form: Settings → Booking mode "Form" or "Both" when the client wants online requests (default "Numbers" = call/WhatsApp only).
+5. Email alerts: fill `SMTP_*` + `ADMIN_EMAIL` in mh-back `.env`.
+6. Vercel demo stays as is: `DATA_SOURCE=static`, no API URLs → forms keep the WhatsApp/email hand-off.
+7. Production values (B4): mh-back `SITE_REVALIDATE_URL=http://127.0.0.1:3000/api/revalidate`; mh-front build env `NEXT_PUBLIC_API_URL=https://api.monowarahospital.com/api`, `NEXT_PUBLIC_ADMIN_API_URL=` same, `API_URL=http://127.0.0.1:5020/api`, `MEDIA_ORIGIN=https://monowarahospital.com`, `REVALIDATE_SECRET` (runtime env of `mh-web`).
+8. Commit both repos (`B3`).
+
+**Known / later:** typing into the booking form in the first ~second before the page hydrates can be cleared when the `?for=` version replaces the static form (pre-existing; rare). Client content still open: Management people, BMDC numbers, doctor bylines for articles (once doctors agree), legal text review.
+
+**Next — B4** (see START HERE).
 
 ---
 

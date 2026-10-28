@@ -18,6 +18,10 @@ import { pageMeta } from "@/lib/seo/metadata";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 
+// B3: a save in the dashboard → the next request waits for the fresh page (no stale App Shell); new
+// slugs are served complete on first visit. See app/[lang]/doctors/[slug]/page.js.
+export const ensureStatic = "navigation";
+
 export async function generateStaticParams() {
     return (await getJobs()).map((j) => ({ slug: j.slug }));
 }
@@ -103,6 +107,7 @@ async function JobPageContent({ params }) {
                             jobSlug={job.slug}
                             email={settings.email}
                             labels={c.form}
+                            common={dict.forms}
                         />
                     </div>
                 </section>

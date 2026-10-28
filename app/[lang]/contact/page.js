@@ -134,7 +134,11 @@ export default async function ContactPage({ params }) {
                         {c.formTitle}
                     </h2>
                     <div className="mt-6">
-                        <ContactForm waNumber={s.primaryWhatsapp?.number} labels={c.form} />
+                        <ContactForm
+                            waNumber={s.primaryWhatsapp?.number}
+                            labels={c.form}
+                            common={dict.forms}
+                        />
                     </div>
                 </section>
             </Container>

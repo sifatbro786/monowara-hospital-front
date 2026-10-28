@@ -18,6 +18,10 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema, HOSPITAL_ID } from "@/lib/seo/schema";
 import { formatDhakaDate, toDhakaDay } from "@/lib/utils/dates";
 
+// B3: a save in the dashboard → the next request waits for the fresh page (no stale App Shell); new
+// slugs are served complete on first visit. See app/[lang]/doctors/[slug]/page.js.
+export const ensureStatic = "navigation";
+
 export async function generateStaticParams() {
     return (await getArticles()).map((a) => ({ slug: a.slug }));
 }
@@ -64,7 +68,13 @@ async function ArticlePageContent({ params }) {
         url: `${SITE_URL}${href(lang, `/health-tips/${a.slug}`)}`,
         ...(a.image && { image: absUrl(a.image) }),
         publisher: { "@type": "Hospital", "@id": HOSPITAL_ID, name: settings.legalName.en },
+        ...(a.author && { author: physician(a.author) }),
+        ...(a.reviewedBy && { reviewedBy: physician(a.reviewedBy) }),
     };
+    const bylines = [
+        a.author && { label: tp.writtenBy, doc: a.author },
+        a.reviewedBy && a.reviewedBy._id !== a.author?._id && { label: tp.reviewedBy, doc: a.reviewedBy },
+    ].filter(Boolean);
 
     return (
         <>
@@ -93,6 +103,37 @@ async function ArticlePageContent({ params }) {
                             <time dateTime={a.publishedAt}>{date}</time> ·{" "}
                             {tp.read.replace("{n}", digits(a.readMinutes, lang))}
                         </p>
+                        {bylines.length > 0 && (
+                            <ul className="mt-8 flex flex-wrap gap-x-10 gap-y-4 border-t border-line pt-6">
+                                {bylines.map(({ label, doc }) => (
+                                    <li key={label} className="flex items-center gap-3">
+                                        {doc.photo && (
+                                            <Image
+                                                src={doc.photo}
+                                                alt=""
+                                                width={44}
+                                                height={44}
+                                                className="size-11 rounded-full bg-teal-100 object-cover object-top"
+                                            />
+                                        )}
+                                        <span className="text-sm leading-snug">
+                                            <span className="block text-ink-3">{label}</span>
+                                            <Link
+                                                href={href(lang, `/doctors/${doc.slug}`)}
+                                                className="link-underline font-medium text-ink"
+                                            >
+                                                {t(doc.name, lang)}
+                                            </Link>
+                                            {t(doc.designation, lang) && (
+                                                <span className="block text-ink-2">
+                                                    {t(doc.designation, lang)}
+                                                </span>
+                                            )}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </Container>
                 </header>
                 {a.image && (
@@ -169,6 +210,16 @@ async function ArticlePageContent({ params }) {
             )}
         </>
     );
+}
+
+/** Byline doctor → schema.org Physician (E-E-A-T); English name, as on the rest of the JSON-LD. */
+function physician(d) {
+    return {
+        "@type": "Physician",
+        name: d.name?.en,
+        url: `${SITE_URL}${href("en", `/doctors/${d.slug}`)}`,
+        ...(d.photo && { image: absUrl(d.photo) }),
+    };
 }
 
 export default function ArticlePage({ params }) {

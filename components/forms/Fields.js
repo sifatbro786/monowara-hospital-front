@@ -17,3 +17,18 @@ export function Field({ label, error, hint, className, children }) {
         </label>
     );
 }
+
+/** Form-level message (API refusal, rate limit, server unreachable) — same red as field errors. */
+export function FormNotice({ className, children }) {
+    return (
+        <div
+            role="alert"
+            className={cn(
+                "grid justify-items-start rounded-2xl border-l-4 border-emergency bg-emergency-soft px-4 py-3 text-sm text-ink",
+                className,
+            )}
+        >
+            {children}
+        </div>
+    );
+}

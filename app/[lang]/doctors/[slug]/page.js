@@ -19,6 +19,11 @@ import { pageMeta, absUrl, SITE_URL } from "@/lib/seo/metadata";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema, HOSPITAL_ID } from "@/lib/seo/schema";
 
+// Admin edits (B3): when a save expires this page, the next request waits for the fresh render instead of
+// getting the App Shell resumed from older cached data. Also: a doctor added later is served complete on
+// its first visit (crawlers never see a skeleton).
+export const ensureStatic = "navigation";
+
 export async function generateStaticParams() {
     const items = await getAllDoctors();
     return items.map((d) => ({ slug: d.slug }));

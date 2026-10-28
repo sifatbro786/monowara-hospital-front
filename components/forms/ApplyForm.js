@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
-import { Field, fieldClass, BD_MOBILE, EMAIL } from "./Fields";
+import { FORMS_LIVE, submitForm, currentSource } from "@/lib/forms";
+import { Field, FormNotice, fieldClass, BD_MOBILE, EMAIL } from "./Fields";
 
 const MAX_MB = 5;
 const OK_TYPES = [
@@ -14,12 +15,15 @@ const OK_TYPES = [
 
 /**
  * Job application with CV upload. The CV is validated in the browser (PDF/DOC/DOCX, ≤5 MB).
- * Static phase has no server to receive files, so submit shows the email fallback with a
- * prefilled subject. B3: multipart POST /api/v1/careers/apply → multer (type + size checks
- * again, files stored outside the web root), Nodemailer alert to HR, rate-limited.
+ * Live (FORMS_LIVE): multipart POST /api/careers/apply → the API checks the file's real type and size,
+ * stores it privately (never web-served) → Admin → Applications + email alert.
+ * Demo (no API URL) or API unreachable: email fallback with a prefilled subject.
  */
-export function ApplyForm({ jobs, jobSlug, email, labels }) {
+const CV_CODES = { CV_TYPE: "errCvType", FILE_TOO_LARGE: "errCvSize", CV_REQUIRED: "errCv" };
+
+export function ApplyForm({ jobs, jobSlug, email, labels, common }) {
     const f = labels;
+    const c = common;
     const [v, setV] = useState({
         name: "",
         phone: "",
@@ -30,10 +34,13 @@ export function ApplyForm({ jobs, jobSlug, email, labels }) {
     });
     const [file, setFile] = useState(null);
     const [err, setErr] = useState({});
-    const [done, setDone] = useState(false);
+    const [done, setDone] = useState(null); // null | "email" (demo / offline) | "live"
+    const [busy, setBusy] = useState(false);
+    const [notice, setNotice] = useState(null);
     const set = (k) => (e) => {
         setV((s) => ({ ...s, [k]: e.target.value }));
         if (err[k]) setErr((x) => ({ ...x, [k]: null }));
+        setNotice(null);
     };
 
     function pick(e) {
@@ -42,9 +49,9 @@ export function ApplyForm({ jobs, jobSlug, email, labels }) {
         setErr((x) => ({ ...x, cv: null }));
     }
 
-    function submit(e) {
+    async function submit(e) {
         e.preventDefault();
-        if (v.website) return;
+        if (busy || v.website) return;
         const x = {};
         if (v.name.trim().length < 2) x.name = f.errName;
         if (!BD_MOBILE.test(v.phone.replace(/[\s-]/g, ""))) x.phone = f.errPhone;
@@ -53,18 +60,53 @@ export function ApplyForm({ jobs, jobSlug, email, labels }) {
         else if (!OK_TYPES.includes(file.type)) x.cv = f.errCvType;
         else if (file.size > MAX_MB * 1024 * 1024) x.cv = f.errCvSize;
         setErr(x);
+        setNotice(null);
         if (Object.keys(x).length) return;
-        setDone(true);
+        if (!FORMS_LIVE) return setDone("email");
+
+        const body = new FormData();
+        for (const k of ["name", "phone", "email", "job", "note", "website"]) body.append(k, v[k]);
+        body.append("source", currentSource() || "");
+        body.append("cv", file);
+        setBusy(true);
+        const r = await submitForm("/careers/apply", body, { timeoutMs: 60000 });
+        setBusy(false);
+        if (r.ok) return setDone("live");
+        if (r.kind === "fields") {
+            const msg = { name: f.errName, phone: f.errPhone, email: f.errEmail };
+            setErr(Object.fromEntries(Object.keys(r.fields).map((k) => [k, msg[k] || c.errGeneric])));
+            if (!Object.keys(r.fields).some((k) => k in msg)) setNotice(c.errGeneric);
+        } else if (r.kind === "code" && CV_CODES[r.code]) {
+            setErr({ cv: f[CV_CODES[r.code]] });
+        } else if (r.kind === "code" && /^UNKNOWN_/.test(r.code)) {
+            setNotice(c.errStale);
+        } else if (r.kind === "rate") {
+            setNotice(c.errRate);
+        } else if (r.kind === "code") {
+            setNotice(c.errGeneric);
+        } else {
+            setDone("offline");
+        }
     }
 
     const job = jobs.find((j) => j.slug === v.job);
     const subject = `${f.mailSubject}: ${job?.title || ""} — ${v.name.trim()}`;
 
+    if (done === "live")
+        return (
+            <div role="status" className="rounded-3xl border border-line bg-card p-8">
+                <h3 className="text-h3">{f.liveDoneTitle}</h3>
+                <p className="mt-3 text-ink-2">{f.liveDoneLead}</p>
+            </div>
+        );
+
     if (done)
         return (
             <div role="status" className="rounded-3xl border border-line bg-card p-8">
                 <h3 className="text-h3">{f.doneTitle}</h3>
-                <p className="mt-3 text-ink-2">{f.doneLead.replace("{email}", email)}</p>
+                <p className="mt-3 text-ink-2">
+                    {(done === "offline" ? f.offlineLead : f.doneLead).replace("{email}", email)}
+                </p>
                 <a
                     href={`mailto:${email}?subject=${encodeURIComponent(subject)}`}
                     className="mt-6 inline-flex h-12 items-center gap-2 rounded-pill bg-ink px-6 font-medium text-paper hover:bg-teal-900"
@@ -155,13 +197,16 @@ export function ApplyForm({ jobs, jobSlug, email, labels }) {
                 className="hidden"
                 aria-hidden
             />
+            {notice && <FormNotice className="sm:col-span-2">{notice}</FormNotice>}
             <div className="sm:col-span-2">
                 <button
                     type="submit"
-                    className="inline-flex h-12 items-center gap-2 rounded-pill bg-ink px-6 font-medium text-paper hover:bg-teal-900"
+                    disabled={busy}
+                    aria-busy={busy}
+                    className="inline-flex h-12 items-center gap-2 rounded-pill bg-ink px-6 font-medium text-paper hover:bg-teal-900 disabled:cursor-wait disabled:opacity-70"
                 >
-                    {f.submit}
-                    <Icon name="arrow" size={17} />
+                    {busy ? c.sending : FORMS_LIVE ? f.liveSubmit : f.submit}
+                    {!busy && <Icon name="arrow" size={17} />}
                 </button>
             </div>
         </form>

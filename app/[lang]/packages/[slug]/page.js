@@ -29,6 +29,10 @@ const PKG_MEDIA = {
     checkup: "header.packages",
 };
 
+// B3: a save in the dashboard → the next request waits for the fresh page (no stale App Shell); new
+// slugs are served complete on first visit. See app/[lang]/doctors/[slug]/page.js.
+export const ensureStatic = "navigation";
+
 export async function generateStaticParams() {
     return (await getPackages()).map((p) => ({ slug: p.slug }));
 }

@@ -6,7 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { Prose } from "@/components/services/Blocks";
 import { getDictionary } from "@/lib/i18n/getDictionary";
-import { getSitePage } from "@/lib/api/pages";
+import { getSitePage, getManagement } from "@/lib/api/pages";
 import { getBhrpc } from "@/lib/api/programs";
 import { getAesthetic } from "@/lib/api/aesthetic";
 import { getMedia } from "@/lib/api/media";
@@ -29,12 +29,13 @@ export async function generateMetadata({ params }) {
 
 export default async function AboutPage({ params }) {
     const { lang } = await params;
-    const [dict, page, bhrpc, aesthetic, media] = await Promise.all([
+    const [dict, page, bhrpc, aesthetic, media, people] = await Promise.all([
         getDictionary(lang),
         getSitePage("about"),
         getBhrpc(),
         getAesthetic(),
         getMedia(),
+        getManagement(),
     ]);
     if (!page) notFound();
     const a = dict.about;
@@ -148,6 +149,36 @@ export default async function AboutPage({ params }) {
                             </li>
                         ))}
                     </ul>
+                    {people.length > 0 && (
+                        <div className="mt-14 border-t border-line pt-8">
+                            <p className="eyebrow">{a.management}</p>
+                            <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                                {people.slice(0, 4).map((p) => (
+                                    <li key={p._id} className="flex items-center gap-4">
+                                        <span className="relative size-16 shrink-0 overflow-hidden rounded-full bg-teal-100">
+                                            {p.photo && (
+                                                <Image
+                                                    src={p.photo}
+                                                    alt=""
+                                                    fill
+                                                    sizes="4rem"
+                                                    className="object-cover object-top"
+                                                />
+                                            )}
+                                        </span>
+                                        <span className="leading-snug">
+                                            <span className="block font-medium text-ink">
+                                                {t(p.name, lang)}
+                                            </span>
+                                            <span className="block text-sm text-ink-2">
+                                                {t(p.role, lang)}
+                                            </span>
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                     <div className="mt-12 flex flex-wrap gap-3">
                         <Button href={href(lang, "/doctors")} variant="ink">
                             {a.meetDoctors}

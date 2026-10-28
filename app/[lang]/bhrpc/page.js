@@ -32,14 +32,17 @@ export async function generateMetadata({ params }) {
 /** BHRPC — high-risk pregnancy programme (old /pregnancy-care). */
 export default async function BhrpcPage({ params }) {
     const { lang } = await params;
-    const [dict, settings, b, packages, articles, media] = await Promise.all([
+    const [dict, settings, b, packages, allArticles, media] = await Promise.all([
         getDictionary(lang),
         getSettings(),
         getBhrpc(),
         getPackages({ category: "maternity" }),
-        getArticles({ category: "pregnancy" }),
+        getArticles(),
         getMedia(),
     ]);
+    // Reading list = the articles picked in Admin → BHRPC, in that order (hidden/scheduled ones drop out).
+    const bySlug = new Map(allArticles.map((a) => [a.slug, a]));
+    const articles = (b.topics || []).map((slug) => bySlug.get(slug)).filter(Boolean);
     const x = dict.bhrpc;
     const wa = settings.primaryWhatsapp?.number;
 

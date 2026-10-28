@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { PUBLIC_API_URL } from "@/lib/forms";
 
 /**
  * One delegated listener for every WhatsApp (wa.me) and phone (tel:) link on the site.
@@ -11,10 +12,8 @@ import { useEffect } from "react";
  *   { event: "contact_tap", channel: "whatsapp" | "call", desk, number, section, page_path, lang }
  */
 
-// Same API as the dashboard. Unset (static demo) → no beacon, dataLayer only.
-const TAP_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL
-    ? `${process.env.NEXT_PUBLIC_ADMIN_API_URL.replace(/\/$/, "")}/events/tap`
-    : null;
+// Same browser API base as the public forms. Unset (static demo) → no beacon, dataLayer only.
+const TAP_URL = PUBLIC_API_URL ? `${PUBLIC_API_URL}/events/tap` : null;
 
 /** Beacon: text/plain = CORS "simple" request (no preflight); never blocks the navigation. */
 function sendTap(payload) {

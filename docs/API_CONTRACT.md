@@ -33,7 +33,13 @@
 - **Slugs:** keep the old slug in `previousSlugs[]` when the admin renames one; `GET /<col>/:slug` must
   resolve old slugs too. The page then 308-redirects to the new URL (doctors, departments, packages,
   articles).
-- **Revalidation (B3):** after an admin save, call Next's `revalidateTag` with the tags below.
+- **Revalidation (B3, live):** every 2xx write under `/api/admin/<module>` → mh-back POSTs the module's tags
+  (`src/lib/revalidate.js` → `TAGS_BY_MODULE`, debounced 250 ms, 1 retry, never fails the save) to Next
+  `POST /api/revalidate` `{ tags }` with header `x-revalidate-secret` (= `REVALIDATE_SECRET` in both repos;
+  401 without it, 400 for a malformed tag). Next calls `revalidateTag(tag, { expire: 0 })` → the next visit
+  renders fresh. Collection tags are enough: every per-doc reader also carries its collection tag. Prerendered
+  `[slug]` pages export `ensureStatic = "navigation"` so that first visit waits for the fresh page instead of
+  being served the App Shell from older cached data.
 
 ## Endpoints
 
@@ -51,8 +57,8 @@
 | `/doctors/:slug` | — | doc | `doctors`, `departments`, `doctor:<slug>` |
 | `/packages` | `category` (`maternity`/`surgical`/`checkup`), `featured`, `department` (**id**) | `[]` | `packages` |
 | `/packages/:slug` | — | doc | `packages`, `package:<slug>` |
-| `/articles` | `category?` | `[]` newest `publishedAt` first | `articles` |
-| `/articles/:slug` | — | doc | `articles`, `article:<slug>` |
+| `/articles` | `category?` | `[]` newest `publishedAt` first; **only `publishedAt ≤ now`** (future = scheduled, hidden); `author`/`reviewedBy` populated `{ _id, slug, name, designation, photo }` (active doctors only, else `null`) | `articles`, `doctors` |
+| `/articles/:slug` | — | doc (same rules; scheduled → 404) | `articles`, `doctors`, `article:<slug>` |
 | `/gallery` | — | `[]` | `gallery` |
 | `/pages?type=legal` | — | `[]` legal pages | `pages` |
 | `/pages/:slug` | — | legal or site page (`about`, `patients-visitors`) | `pages`, `page:<slug>` |
@@ -142,7 +148,13 @@ The UI also tries one refresh on `AUTH_REQUIRED` (cheap; a browser without a ref
 
 ---
 
-## Public forms (B1.4) — wired in B3
+## Public forms (B1.4) — live since B3
+
+Wired in `components/booking/BookingForm.js`, `components/forms/{ContactForm,ApplyForm}.js` via `lib/forms.js`
+(`submitForm`). Live when `NEXT_PUBLIC_API_URL` (or `NEXT_PUBLIC_ADMIN_API_URL`) is set at build time; unset
+(Vercel demo) → the old WhatsApp / email hand-off. Network error, timeout or 5xx → booking/contact offer
+"Send via WhatsApp instead" with the same text; careers falls back to the email screen. Business codes are
+shown in the visitor's language (`dict.forms.codes`, CV codes at the CV field, date codes at the date field).
 
 Browser → API directly (no cookies). JSON, except the CV upload. Send the honeypot `website` (empty) and
 `source` (current path) from every form. `201 { data: { received: true, id } }` on success; a filled

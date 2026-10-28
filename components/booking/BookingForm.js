@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Icon, WhatsAppMark } from "@/components/ui/Icon";
 import { whatsappLink, cn } from "@/lib/utils";
+import { FORMS_LIVE, submitForm, currentSource } from "@/lib/forms";
+import { FormNotice } from "@/components/forms/Fields";
 
 const BD_MOBILE = /^(?:\+?88)?01[3-9]\d{8}$/;
 const todayISO = () =>
@@ -11,13 +13,17 @@ const todayISO = () =>
 
 /**
  * Optional appointment request form (settings.bookingMode = "form" | "both").
- * Static phase: on submit it validates, then hands the request to WhatsApp with a filled
- * message (works without a backend). Backend phase (B3): POST /api/v1/appointments with the
- * same fields — the API re-validates (zod) and rate-limits; `website` is a honeypot.
+ * Live (FORMS_LIVE): POST /api/appointments → Admin → Booking requests + email alert. The API re-checks
+ * everything (chamber day, leave, duplicates); its codes are shown in the visitor's language.
+ * API unreachable → the same request can go out on WhatsApp instead (one tap).
+ * Demo (no API URL): validated hand-off to WhatsApp, as before. `website` is a honeypot.
  * `doctors` = [{ slug, name, dept }] (already localised), `departments` = [{ slug, name }].
  */
-export function BookingForm({ doctors, departments, waNumber, labels, context = "" }) {
+const DATE_CODES = new Set(["DATE_PAST", "DATE_TOO_FAR", "NO_CHAMBER", "DOCTOR_ON_LEAVE"]);
+
+export function BookingForm({ doctors, departments, waNumber, labels, common, context = "" }) {
     const f = labels;
+    const c = common;
     const preDoctor = doctors.find((d) => d.name === context)?.slug || "";
     const [values, setValues] = useState({
         name: "",
@@ -29,7 +35,10 @@ export function BookingForm({ doctors, departments, waNumber, labels, context = 
         website: "",
     });
     const [errors, setErrors] = useState({});
-    const [sent, setSent] = useState(false);
+    const [sent, setSent] = useState(null); // null | "wa" | "live"
+    const [busy, setBusy] = useState(false);
+    const [notice, setNotice] = useState(null); // form-level message
+    const [offline, setOffline] = useState(false);
     // "today" is only known in the browser (never during prerender).
     const [minDate, setMinDate] = useState("");
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -39,19 +48,11 @@ export function BookingForm({ doctors, departments, waNumber, labels, context = 
         const v = e.target.value;
         setValues((s) => ({ ...s, [k]: v, ...(k === "department" ? { doctor: "" } : {}) }));
         if (errors[k]) setErrors((x) => ({ ...x, [k]: null }));
+        setNotice(null);
     };
     const list = values.department ? doctors.filter((d) => d.dept === values.department) : doctors;
 
-    function submit(e) {
-        e.preventDefault();
-        if (values.website) return; // bot
-        const err = {};
-        if (values.name.trim().length < 2) err.name = f.errName;
-        if (!BD_MOBILE.test(values.phone.replace(/[\s-]/g, ""))) err.phone = f.errPhone;
-        if (values.date && minDate && values.date < minDate) err.date = f.errDate;
-        setErrors(err);
-        if (Object.keys(err).length) return;
-
+    function waText() {
         const doctor = doctors.find((d) => d.slug === values.doctor)?.name;
         const dept = departments.find((d) => d.slug === values.department)?.name;
         const lines = [
@@ -63,8 +64,56 @@ export function BookingForm({ doctors, departments, waNumber, labels, context = 
             values.date && `${f.date}: ${values.date}`,
             values.note.trim() && `${f.note}: ${values.note.trim().slice(0, 300)}`,
         ].filter(Boolean);
-        window.open(whatsappLink(waNumber, lines.join("\n")), "_blank", "noopener");
-        setSent(true);
+        return lines.join("\n");
+    }
+
+    async function submit(e) {
+        e.preventDefault();
+        if (busy) return;
+        if (values.website) return; // bot
+        const err = {};
+        if (values.name.trim().length < 2) err.name = f.errName;
+        if (!BD_MOBILE.test(values.phone.replace(/[\s-]/g, ""))) err.phone = f.errPhone;
+        if (values.date && minDate && values.date < minDate) err.date = f.errDate;
+        setErrors(err);
+        setNotice(null);
+        if (Object.keys(err).length) return;
+
+        if (!FORMS_LIVE) {
+            window.open(whatsappLink(waNumber, waText()), "_blank", "noopener");
+            setSent("wa");
+            return;
+        }
+        setBusy(true);
+        const r = await submitForm("/appointments", {
+            name: values.name,
+            phone: values.phone,
+            department: values.department,
+            doctor: values.doctor,
+            date: values.date,
+            note: values.note,
+            website: values.website,
+            source: currentSource(),
+        });
+        setBusy(false);
+        setOffline(false);
+        if (r.ok) return setSent("live");
+        if (r.kind === "fields") {
+            const msg = { name: f.errName, phone: f.errPhone, date: f.errDate };
+            setErrors(Object.fromEntries(Object.keys(r.fields).map((k) => [k, msg[k] || c.errGeneric])));
+            if (!Object.keys(r.fields).some((k) => k in msg)) setNotice(c.errGeneric);
+        } else if (r.kind === "code" && DATE_CODES.has(r.code)) {
+            setErrors({ date: r.code === "DATE_PAST" ? f.errDate : c.codes[r.code] });
+        } else if (r.kind === "code" && /^UNKNOWN_/.test(r.code)) {
+            setNotice(c.errStale);
+        } else if (r.kind === "code" && c.codes[r.code]) {
+            setNotice(c.codes[r.code]);
+        } else if (r.kind === "rate") {
+            setNotice(c.errRate);
+        } else {
+            setNotice(c.errOffline);
+            setOffline(true);
+        }
     }
 
     const field =
@@ -73,11 +122,18 @@ export function BookingForm({ doctors, departments, waNumber, labels, context = 
     if (sent)
         return (
             <div role="status" className="rounded-3xl border border-line bg-card p-8">
-                <h3 className="text-h3">{f.sentTitle}</h3>
-                <p className="mt-3 text-ink-2">{f.sentLead}</p>
+                <h3 className="text-h3">{sent === "live" ? f.liveSentTitle : f.sentTitle}</h3>
+                <p className="mt-3 text-ink-2">
+                    {sent === "live"
+                        ? f.liveSentLead.replace("{phone}", values.phone.trim())
+                        : f.sentLead}
+                </p>
                 <button
                     type="button"
-                    onClick={() => setSent(false)}
+                    onClick={() => {
+                        setSent(null);
+                        setValues((v) => ({ ...v, date: "", note: "" }));
+                    }}
                     className="link-underline mt-6 text-sm text-teal-700"
                 >
                     {f.again}
@@ -173,13 +229,40 @@ export function BookingForm({ doctors, departments, waNumber, labels, context = 
                 className="hidden"
                 aria-hidden
             />
+            {notice && (
+                <FormNotice className="sm:col-span-2">
+                    {notice}
+                    {offline && waNumber && (
+                        <a
+                            href={whatsappLink(waNumber, waText())}
+                            target="_blank"
+                            rel="noopener"
+                            className="mt-3 inline-flex items-center gap-2 font-medium text-ink underline underline-offset-4"
+                        >
+                            <WhatsAppMark size={16} className="text-wa" />
+                            {f.offlineCta}
+                        </a>
+                    )}
+                </FormNotice>
+            )}
             <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
                 <button
                     type="submit"
-                    className="inline-flex h-12 items-center gap-2 rounded-pill bg-ink px-6 font-medium text-paper hover:bg-teal-900"
+                    disabled={busy}
+                    aria-busy={busy}
+                    className="inline-flex h-12 items-center gap-2 rounded-pill bg-ink px-6 font-medium text-paper hover:bg-teal-900 disabled:cursor-wait disabled:opacity-70"
                 >
-                    <WhatsAppMark size={18} className="text-wa" />
-                    {f.submit}
+                    {FORMS_LIVE ? (
+                        <>
+                            {busy ? c.sending : f.liveSubmit}
+                            {!busy && <Icon name="arrow" size={17} />}
+                        </>
+                    ) : (
+                        <>
+                            <WhatsAppMark size={18} className="text-wa" />
+                            {f.submit}
+                        </>
+                    )}
                 </button>
                 <p className="flex items-center gap-1.5 text-xs text-ink-3">
                     <Icon name="clock" size={13} />
